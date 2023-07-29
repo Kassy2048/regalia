@@ -16,7 +16,8 @@ This project is an attempt to fix that runner code, or at least fix it for games
 
 ### Limitations
 
-Rags 3.x games are not supported. Exporting a game in the Rags 3.x designer creates a Silverlight thing instead of a plain JavaScript app. Not sure if the exported thing works in Silverlight or not, or how easy it is to install Silverlight these days, but I'm not touching it.
+Exporting a game in the Rags 3.x designer creates a Silverlight thing instead of a plain JavaScript app. This cannot be used with regalia.
+A beta support for Rags 3.x games is possible when they are exported using [rags2html](https://github.com/Kassy2048/rags2html) though.
 
 Just like the desktop Rags player, **saves from one version of a game will not work on other versions**. This is because Rags saves are just a copy of the entire game state, so if you load an old Rags save you're basically loading the old version of the game.
 
@@ -69,6 +70,8 @@ Next, you need to run the Regalia install script on your game:
 This will create a "(your game name) - regalia.html" file in that directory, as well as a "regalia" subdirectory with all the associated JavaScript and CSS.
 
 To run the game, just open the "(your game name) - regalia.html" file in any browser. Tested mostly only in Chrome, your mileage may vary.
+
+As an alternative, the [rags2html](https://github.com/Kassy2048/rags2html) project can be used to export any RAGS games into a ready-to-use regalia version.
 
 ### Why is there a patched RagsLib.dll?
 
