@@ -388,10 +388,14 @@ function AddTextToRTF(text, clr, fontst) {
         text = PerformTextReplacements(text, null);
     }
 
-    text = escapeHtmlSpecialCharacters(text);
+    if (TheGame.RagsVersion < 3.0) { // RAGS 3.0 uses HTML tags
+        text = escapeHtmlSpecialCharacters(text);
 
-    // unescape the <br> or <br/> tags that just got escaped
-    text = text.replace(/&lt;\s*[/]?\s*br\s*[/]?\s*&gt;/g, '<br>')
+        // unescape the <br> or <br/> tags that just got escaped
+        text = text.replace(/&lt;\s*[/]?\s*br\s*[/]?\s*&gt;/g, '<br>')
+    } else {
+        // TODO Remove leading "<br/>"?
+    }
 
     var replacedtext = text;
     if (fontst == "Regular" && clr == "Black") {
