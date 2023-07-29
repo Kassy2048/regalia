@@ -250,6 +250,12 @@ body {
     display: none;
 }
 
+#cmdinputmenu {
+    /* Show scrollbars if needed */
+    max-height: 100%;
+    max-width: 100%;
+}
+
 #playernamechoice, #textchoice, #textactionchoice {
     padding: 10px;
 }
