@@ -70,6 +70,15 @@ body {
     overflow-x: hidden;
 }
 
+#MainText hr {
+    border: none;
+    border-top: 1px dashed grey;
+}
+
+#MainText hr:last-child {
+    display: none;
+}
+
 #RoomBar {
     display: flex;
     align-items: center;

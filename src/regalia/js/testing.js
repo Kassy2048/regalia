@@ -76,6 +76,7 @@ $(function() {
             $("#Continue").css("background-color", "rgb(128, 128, 128)");
             $("#Continue").css('visibility', "hidden");
             GameCommands.runCommands();
+            GameUI.onInteractionResume();
         }
     });
     $("#PlayerImg").click(function(e) {
@@ -104,6 +105,7 @@ $(function() {
             ActionRecorder.filledInTextInput(Globals.selectedObj);
             SetCommandInput(Globals.variableGettingSet, Globals.selectedObj);
             GameCommands.runCommands();
+            GameUI.onInteractionResume();
         }
     }
     $("#textbutton").click(setTextInputChoice);
@@ -313,6 +315,7 @@ $(function() {
             $("#textactionchoice").css("visibility", "hidden");
             if (getObjectClass(Globals.inputDataObject) == "action" || "actionparent" in Globals.inputDataObject) {
                 GameActions.executeAction(Globals.inputDataObject, Globals.bMasterTimer);
+                GameUI.onInteractionResume();
             }
         }
     }
@@ -368,6 +371,7 @@ $(function() {
                         if (!Globals.bCancelMove) {
                             ChangeRoom(Finder.room(newRoom), true, true);
                         }
+                        GameUI.onInteractionResume();
                     });
                 }
             });

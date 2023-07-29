@@ -51,6 +51,7 @@ var GameController = {
         this.gamePaused = true;
         GameUI.disableSaveAndLoad();
         GameUI.hideGameElements();
+        GameUI.onInteractionResume();
     },
 
     continue: function () {

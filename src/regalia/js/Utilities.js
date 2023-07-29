@@ -458,14 +458,8 @@ function AddTextToRTF(text, clr, fontst) {
         }
 
         $("#MainText").append('</br>' + text);
-        $("#MainText").animate({
-            scrollTop: $("#MainText")[0].scrollHeight
-        }, 0);
     } else {
         $("#MainText").append('</br>' + text);
-        $("#MainText").animate({
-            scrollTop: $("#MainText")[0].scrollHeight
-        }, 0);
     }
 }
 

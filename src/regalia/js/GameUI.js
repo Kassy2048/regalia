@@ -77,6 +77,7 @@ var GameUI = {
                         ActionRecorder.choseInputAction(text);
                         GameActions.executeAction(act, true);
                         GameCommands.runCommands();
+                        GameUI.onInteractionResume();
                     }
                 });
             }
@@ -101,6 +102,7 @@ var GameUI = {
                     ActionRecorder.choseInputAction(text);
                     SetCommandInput(Globals.variableGettingSet, Globals.selectedObj);
                     GameCommands.runCommands();
+                    GameUI.onInteractionResume();
                 });
             }
         });
@@ -164,6 +166,7 @@ var GameUI = {
                     $("#selectionmenu").css("visibility", "hidden");
                     ResetLoopObjects();
                     GameActions.processAction(selectionchoice, false, obj);
+                    GameUI.onInteractionResume();
                 });
             }
         });
@@ -393,5 +396,20 @@ var GameUI = {
                 $container.append($timerRow);
             });
         }
-    }
+    },
+
+    onInteractionResume: function() {
+        //console.warn('onInteractionResume');
+        const MainText = $("#MainText");
+        const scrollHeight = MainText[0].scrollHeight;
+        if(this.lastScrollHeight != scrollHeight) {
+            MainText.append('<hr>');
+            if(this.lastScrollHeight !== undefined) {
+                MainText.animate({
+                    scrollTop: this.lastScrollHeight
+                }, 0);
+            }
+            this.lastScrollHeight = MainText[0].scrollHeight;
+        }
+    },
 };
