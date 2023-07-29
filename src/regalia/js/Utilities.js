@@ -354,9 +354,13 @@ function SetExits() {
     $(".compass-direction").removeClass("active");
     if (currentroom != null) {
         for (var i = 0; i < currentroom.Exits.length; i++) {
+            var direction = currentroom.Exits[i].Direction;
             if (currentroom.Exits[i].DestinationRoom != "" && currentroom.Exits[i].bActive) {
-                var direction = currentroom.Exits[i].Direction;
-                $(".compass-direction[data-direction=" + direction + "]").addClass("active");
+                var destRoom = Finder.room(GetDestinationRoomName(direction));
+                $(".compass-direction[data-direction=" + direction + "]").addClass("active")
+                        .text(roomDisplayName(destRoom));
+            } else {
+                $(".compass-direction[data-direction=" + direction + "]").text('');
             }
         }
     }

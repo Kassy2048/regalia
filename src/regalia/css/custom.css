@@ -147,11 +147,13 @@ body {
     display: flex;
     flex-direction: row;
     flex: 1 1 auto;
+    height: 33%;
 }
 
 .compass-direction-row > div {
     flex: 1 1 auto;
     margin: 2px;
+    width: 33%;
 }
 
 /* other stuff */
@@ -387,16 +389,29 @@ body {
     bottom: 0;
 }
 
+.big-picture-mode .compass-direction {
+    /* When UI is shrunk */
+    font-size: small;
+}
+
 .compass-direction {
     visibility: hidden;
+    overflow: hidden;
 }
 
 .compass-direction.active {
     cursor: pointer;
     visibility: visible;
-    opacity: 0.5;
-    background-color: green;
+    /* opacity: 0.5; */
+    /* background-color: green; */
     border: 1px solid black;
+    font-weight: bold;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    flex-direction: column;
+    /* Only make the background transparent, not the text */
+    background-color: rgba(0, 128, 0, 0.6);
 }
 
 .compass-direction.active:hover {
