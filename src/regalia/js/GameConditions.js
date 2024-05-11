@@ -252,6 +252,7 @@ var GameConditions = {
             }
             case "CT_Character_In_Room": {
                 var tempchar = Finder.character(step2);
+                if(tempchar == null) return false;
                 if (step3 == CurrentRoomGuid) {
                     var currentroom = Finder.room(TheGame.Player.CurrentRoom);
                     return tempchar.CurrentRoom == currentroom.UniqueID;
@@ -261,6 +262,7 @@ var GameConditions = {
             }
             case "CT_Character_In_RoomGroup": {
                 var tempchar = Finder.character(step2);
+                if(tempchar == null) return false;
                 var temproom = Finder.room(tempchar.CurrentRoom);
                 if (temproom != null) {
                     if (temproom.Group == step3)
