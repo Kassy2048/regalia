@@ -92,6 +92,17 @@ class GameVariable extends React.Component {
         this.inputChanged = this.inputChanged.bind(this);
     }
 
+    static getDerivedStateFromProps(props, state) {
+        // Update state if variable value has changed in game
+        const value = valueForVariable(props.variable);
+        if(value !== state.value) {
+            return {
+                value: value
+            };
+        }
+        return null;
+    }
+
     freezeClicked() {
         const variable = this.props.variable;
         if (isFrozenVariable(variable)) {
@@ -204,6 +215,16 @@ class GameCustomProperty extends React.Component {
 
         this.freezeClicked = this.freezeClicked.bind(this);
         this.inputChanged = this.inputChanged.bind(this);
+    }
+
+    static getDerivedStateFromProps(props, state) {
+        // Update state if property value has changed in game
+        if(props.property.Value !== state.value) {
+            return {
+                value: props.property.Value
+            };
+        }
+        return null;
     }
 
     freezeClicked() {
