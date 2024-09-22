@@ -59,6 +59,7 @@ var SavedGames = {
             gameData: gameData,
             cheatFreezes: window.cheatFreezes,
             mainText: mainText,
+            currentImage: Globals.currentImage,
         }));
 
         persistKeyValue(this.keyForIndex(), JSON.stringify(savedGames));

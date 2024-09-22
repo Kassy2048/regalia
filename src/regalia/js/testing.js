@@ -451,6 +451,10 @@ function handleFileSelect(bQuick, CurID) {
         window.cheatFreezes = savedGame.cheatFreezes;
     }
     RoomChange(false, false, true);
+    if(savedGame.currentImage !== undefined) {
+        // This must be done after the call to RoomChange() because it changes the image
+        showImage(savedGame.currentImage);
+    }
     UpdateStatusBars();
     SetPortrait(TheGame.Player.PlayerPortrait);
     $("#playernamechoice").css("visibility", "hidden");
