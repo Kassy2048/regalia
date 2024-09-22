@@ -285,7 +285,9 @@ function runAfterPause(runNextPhase) {
     }
 }
 
-function ChangeRoom(currentRoom, bRunTimerEvents, bRunEvents) {
+function ChangeRoom(currentRoom, bRunTimerEvents, bRunEvents, bQuiet) {
+    if(bQuiet === undefined) bQuiet = false;
+
     var commandList = CommandLists.startNestedCommandList();
     var desiredRoomId = currentRoom.UniqueID;
     if (currentRoom == null)
@@ -294,7 +296,7 @@ function ChangeRoom(currentRoom, bRunTimerEvents, bRunEvents) {
     SetRoomThumb(currentRoom.RoomPic);
     showImage(currentRoom.RoomPic);
     TheGame.Player.CurrentRoom = currentRoom.UniqueID;
-    if (Globals.movingDirection) {
+    if (!bQuiet && Globals.movingDirection) {
         $("#MainText").append('</br><b>' + Globals.movingDirection + "</b>");
     }
     if (bRunEvents && !currentRoom.bEnterFirstTime) {
@@ -327,15 +329,17 @@ function ChangeRoom(currentRoom, bRunTimerEvents, bRunEvents) {
                     $("#MainText").animate({
                         scrollTop: $("#MainText")[0].scrollHeight
                     });
-                    AddTextToRTF(currentRoom.Description, "Black", "Regular");
-                    $("#MainText").animate({
-                        scrollTop: $("#MainText")[0].scrollHeight
-                    }, 0);
+                    if(!bQuiet) {
+                        AddTextToRTF(currentRoom.Description, "Black", "Regular");
+                        $("#MainText").animate({
+                            scrollTop: $("#MainText")[0].scrollHeight
+                        }, 0);
+                    }
                     ActionRecorder.roomEntered(roomDisplayName(currentRoom));
                     if (bRunTimerEvents)
                         GameTimers.runTimerEvents();
                     GameUI.refreshPanelItems();
-                    if ($("#RoomThumb").css("visibility") != "hidden")
+                    if ($("#RoomThumbImg").css("visibility") != "hidden")
                         SetExits();
                     SetBorders();
                 });
@@ -344,9 +348,9 @@ function ChangeRoom(currentRoom, bRunTimerEvents, bRunEvents) {
     }
 }
 
-function RoomChange(bRunTimerEvents, bRunEvents) {
+function RoomChange(bRunTimerEvents, bRunEvents, bQuiet) {
     var currentroom = Finder.room(TheGame.Player.CurrentRoom);
-    ChangeRoom(currentroom, bRunTimerEvents, bRunEvents);
+    ChangeRoom(currentroom, bRunTimerEvents, bRunEvents, bQuiet);
 }
 
 function SetExits() {

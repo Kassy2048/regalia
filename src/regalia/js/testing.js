@@ -3,7 +3,7 @@
 }
 
 function hideSaveAndLoadMenus() {
-    GameUI.showGameElements();
+    // GameUI.showGameElements();
     $(".save-menu").addClass("hidden");
     $(".load-menu").addClass("hidden");
 }
@@ -450,7 +450,7 @@ function handleFileSelect(bQuick, CurID) {
     if (savedGame.cheatFreezes) {
         window.cheatFreezes = savedGame.cheatFreezes;
     }
-    RoomChange(false, false);
+    RoomChange(false, false, true);
     UpdateStatusBars();
     SetPortrait(TheGame.Player.PlayerPortrait);
     $("#playernamechoice").css("visibility", "hidden");

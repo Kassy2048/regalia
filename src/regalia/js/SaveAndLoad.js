@@ -39,13 +39,28 @@ var SavedGames = {
             name: name,
             date: date
         };
+
+        let mainText = $("#MainText").html();
+        if(mainText.length > 10000) {
+            // Do not store more than 10K characters
+            const pos = mainText.indexOf('<hr>', mainText.length - 10000);
+            if(pos == -1) {
+                // TODO Try to store something that does not break the DOM tree
+                mainText = '';
+            } else {
+                mainText = mainText.slice(pos + 4);
+            }
+        }
+
         persistKeyValue(this.keyForSave(id), JSON.stringify({
             id: id,
             name: name,
             date: date,
             gameData: gameData,
-            cheatFreezes: window.cheatFreezes
+            cheatFreezes: window.cheatFreezes,
+            mainText: mainText,
         }));
+
         persistKeyValue(this.keyForIndex(), JSON.stringify(savedGames));
     },
     destroySave: function (id) {
@@ -88,6 +103,10 @@ var SavedGames = {
 
         for (var i = 0; i < orderedChanges.length; i++) {
             DeepDiff.applyChange(TheGame, true, orderedChanges[i]);
+        }
+
+        if(savedGame.mainText !== undefined) {
+            $("#MainText").html(savedGame.mainText);
         }
     }
 };
