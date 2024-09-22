@@ -179,7 +179,7 @@ function renderMainImageAndLayers() {
     ImageRecorder.sawImage(Globals.currentImage);
     var fileParts = Globals.currentImage.split('.');
     var fileExtension = fileParts[fileParts.length - 1].toLowerCase();
-    if (fileExtension === 'mp4' || fileExtension === 'webm') {
+    if (fileExtension === 'mp4' || fileExtension === 'webm' || fileExtension === 'avi') {
         var $videoTag = $('<video autoplay controls width="100%"><source src="' + imagePath(Globals.currentImage) + '" type="video/' + fileExtension + '">Sorry, your browser doesn\'t support this video.</video>');
 
         $("#MainVideo").empty();
