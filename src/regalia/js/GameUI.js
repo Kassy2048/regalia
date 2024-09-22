@@ -38,7 +38,7 @@ var GameUI = {
 
     disableSaveAndLoad: function () {
         $('#save').prop('disabled', true);
-        $('#load').prop('disabled', true);
+        // $('#load').prop('disabled', true);
     },
 
     enableSaveAndLoad: function () {

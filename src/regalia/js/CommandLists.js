@@ -90,5 +90,11 @@ var CommandLists = {
                 return;
             }
         }
-    }
+    },
+
+    reset: function() {
+        this.stack = [
+            {obj: null, act: null, autoShift: false, commands: []},
+        ];
+    },
 };

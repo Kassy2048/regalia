@@ -440,6 +440,10 @@ function handleFileSelect(bQuick, CurID) {
     var desiredId = bQuick ? 0 : CurID;
     var savedGame = SavedGames.getSave(desiredId);
 
+    GameController.reset();
+    CommandLists.reset();
+    Globals.movingDirection = "";
+
     TheGame = SetupGameDataWithMap();
     GameUI.setGameTitle();
     SavedGames.applySaveToGame(TheGame, savedGame);
@@ -456,6 +460,8 @@ function handleFileSelect(bQuick, CurID) {
     $("#selectionmenu").css("visibility", "hidden");
     $("#genderchoice").css("visibility", "hidden");
     $("#cmdinputmenu").css("visibility", "hidden");
+    $("#Continue").css("background-color", "rgb(128, 128, 128)");
+    $("#Continue").css('visibility', "hidden");
     GameUI.showGameElements();
 
     if (bQuick) {
