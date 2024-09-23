@@ -41,16 +41,12 @@ var SavedGames = {
         };
 
         let mainText = $("#MainText").html();
-        if(mainText.length > 10000) {
-            // Do not store more than 10K characters
-            const pos = mainText.indexOf('<hr>', mainText.length - 10000);
-            if(pos == -1) {
-                // TODO Try to store something that does not break the DOM tree
-                mainText = '';
-            } else {
-                mainText = mainText.slice(pos + 4);
-            }
-        }
+        // Compress the main text
+        let zData = LZMA.compress(mainText, 1);
+        if(zData.length & 1) zData.push(0);  // Pad with 0 to get a multiple of 2 bytes
+        zData = new Int8Array(zData);
+        // Convert the result to an UTF-16 string (2 bytes per characters)
+        const zText = String.fromCharCode.apply(null, new Uint16Array(zData.buffer));
 
         persistKeyValue(this.keyForSave(id), JSON.stringify({
             id: id,
@@ -58,7 +54,7 @@ var SavedGames = {
             date: date,
             gameData: gameData,
             cheatFreezes: window.cheatFreezes,
-            mainText: mainText,
+            zMainText: zText,
             currentImage: Globals.currentImage,
         }));
 
@@ -106,8 +102,13 @@ var SavedGames = {
             DeepDiff.applyChange(TheGame, true, orderedChanges[i]);
         }
 
-        if(savedGame.mainText !== undefined) {
-            $("#MainText").html(savedGame.mainText);
+        if(savedGame.zMainText !== undefined) {
+            let zData = new Uint16Array(savedGame.zMainText.length)
+            for(let i = 0 ; i < zData.length ; ++i) {
+                zData[i] = savedGame.zMainText.charCodeAt(i);
+            }
+            const mainText = LZMA.decompress(new Int8Array(zData.buffer));
+            $("#MainText").html(mainText);
         }
     }
 };
