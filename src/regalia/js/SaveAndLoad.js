@@ -41,6 +41,19 @@ var SavedGames = {
         };
 
         let mainText = $("#MainText").html();
+        if(mainText.length > 100000) {
+            // Do not store more than 100K characters (~10KB after compression)
+            const pos = mainText.indexOf('<hr>', mainText.length - 100000);
+            const oldLength = mainText.length;
+            if(pos == -1) {
+                // TODO Try to store something that does not break the DOM tree
+                mainText = '';
+            } else {
+                mainText = mainText.slice(pos + 4);
+            }
+            console.log("Text history truncated to " + mainText.length + " (from " + oldLength + ")");
+        }
+
         // Compress the main text
         let zData = LZMA.compress(mainText, 1);
         if(zData.length & 1) zData.push(0);  // Pad with 0 to get a multiple of 2 bytes
