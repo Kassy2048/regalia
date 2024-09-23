@@ -91,11 +91,13 @@ var SavedGames = {
     },
 
     saveDataFor: function (game) {
-      return JSON.stringify(DeepDiff.diff(OriginalGame, game));
+      return DeepDiff.diff(OriginalGame, game);
     },
 
     applySaveToGame: function (game, savedGame) {
-        var changes = JSON.parse(savedGame.gameData);
+        let changes = savedGame.gameData;
+        // Check for old save where changes were stringified for no good reason
+        if(typeof changes == 'string') changes = JSON.parse(savedGame.gameData);
         var orderedChanges = orderChanges(changes);
 
         for (var i = 0; i < orderedChanges.length; i++) {
