@@ -164,6 +164,11 @@ function showImage(ImageName) {
     renderMainImageAndLayers();
 }
 
+const supportedMediaFormats = new Set([
+    'mp4', 'webm',
+    'gif', 'jpg', 'jpeg', 'webp', 'png',
+    'bmp', 'ico', 'svg',
+]);
 function renderMainImageAndLayers() {
     $("#MainImageLayers").empty();
 
@@ -179,7 +184,11 @@ function renderMainImageAndLayers() {
     ImageRecorder.sawImage(Globals.currentImage);
     var fileParts = Globals.currentImage.split('.');
     var fileExtension = fileParts[fileParts.length - 1].toLowerCase();
-    if (fileExtension === 'mp4' || fileExtension === 'webm' || fileExtension === 'avi') {
+    if (!supportedMediaFormats.has(fileExtension)) {
+        $("#MainVideo").empty();
+        $("#MainVideo").append($('<div class="bad-media">' + Globals.currentImage + '<br/>Playing this file is not supported</div>'));
+        $("#MainImg").css("background-image", "");
+    } else if (fileExtension === 'mp4' || fileExtension === 'webm') {
         var $videoTag = $('<video autoplay controls width="100%"><source src="' + imagePath(Globals.currentImage) + '" type="video/' + fileExtension + '">Sorry, your browser doesn\'t support this video.</video>');
 
         $("#MainVideo").empty();

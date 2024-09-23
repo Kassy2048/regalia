@@ -548,3 +548,18 @@ body {
 .live-timer-display-rows tr:not:last-child td {
     border-bottom: 1px solid grey;
 }
+
+.bad-media {
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: gray;
+    color: darkred;
+    z-index: -1;
+    text-align: center;
+}
