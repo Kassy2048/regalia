@@ -563,3 +563,33 @@ body {
     z-index: -1;
     text-align: center;
 }
+
+#sfx_button, #music_button {
+    width: 1.6em;
+    height: 1.6em;
+    display: inline-block;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+#sfx_button {
+    /* Remind icons created by doraclub - Flaticon (https://www.flaticon.com/free-icons/remind) */
+    background-image: url('../images/sfx-on.png');
+}
+
+#sfx_button.off {
+    /* Remind icons created by doraclub - Flaticon (https://www.flaticon.com/free-icons/remind) */
+    background-image: url('../images/sfx-off.png');
+}
+
+#music_button {
+    /* Music icons created by Freepik - Flaticon (https://www.flaticon.com/free-icons/music) */
+    background-image: url('../images/music-on.png');
+}
+
+#music_button.off {
+    /* Music icons created by Freepik - Flaticon (https://www.flaticon.com/free-icons/music) */
+    background-image: url('../images/music-off.png');
+}

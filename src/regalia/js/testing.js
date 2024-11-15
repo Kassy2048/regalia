@@ -38,6 +38,28 @@ $(function() {
         toggleBigPictureMode(false);
     });
 
+    const SoundEffect = document.getElementById('SoundEffect');
+    $("#sfx_button").click(function () {
+        if(SoundEffect.muted) {
+            SoundEffect.muted = false;
+            $('#sfx_button').removeClass('off');
+        } else {
+            SoundEffect.muted = true;
+            $('#sfx_button').addClass('off');
+        }
+    });
+
+    const BGMusic  = document.getElementById('BGMusic');
+    $("#music_button").click(function () {
+        if(BGMusic.muted) {
+            BGMusic.muted = false;
+            $('#music_button').removeClass('off');
+        } else {
+            BGMusic.muted = true;
+            $('#music_button').addClass('off');
+        }
+    });
+
     $(document).keydown(function(e) {
         switch (e.keyCode) {
             case 32: // Space
