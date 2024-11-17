@@ -401,7 +401,6 @@ var GameUI = {
     },
 
     onInteractionResume: function() {
-        //console.warn('onInteractionResume');
         const MainText = $("#MainText");
         const scrollHeight = MainText[0].scrollHeight;
         if(this.lastScrollHeight != scrollHeight) {
@@ -412,11 +411,11 @@ var GameUI = {
                 }, 0);
             }
             this.lastScrollHeight = MainText[0].scrollHeight;
+        }
 
-            if(!GameController.gamePaused) {
-                GameHistory.pushState();
-                $('#back').prop('disabled', !GameHistory.canGoBack());
-            }
+        if(!GameController.gamePaused) {
+            GameHistory.pushState();
+            $('#back').prop('disabled', !GameHistory.canGoBack());
         }
     },
 
