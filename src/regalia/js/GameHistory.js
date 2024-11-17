@@ -12,7 +12,7 @@ const GameHistory = {
         this.oldTextChild = null;
         this.oldImage = null;
 
-        if(structuredClone !== undefined) {
+        if(structuredClone === undefined) {
             console.warn("Old browser detected, rollback is disabled.");
         }
     },
