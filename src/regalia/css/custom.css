@@ -211,8 +211,10 @@ body {
     right: 0;
 }
 
-#MainVideo {
+#MainVideo,
+#MainVideo video {
     width: 100%;
+    height: 100%;
 }
 
 #RoomThumbImg, .RoomLayeredImage,
