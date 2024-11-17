@@ -39,11 +39,13 @@ var GameUI = {
     disableSaveAndLoad: function () {
         $('#save').prop('disabled', true);
         // $('#load').prop('disabled', true);
+        $('#back').prop('disabled', true);
     },
 
     enableSaveAndLoad: function () {
         $('#save').prop('disabled', false);
         $('#load').prop('disabled', false);
+        $('#back').prop('disabled', !GameHistory.canGoBack());
     },
 
     clearInputChoices: function () {
@@ -410,6 +412,11 @@ var GameUI = {
                 }, 0);
             }
             this.lastScrollHeight = MainText[0].scrollHeight;
+
+            if(!GameController.gamePaused) {
+                GameHistory.pushState();
+                $('#back').prop('disabled', !GameHistory.canGoBack());
+            }
         }
     },
 

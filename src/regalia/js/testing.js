@@ -70,12 +70,12 @@ $(function() {
                     }
                     break;
                 }
-            case 119:
+            case 119: // F8
                 {
                     handleFileSave(true);
                     break;
                 }
-            case 120:
+            case 120: // F9
                 {
                     handleFileSelect(true);
                     break;
@@ -415,6 +415,12 @@ $(function() {
     }, function() {
         $("#tooltip").css("visibility", "hidden");
     });
+
+    $("#back").click(function () {
+        GameHistory.popState();
+        this.disabled = !GameHistory.canGoBack();
+    });
+
     receivedText();
 });
 
@@ -464,6 +470,7 @@ function handleFileSelect(bQuick, CurID) {
 
     GameController.reset();
     CommandLists.reset();
+    GameHistory.reset();
     Globals.movingDirection = "";
 
     TheGame = SetupGameDataWithMap();
@@ -488,6 +495,7 @@ function handleFileSelect(bQuick, CurID) {
     $("#cmdinputmenu").css("visibility", "hidden");
     $("#Continue").css("background-color", "rgb(128, 128, 128)");
     $("#Continue").css('visibility', "hidden");
+    $("#back").prop('disabled', true);
     GameUI.showGameElements();
 
     if (bQuick) {
