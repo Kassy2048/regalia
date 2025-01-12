@@ -108,7 +108,7 @@ const m = (method, byteLen) => {
 // --- BINARY TYPES ---
 
 const single = () => m('getFloat32',    4);
-const double = () => m('getFloat64',    4);
+const double = () => m('getFloat64',    8);
 const int8   = () => m('getInt8',       1);
 const int16  = () => m('getInt16',      2);
 const int32  = () => m('getInt32',      4);
