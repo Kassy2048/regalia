@@ -122,6 +122,7 @@ const utf8   = len => {
 	r.value = new TextDecoder("utf-8").decode(r.buffer);
 	return r;
 };
+const DateTime = int64;
 
 /**
  * A UTF-8 string prefixed by its Uint8 length.
@@ -349,7 +350,7 @@ const mapBinTypeAddInfoToBufRead = (binaryTypeEnums, additionalInfos) => i => {
 				// 'SByte': null,
 				'Single': single,
 				// 'TimeSpan': null,
-				// 'DateTime': null,
+				'DateTime': DateTime,
 				'UInt16': uint16,
 				'UInt32': uint32,
 				'UInt64': uint64,
