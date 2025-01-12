@@ -150,8 +150,17 @@ const LengthPrefixedString = () => {
  */
 const ListOf = (structureCb, length) => {
 	const a = [];
+	let idx = 0;
 	while (a.length < length) {
-		a.push(structureCb(a.length));
+		const item = structureCb(idx++);
+		if(item !== null && item.NullCount !== undefined) {
+			// ObjectNullMultiple* represents multiple items at once
+			while(item.NullCount.value-- > 0) {
+				a.push(Record(10));
+			}
+		} else {
+			a.push(item);
+		}
 	}
 	return a;
 };
@@ -450,6 +459,18 @@ const ObjectNull = () => {
 	return r;
 };
 
+const ObjectNullMultiple256 = () => {
+	const r = {};
+	logKeyValue(r, 'NullCount', uint8());
+	return r;
+};
+
+const ObjectNullMultiple = () => {
+	const r = {};
+	logKeyValue(r, 'NullCount', int32());
+	return r;
+};
+
 const BinaryObjectString = () => {
 	const r = {};
 	r._type = 'BinaryObjectString';
@@ -521,9 +542,13 @@ const MessageEnd = r => {
 	logOutdent();
 };
 
-const Record = () => {
+const Record = (RecordTypeEnum) => {
 	const r = {};
-	r.RecordTypeEnum = int8();
+	if(RecordTypeEnum === undefined) {
+		r.RecordTypeEnum = int8();
+	} else {
+		r.RecordTypeEnum = {value: RecordTypeEnum};
+	}
 	const fn = {
 		0:  SerializationHeader,
 		1:  ClassWithId,
@@ -538,8 +563,8 @@ const Record = () => {
 		10: ObjectNull,
 		11: MessageEnd,
 		12:	BinaryLibrary,
-		// 13: ObjectNullMultiple256,
-		// 14: ObjectNullMultiple,
+		13: ObjectNullMultiple256,
+		14: ObjectNullMultiple,
 		15: ArraySinglePrimitive,
 		16: ArraySingleObject,
 		17: ArraySingleString,
