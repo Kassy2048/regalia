@@ -12,6 +12,9 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+// const DEBUG = true;
+const DEBUG = false;
+
 // dependency libraries
 const assert = {
     isAbove: function(n, ref) {
@@ -37,13 +40,16 @@ function ArrayBufferToHex(array) {
 const INDENT = '  ';
 let level = 0;
 const indent = () => INDENT.repeat(level);
-const log = s => console.log(s);
+const log = s => {
+	if(DEBUG) console.log(s);
+};
 const logIndent = (o, suffix='') => {
 	log(indent() + `${o._type}:${suffix}`);
 	level++;
 	if (o.RecordTypeEnum)	logKeyValue(o, 'RecordTypeEnum');
 };
 const _logValue = v => {
+	if(!DEBUG) return '';
 	if (null == v || 'object' !== typeof v) return ''+v;
 	if ('LengthPrefixedString' === v._type) v = v.String;
 	return (v.string ? v.string : (typeof v.value == 'bigint' ? '' + v.value : JSON.stringify(v.value))) +
