@@ -368,6 +368,9 @@ const mapBinTypeAddInfoToBufRead = (binaryTypeEnums, additionalInfos) => i => {
 		case 'PrimitiveArray':
 		case 'String':
 		case 'SystemClass':
+		case 'ObjectArray':
+		case 'StringArray':
+		case 'Object':
 			value = Record();
 			break;
 
@@ -493,6 +496,23 @@ const ArraySinglePrimitive = r => {
 	return r;
 };
 
+const ArraySingleObject = r => {
+	logIndent(r);
+	r.ArrayInfo = {};
+	logKey(r, 'ArrayInfo', () => {
+		logKeyValue(r.ArrayInfo, 'ObjectId', ObjectId(r));
+		logKeyValue(r.ArrayInfo, 'Length', int32());
+		return r.ArrayInfo;
+	});
+	const len = r.ArrayInfo.Length.value;
+	logListOf(len, r, 'Values', mapBinTypeAddInfoToBufRead(
+		repeat(len, { SYMBOL: { string: 'Class' } })));
+	logOutdent();
+	return r;
+};
+
+const ArraySingleString = ArraySingleObject;
+
 /**
  * EOF reached.
  */
@@ -521,8 +541,8 @@ const Record = () => {
 		// 13: ObjectNullMultiple256,
 		// 14: ObjectNullMultiple,
 		15: ArraySinglePrimitive,
-		// 16: ArraySingleObject,
-		// 17: ArraySingleString,
+		16: ArraySingleObject,
+		17: ArraySingleString,
 		// 21: MethodCall,
 		// 22: MethodReturn,
 	}[r.RecordTypeEnum.value];
@@ -596,6 +616,10 @@ const serializeObject = o => {
 
 		case 'ArraySinglePrimitive':
 			return o.Values.map(v=>v.value);
+
+		case 'ArraySingleObject':
+		case 'ArraySingleString':
+			return o.Values.map(serializeObject);
 
 		case 'BinaryObjectString':
 			return o.Value.String.value;
