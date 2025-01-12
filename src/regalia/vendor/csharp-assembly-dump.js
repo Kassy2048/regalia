@@ -598,7 +598,7 @@ const serializeObject = o => {
 			return o.Values.map(v=>v.value);
 
 		case 'BinaryObjectString':
-			return o.Value.value;
+			return o.Value.String.value;
 
 		case 'ObjectNull':
 			return null;
