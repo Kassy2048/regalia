@@ -615,6 +615,7 @@ while (FutureObjectIndex.length > 0) {
 // inspect this value; it should have everything
 const RootObject = ObjectIndex[ROOT_ID];
 
+let objectCache = {};
 const serializeObject = o => {
 	if (null === o.value)
 		return o.value;
@@ -625,11 +626,19 @@ const serializeObject = o => {
 	switch (o._type) {
 		case 'SystemClassWithMembersAndTypes':
 		case 'ClassWithMembersAndTypes':
-			name = `${o.ClassInfo.Name.String.value}#${o.ObjectId ? o.ObjectId.value : o.ClassInfo.ObjectId.value}`;
+			// Re-use cached object if already found (and also prevent infinite recursion)
+			const ObjectId = o.ObjectId ? o.ObjectId.value : o.ClassInfo.ObjectId.value;
+			const cached = objectCache[ObjectId];
+			if(cached !== undefined) return cached;
+
 			let data = {
 				__class: o.ClassInfo.Name.String.value,
 				__objectId: o.ObjectId ? o.ObjectId.value : o.ClassInfo.ObjectId.value,
 			};
+			if(o.ClassInfo.Name.String.value != "System.Collections.ArrayList") {
+				objectCache[ObjectId] = data;
+			}
+
 			keys = o.ClassInfo.MemberNames;
 			if (o.MemberReferences) {
 					values = o.MemberReferences.map(ref=>
