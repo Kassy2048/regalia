@@ -571,8 +571,8 @@ const Record = (RecordTypeEnum) => {
 		// 21: MethodCall,
 		// 22: MethodReturn,
 	}[r.RecordTypeEnum.value];
-	r._type = fn.name;
 	if (null == fn) throw `RecordTypeEnum#${r.RecordTypeEnum} not implemented.`;
+	r._type = fn.name;
 	Object.assign(r, fn(r));
 	return r;
 };
