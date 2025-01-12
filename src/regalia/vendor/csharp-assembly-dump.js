@@ -626,24 +626,31 @@ const serializeObject = o => {
 		case 'SystemClassWithMembersAndTypes':
 		case 'ClassWithMembersAndTypes':
 			name = `${o.ClassInfo.Name.String.value}#${o.ObjectId ? o.ObjectId.value : o.ClassInfo.ObjectId.value}`;
+			let data = {
+				__class: o.ClassInfo.Name.String.value,
+				__objectId: o.ObjectId ? o.ObjectId.value : o.ClassInfo.ObjectId.value,
+			};
 			keys = o.ClassInfo.MemberNames;
 			if (o.MemberReferences) {
 					values = o.MemberReferences.map(ref=>
 						serializeObject(ref));
 			}
-			let data = {};
 			for (let i=0; i<keys.length; i++) {
 				data[keys[i].String.value] = values[i];
 			}
-			return { [name]: data };
+			if(o.ClassInfo.Name.String.value == "System.Collections.ArrayList") {
+				// Return the array directly
+				data = data._items.slice(0, data._size);
+			}
+			return data;
 
 		case 'BinaryArray':
-			name = `${o.AdditionalTypeInfo.TypeName.String.value}#${o.ObjectId.value}`;
+			values = [];
 			if (o.MemberReferences) {
 				values = o.MemberReferences.map(ref=>
 					serializeObject(ref));
 			}
-			return { name, values };
+			return values;
 
 		case 'ArraySinglePrimitive':
 			return o.Values.map(v=>v.value);
