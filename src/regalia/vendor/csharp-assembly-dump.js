@@ -113,7 +113,7 @@ const int8   = () => m('getInt8',       1);
 const int16  = () => m('getInt16',      2);
 const int32  = () => m('getInt32',      4);
 const int64  = () => m('getBigInt64',   8);
-const uint16 = () => m('readUInt16LE', 2);
+const uint8  = () => m('getUint8',      1);
 const uint16 = () => m('getUint16',     2);
 const uint32 = () => m('getUint32',     4);
 const uint64 = () => m('getBigUint64',  8);
@@ -129,8 +129,15 @@ const utf8   = len => {
 const LengthPrefixedString = () => {
 	const r = {};
 	r._type = 'LengthPrefixedString'
-	r.Length = int8();
-	r.String = utf8(r.Length.value);
+	r.Length = 0;
+	let o = 0;
+	while(true) {
+		const b = uint8().value;
+		r.Length |= (b & 0x7F) << o;
+		if(!(b & 0x80)) break;
+		o += 7;
+	}
+	r.String = utf8(r.Length);
 	return r;
 };
 
