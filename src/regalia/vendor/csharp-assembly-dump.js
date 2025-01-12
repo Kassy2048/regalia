@@ -4,21 +4,39 @@
  * a.k.a. [MS-NRBF]: .NET Remoting: Binary Format Data Structure
  * Also prints offset address and length for convenient hex editing.
  * 
- * Example:
- *   node csharp-assembly-dump.js input/batim.game > output/out.log
+ * Source: <https://github.com/mikesmullin/csharp-assembly-dump>
+ *
+ * This version does not rely on NodeJS and exposes the parseNrbf()
+ * method to extract the assemblies from an ArrayBuffer instance.
  */
 
-// dependency libraries
-const fs = require('fs');
-const assert = require('chai').assert;
+document.addEventListener('DOMContentLoaded', () => {
 
-// args
-const INPUT_FILE = process.argv[2] || 'F:/Desktop/tmp/bindiff/batim.game';
+// dependency libraries
+const assert = {
+    isAbove: function(n, ref) {
+        if(n > ref) return;
+        throw new Error(`${n} <= ${ref}`);
+    },
+    exists: function(obj) {
+        if(obj !== undefined) return;
+        throw new Error(`Object does not exist`);
+    },
+};
+
+function ArrayBufferToHex(array) {
+    let hex = '';
+    const dataview = new DataView(array, 0);
+    for(let i = 0 ; i < array.byteLength ; ++i) {
+        hex += dataview.getUint8(i).toString(16);
+    }
+    return hex;
+}
 
 // utils
 const INDENT = '  ';
 let level = 0;
-const indent = () => repeat(level, INDENT).join('');
+const indent = () => INDENT.repeat(level);
 const log = s => console.log(s);
 const logIndent = (o, suffix='') => {
 	log(indent() + `${o._type}:${suffix}`);
@@ -28,9 +46,9 @@ const logIndent = (o, suffix='') => {
 const _logValue = v => {
 	if (null == v || 'object' !== typeof v) return ''+v;
 	if ('LengthPrefixedString' === v._type) v = v.String;
-	return (v.string ? v.string : JSON.stringify(v.value)) +
+	return (v.string ? v.string : (typeof v.value == 'bigint' ? '' + v.value : JSON.stringify(v.value))) +
 		('string' === typeof v.value ? '' :
-			` (0x${v.buffer.toString('hex').replace(/^(.{1,}?)0+$/, '$1')})`) +
+			` (0x${ArrayBufferToHex(v.buffer).replace(/^(.{1,}?)0+$/, '$1')})`) +
 		` [0x${v.offset.toString(16)}` +
 		`,0x${v.length.toString(16)}]`;
 };
@@ -65,7 +83,7 @@ const logKeyValue = (o,k,v) => {
 };
 const logListOf = (len, o, k, structureCb) => {
 	logIndent({ _type: k }, ' [');
-  o[k] = ListOf(structureCb, len);
+	o[k] = ListOf(structureCb, len);
 	logOutdent();
 	log(indent() + ']');
 };
@@ -73,13 +91,6 @@ const logOutdent = () => {
 	level--;
 };
 const repeat = (n, v) => new Array(n).fill(0).map(()=>v);
-process.on('uncaughtException', e => {
-	// NOTICE: must carefully serialize Error types, or empty object will be output
-	if (e instanceof Error) e = { message: e.message, stack: e.stack };
-	if (null != e.stack) e.stack = e.stack.split(/(?:\r?\n)+/g);
-	log(JSON.stringify({ msg: 'Uncaught Exception', ...e }, null, 2));
-	process.exit(1);
-})
 
 // implementation
 
@@ -88,26 +99,27 @@ process.on('uncaughtException', e => {
 const m = (method, byteLen) => {
 	const _offset = offset;
 	const length = byteLen;
-	const buffer = b.slice(offset, offset+byteLen);
-	const value = null == method ? null : b[method](offset);
+	const buffer = b.buffer.slice(offset, offset+byteLen);
+	const value = null == method ? null : b[method](offset, true);
 	offset += byteLen;
 	return { offset: _offset, length, buffer, value };
 }
 
 // --- BINARY TYPES ---
 
-const single = () => m('readFloatLE',  4);
-const double = () => m('readDoubleLE', 4);
-const int8   = () => m('readInt8',     1);
-const int16  = () => m('readInt16LE',  2);
-const int32  = () => m('readInt32LE',  4);
-const int64  = () => m('readInt64LE',  8);
+const single = () => m('getFloat32',    4);
+const double = () => m('getFloat64',    4);
+const int8   = () => m('getInt8',       1);
+const int16  = () => m('getInt16',      2);
+const int32  = () => m('getInt32',      4);
+const int64  = () => m('getBigInt64',   8);
 const uint16 = () => m('readUInt16LE', 2);
-const uint32 = () => m('readUInt32LE', 4);
-const uint64 = () => m('readUInt64LE', 8);
+const uint16 = () => m('getUint16',     2);
+const uint32 = () => m('getUint32',     4);
+const uint64 = () => m('getBigUint64',  8);
 const utf8   = len => {
 	const r = m(null, len);
-	r.value = r.buffer.toString('utf8');
+	r.value = new TextDecoder("utf-8").decode(r.buffer);
 	return r;
 };
 
@@ -515,12 +527,16 @@ const Record = () => {
 
 // begin
 
-const b = fs.readFileSync(INPUT_FILE);
-const fileLength = b.length;
-let offset = 0;
+let b, offset;
+
+window.parseNrbf = function(buffer) {
+
+b = new DataView(buffer);
+const fileLength = b.byteLength;
+offset = 0;
 
 log(`Binary Serialization Format`);
-log(`File: ${INPUT_FILE}\nLength: ${fileLength}\n`);
+log(`Length: ${fileLength}\n`);
 
 // file consists of a series of Record types in any order
 // except the first one must be a SerializationHeaderRecord
@@ -539,7 +555,6 @@ while (FutureObjectIndex.length > 0) {
 
 // inspect this value; it should have everything
 const RootObject = ObjectIndex[ROOT_ID];
-fs.writeFileSync('ir.json', JSON.stringify(RootObject, null, 2));
 
 const serializeObject = o => {
 	if (null === o.value)
@@ -586,6 +601,8 @@ const serializeObject = o => {
 	}
 };
 
-fs.writeFileSync('simple.json', JSON.stringify(serializeObject(RootObject), null, 2));
+return serializeObject(RootObject);
 
-process.exit(0);
+}
+
+});
