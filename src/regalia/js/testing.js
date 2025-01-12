@@ -265,13 +265,63 @@ $(function() {
         });
 
         $('.import-menu-content input[type=file]').change(function (e) {
-            var reader = new FileReader();
-            reader.onload = function() {
-                SavedGames.import(JSON.parse(this.result));
-                $('.import-menu').addClass('hidden');
-                hideSaveAndLoadMenus();
-            };
-            reader.readAsText(this.files[0]);
+            const file = this.files[0];
+            const reader = new FileReader();
+            if(file.name.toLowerCase().endsWith('.rsv')) {
+                // B4BDC259B1104A6531F8109C851BCF9AD09BDD208851C9CBAB782AEC356CC1E3
+                const aes_key = new Uint8Array([
+                        0xB4, 0xBD, 0xC2, 0x59, 0xB1, 0x10, 0x4A, 0x65,
+                        0x31, 0xF8, 0x10, 0x9C, 0x85, 0x1B, 0xCF, 0x9A,
+                        0xD0, 0x9B, 0xDD, 0x20, 0x88, 0x51, 0xC9, 0xCB,
+                        0xAB, 0x78, 0x2A, 0xEC, 0x35, 0x6C, 0xC1, 0xE3]);
+                // 31F8109C851BCF9A203D6C71A7BD1487
+                const aes_iv = new Uint8Array([
+                        0x31, 0xF8, 0x10, 0x9C, 0x85, 0x1B, 0xCF, 0x9A,
+                        0x20, 0x3D, 0x6C, 0x71, 0xA7, 0xBD, 0x14, 0x87]);
+
+                reader.onload = async (e) => {
+                    let ciphertext = e.target.result;
+                    let data;
+                    try {
+                        console.log(`Decrypting file content...`);
+                        const key = await window.crypto.subtle.importKey("raw", aes_key, "AES-CBC", false, ["decrypt"]);
+                        data = await window.crypto.subtle.decrypt({name: "AES-CBC", iv: aes_iv}, key, ciphertext);
+                    } finally {
+                        // Free memory
+                        ciphertext = '';
+                        e = {};
+                        if(data === undefined) alert(`Decryption failed!`);
+                    }
+                    // console.debug(data);
+
+                    let root;
+                    try {
+                        console.log(`Extracting data...`);
+                        root = parseNrbf(data);
+                    } finally {
+                        // Free memory
+                        data = '';
+                        if(root === undefined) alert(`Extraction failed!`);
+                    }
+                    console.debug(root);
+
+                    console.log(`Importing data...`);
+
+                    // TODO
+
+                    console.log(`Done.`);
+
+                    $('.import-menu').addClass('hidden');
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                reader.onload = function() {
+                    SavedGames.import(JSON.parse(this.result));
+                    $('.import-menu').addClass('hidden');
+                    hideSaveAndLoadMenus();
+                };
+                reader.readAsText(file);
+            }
         });
     });
     

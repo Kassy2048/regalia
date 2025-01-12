@@ -19,6 +19,7 @@
     <script src="regalia/vendor/react-dom.production.min.js"></script>
     <script src="regalia/vendor/moment.min.js"></script>
     <script src="regalia/vendor/lzma_worker.min.js"></script>
+    <script src="regalia/vendor/csharp-assembly-dump.js"></script>
     <script src="regalia/js/polyfills.js"></script>
     <script src="regalia/game/Game.js"></script>
     <script src="regalia/js/DateTimes.js"></script>
@@ -303,9 +304,9 @@
 
 <div class="import-menu hidden modal-backdrop">
     <div class="import-menu-content">
-        To import, choose a .json file of exported saves in this picker:
+        To import, choose a .json file of exported saves or .rsv file in this picker:
         <div>
-            <input type="file">
+            <input type="file" accept=".json,.rsv,.txt">
         </div>
         <div class="import-menu-actions">
             <button class="btn">Dismiss</button>
