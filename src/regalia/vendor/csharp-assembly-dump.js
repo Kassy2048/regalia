@@ -128,7 +128,22 @@ const utf8   = len => {
 	r.value = new TextDecoder("utf-8").decode(r.buffer);
 	return r;
 };
-const DateTime = int64;
+const DateTime = () => {
+    const r = m('getBigUint64', 8);
+    let ticks = r.value & ((1n << 62n) - 1n);
+    if(ticks & (1n << 61n)) {
+        // Negative value
+        ticks = -((ticks - 1n) ^ ((1n << 62n) - 1n));
+    }
+    r.value = {
+        // 0: no TZ, 1: UTC, 2:local time
+        kind: Number(r.value >> 62n),
+        // Number of 100 ns elapsed since 12:00:00, January 1, 0001
+        ticks: ticks,
+    };
+    r._type = 'DateTime';
+    return r;
+};
 
 /**
  * A UTF-8 string prefixed by its Uint8 length.
@@ -673,6 +688,9 @@ const serializeObject = o => {
 
 		case 'ObjectNull':
 			return null;
+
+		case 'DateTime':
+			return o.value;
 
 		default:
 			debugger;
