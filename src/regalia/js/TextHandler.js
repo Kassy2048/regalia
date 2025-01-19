@@ -378,9 +378,9 @@ function ReplaceAttribute(AttType, text, tempindex, replacementvalue) {
                             }
                         case "LENGTH":
                             {
-                                text = text.slice(0, tempindex) + tempobject.length + text.slice(tempindex);
+                                text = text.slice(0, tempindex) + tempobject.Length + text.slice(tempindex);
                                 if (bReplacement) {
-                                    tempobject.length = parseInt(replacementvalue);
+                                    tempobject.Length = parseInt(replacementvalue);
                                 }
                                 break;
                             }
