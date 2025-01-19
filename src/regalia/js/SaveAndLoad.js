@@ -289,6 +289,10 @@ var SavedGames = {
             return str.replaceAll('\n', '<br>').replaceAll('\r', '');
         }
 
+        function adaptText_nobr(str) {
+            return str.replaceAll('\r', '');
+        }
+
         let success = true;
 
         const refGame = JSON.parse(JSON.stringify(_game));
@@ -390,8 +394,7 @@ var SavedGames = {
             update(gameObj, 'bContainer', saveObj);
             update(gameObj, 'bEnterFirstTime', saveObj);
             update(gameObj, 'bEnterable', saveObj);
-            // update(gameObj, 'bImportant', saveObj);
-            if('bImportant' in saveObj) console.debug("Found bImportant in save object", saveObj);
+            if('bImportant' in saveObj) update(gameObj, 'bImportant', saveObj);
             update(gameObj, 'bLeaveFirstTime', saveObj);
             update(gameObj, 'bLockable', saveObj);
             update(gameObj, 'bLocked', saveObj);
@@ -503,11 +506,11 @@ var SavedGames = {
                         return adaptText(el);
                     } else {
                         // Array of strings
-                        return el.map(adaptText);
+                        return el.map(adaptText_nobr);
                     }
                 });
-            } else {
-                update(gameObj, 'VarArray', saveObj);  // array of numbers
+            } else if(gameObj.vartype.endsWith('ARRAY')) {
+                update(gameObj, 'VarArray', saveObj);  // array of numbers/datetime
             }
             update(gameObj, 'dNumType', saveObj);
             update(gameObj, 'sString', saveObj, '', adaptText);
