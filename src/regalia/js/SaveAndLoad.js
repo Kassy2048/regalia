@@ -291,6 +291,8 @@ var SavedGames = {
 
         let success = true;
 
+        const refGame = JSON.parse(JSON.stringify(_game));
+
         /** This function is just an helper to make sure there is no typo in RSV
          * conversion code.
          */
@@ -556,6 +558,79 @@ var SavedGames = {
             update(gameObj, 'PlayerGender', saveObj, '', CharGender);
             update(gameObj, 'PlayerPortrait', saveObj);
         }
+
+        function dumpPath(path) {
+            return path.join('.');
+        }
+
+        function dumpChanges(a, b, path) {
+            const type_a = typeof(a), type_b = typeof(b);
+            if(type_a != type_b) {
+                console.debug(`${dumpPath(path)}: ${JSON.stringify(a)} => ${JSON.stringify(b)}`);
+                return;
+            }
+
+            switch(type_a) {
+                case 'string':
+                case 'boolean':
+                case 'number':
+                    if(a != b) console.debug(`${dumpPath(path)}: ${JSON.stringify(a)} => ${JSON.stringify(b)}`);
+                    break;
+
+                case 'object': {
+                    const array_a = Array.isArray(a);
+                    const array_b = Array.isArray(b);
+                    if(array_a != array_b) {
+                        console.debug(`${dumpPath(path)}: ${JSON.stringify(a)} => ${JSON.stringify(b)}`);
+                    } else if(array_a) {
+                        const count = Math.max(a.length, b.length);
+                        const name = path.length > 0 ? path.at(-1) : '';
+                        path.pop();
+                        for(let i = 0 ; i < count ; ++i) {
+                            path.push(`${name}[${i}]`);
+                            if(i >= a.length) {
+                                console.debug(`${dumpPath(path)}: missing => ${JSON.stringify(b)}`);
+                            } else if(i >= b.length) {
+                                console.debug(`${dumpPath(path)}: ${JSON.stringify(a)} => missing`);
+                            } else {
+                                dumpChanges(a[i], b[i], path);
+                            }
+                            path.pop();
+                        }
+                        if(name.length > 1) path.push(name);
+                    } else if(a === null || b === null) {
+                        if(a !== null || b !== null) {
+                            console.debug(`${dumpPath(path)}: ${JSON.stringify(a)} => ${JSON.stringify(b)}`);
+                        }
+                    } else {
+                        const a_keys = new Set();
+                        Object.getOwnPropertyNames(a).forEach(key => {
+                            a_keys.add(key);
+                            path.push(key);
+                            if(Object.hasOwn(b, key)) {
+                                dumpChanges(a[key], b[key], path);
+                            } else {
+                                console.debug(`${dumpPath(path)}: ${JSON.stringify(a[key])} => missing`);
+                            }
+                            path.pop();
+                        });
+                        Object.getOwnPropertyNames(b).forEach(key => {
+                            if(a_keys.has(key)) return;
+                            path.push(key);
+                            console.debug(`${dumpPath(path)}: missing => ${JSON.stringify(b[key])}`);
+                            path.pop();
+                        });
+                    }
+
+                    break;
+                }
+
+                default:
+                    console.warn(`Unknown type "${type_a}" for ${dumpPath(path)}`);
+            }
+        }
+
+        //dumpChanges(refGame, TheGame, []);
 
         // Re-create the name/uid maps
         // FIXME Not needed anymore (we don't create new objects)?
