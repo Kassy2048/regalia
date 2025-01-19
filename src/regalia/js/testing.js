@@ -60,6 +60,19 @@ $(function() {
         }
     });
 
+    $("#history_button").click(function () {
+        if(!GameHistory.enabled) {
+            GameHistory.enabled = true;
+            $('#history_button').removeClass('off');
+        } else {
+            GameHistory.enabled = false;
+            GameHistory.reset();
+            $('#back').prop('disabled', true);
+            $('#history_button').addClass('off');
+        }
+    });
+    $('#history_button').addClass('off');
+
     $(document).keydown(function(e) {
         switch (e.keyCode) {
             case 32: // Space

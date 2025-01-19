@@ -567,7 +567,7 @@ body {
     text-align: center;
 }
 
-#sfx_button, #music_button {
+#sfx_button, #music_button, #history_button {
     width: 1.6em;
     height: 1.6em;
     display: inline-block;
@@ -595,4 +595,14 @@ body {
 #music_button.off {
     /* Music icons created by Freepik - Flaticon (https://www.flaticon.com/free-icons/music) */
     background-image: url('../images/music-off.png');
+}
+
+#history_button {
+    /* History icons created by Freepik - Flaticon (https://www.flaticon.com/free-icons/history) */
+    background-image: url('../images/history-on.png');
+}
+
+#history_button.off {
+    /* History icons created by Freepik - Flaticon (https://www.flaticon.com/free-icons/history) */
+    background-image: url('../images/history-off.png');
 }

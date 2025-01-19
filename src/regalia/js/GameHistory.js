@@ -5,6 +5,7 @@ const GameHistory = {
     oldGameData: null,
     oldTextChild: null,
     oldImage: null,
+    enabled: false,
 
     reset: function() {
         this.states = [];
@@ -27,6 +28,8 @@ const GameHistory = {
     },
 
     pushState: function() {
+        if(!this.enabled) return;
+
         if(structuredClone === undefined) {
             // Old browser, no fast deep copy available
             return;
