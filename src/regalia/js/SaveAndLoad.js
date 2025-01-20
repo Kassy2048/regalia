@@ -285,6 +285,21 @@ var SavedGames = {
                     + hex2(guid._i) + hex2(guid._j) + hex2(guid._k);
         }
 
+        function DateTime(dt) {
+            // Convert from DateTime representation
+            // <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nrbf/f05212bd-57f4-4c4b-9d98-b84c7c658054>
+            // const m = moment('01/01/0001 12:00:00', "DD/MM/YYYY hh:mm:ss");
+            const m = moment('01/01/0001 00:00:00', "DD/MM/YYYY hh:mm:ss");
+            const seconds = dt.ticks / 10000000n;
+            const nSeconds = Number(seconds);
+            if(seconds != BigInt(nSeconds)) {
+                console.debug(`Precision lost: ${seconds} => ${nSeconds}`);
+            }
+            m.add(nSeconds, 'seconds');
+            // FIXME The date it always off by 3039 seconds plus the DST offset
+            return m.format(DateTimes.defaultDateFormat);
+        }
+
         function adaptText(str) {
             return str.replaceAll('\n', '<br>').replaceAll('\r', '');
         }
@@ -514,13 +529,11 @@ var SavedGames = {
             }
             update(gameObj, 'dNumType', saveObj);
             update(gameObj, 'sString', saveObj, '', adaptText);
-
-            // Convert from DateTime representation
-            // <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nrbf/f05212bd-57f4-4c4b-9d98-b84c7c658054>
-            const m = moment('01/01/0001 12:00:00', "DD/MM/YYYY hh:mm:ss");
-            const seconds = saveObj.dtDateTime.ticks / 10000000n;
-            m.add(Number(seconds), 'seconds');
-            gameObj.dtDateTime = m.format(DateTimes.defaultDateFormat);
+            if(gameObj.vartype == "VT_DATETIME") {
+                // Only update if the variable should contain a DateTime as conversion is not
+                // accurate so it creates too much deltas with the original game data
+                update(gameObj, 'dtDateTime', saveObj, '', DateTime);
+            }
         });
 
         root.StatusBarList.forEach(saveObj => {
