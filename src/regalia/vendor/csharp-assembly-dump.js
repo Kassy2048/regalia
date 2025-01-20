@@ -605,100 +605,99 @@ let b, offset;
 
 window.parseNrbf = function(buffer) {
 
-b = new DataView(buffer);
-const fileLength = b.byteLength;
-offset = 0;
+	b = new DataView(buffer);
+	const fileLength = b.byteLength;
+	offset = 0;
 
-log(`Binary Serialization Format`);
-log(`Length: ${fileLength}\n`);
+	log(`Binary Serialization Format`);
+	log(`Length: ${fileLength}\n`);
 
-// file consists of a series of Record types in any order
-// except the first one must be a SerializationHeaderRecord
-const records = [];
-while (offset < fileLength) {
-	const record = Record();
-	records.push(record);
-}
+	// file consists of a series of Record types in any order
+	// except the first one must be a SerializationHeaderRecord
+	const records = [];
+	while (offset < fileLength) {
+		const record = Record();
+		records.push(record);
+	}
 
-// resolve all outstanding object references
-FutureObjectIndex.forEach(link => {
-	link(); // mutates existing records
-});
+	// resolve all outstanding object references
+	FutureObjectIndex.forEach(link => {
+		link(); // mutates existing records
+	});
 
 
-// inspect this value; it should have everything
-const RootObject = ObjectIndex[ROOT_ID];
+	// inspect this value; it should have everything
+	const RootObject = ObjectIndex[ROOT_ID];
 
-let objectCache = {};
-const serializeObject = o => {
-	if (null === o.value)
-		return o.value;
-	if (undefined !== o.value && 'object' !== typeof o.value)
-		return o.value;
-	if ('MemberReference' === o._type) o = o.ResolvedObject.data;
-	let name, keys, values;
-	switch (o._type) {
-		case 'SystemClassWithMembersAndTypes':
-		case 'ClassWithMembersAndTypes':
-			// Re-use cached object if already found (and also prevent infinite recursion)
-			const ObjectId = o.ObjectId ? o.ObjectId.value : o.ClassInfo.ObjectId.value;
-			const cached = objectCache[ObjectId];
-			if(cached !== undefined) return cached;
+	let objectCache = {};
+	const serializeObject = o => {
+		if (null === o.value)
+			return o.value;
+		if (undefined !== o.value && 'object' !== typeof o.value)
+			return o.value;
+		if ('MemberReference' === o._type) o = o.ResolvedObject.data;
+		let name, keys, values;
+		switch (o._type) {
+			case 'SystemClassWithMembersAndTypes':
+			case 'ClassWithMembersAndTypes':
+				// Re-use cached object if already found (and also prevent infinite recursion)
+				const ObjectId = o.ObjectId ? o.ObjectId.value : o.ClassInfo.ObjectId.value;
+				const cached = objectCache[ObjectId];
+				if(cached !== undefined) return cached;
 
-			let data = {
-				__class: o.ClassInfo.Name.String.value,
-				__objectId: o.ObjectId ? o.ObjectId.value : o.ClassInfo.ObjectId.value,
-			};
-			if(o.ClassInfo.Name.String.value != "System.Collections.ArrayList") {
-				objectCache[ObjectId] = data;
-			}
+				let data = {
+					__class: o.ClassInfo.Name.String.value,
+					__objectId: o.ObjectId ? o.ObjectId.value : o.ClassInfo.ObjectId.value,
+				};
+				if(o.ClassInfo.Name.String.value != "System.Collections.ArrayList") {
+					objectCache[ObjectId] = data;
+				}
 
-			keys = o.ClassInfo.MemberNames;
-			if (o.MemberReferences) {
+				keys = o.ClassInfo.MemberNames;
+				if (o.MemberReferences) {
+						values = o.MemberReferences.map(ref=>
+							serializeObject(ref));
+				}
+				for (let i=0; i<keys.length; i++) {
+					data[keys[i].String.value] = values[i];
+				}
+				if(o.ClassInfo.Name.String.value == "System.Collections.ArrayList") {
+					// Return the array directly
+					data = data._items.slice(0, data._size);
+				}
+				return data;
+
+			case 'BinaryArray':
+				values = [];
+				if (o.MemberReferences) {
 					values = o.MemberReferences.map(ref=>
 						serializeObject(ref));
-			}
-			for (let i=0; i<keys.length; i++) {
-				data[keys[i].String.value] = values[i];
-			}
-			if(o.ClassInfo.Name.String.value == "System.Collections.ArrayList") {
-				// Return the array directly
-				data = data._items.slice(0, data._size);
-			}
-			return data;
+				}
+				return values;
 
-		case 'BinaryArray':
-			values = [];
-			if (o.MemberReferences) {
-				values = o.MemberReferences.map(ref=>
-					serializeObject(ref));
-			}
-			return values;
+			case 'ArraySinglePrimitive':
+				return o.Values.map(v=>v.value);
 
-		case 'ArraySinglePrimitive':
-			return o.Values.map(v=>v.value);
+			case 'ArraySingleObject':
+			case 'ArraySingleString':
+				return o.Values.map(serializeObject);
 
-		case 'ArraySingleObject':
-		case 'ArraySingleString':
-			return o.Values.map(serializeObject);
+			case 'BinaryObjectString':
+				return o.Value.String.value;
 
-		case 'BinaryObjectString':
-			return o.Value.String.value;
+			case 'ObjectNull':
+				return null;
 
-		case 'ObjectNull':
-			return null;
+			case 'DateTime':
+				return o.value;
 
-		case 'DateTime':
-			return o.value;
+			default:
+				debugger;
+				break;
+		}
+	};
 
-		default:
-			debugger;
-			break;
-	}
-};
-
-return serializeObject(RootObject);
-
+	return serializeObject(RootObject);
 }
 
 });
