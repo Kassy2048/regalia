@@ -648,15 +648,16 @@ var SavedGames = {
             }
         }
 
-        //dumpChanges(refGame, TheGame, []);
-
         // Re-create the name/uid maps
         // FIXME Not needed anymore (we don't create new objects)?
         Finder.addMaps(TheGame);
 
         if(!success) {
             alert("Import failed. Check console for details.");
+            throw new Error("Import failed.");
         }
+
+        //dumpChanges(refGame, TheGame, []);
 
         console.log(`Done.`);
     },
