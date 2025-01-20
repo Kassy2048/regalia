@@ -603,7 +603,7 @@ const Record = (RecordTypeEnum) => {
 
 let b, offset;
 
-window.parseNrbf = function(buffer) {
+window.parseNrbf = async function(buffer, callback) {
 
 	b = new DataView(buffer);
 	const fileLength = b.byteLength;
@@ -618,13 +618,17 @@ window.parseNrbf = function(buffer) {
 	while (offset < fileLength) {
 		const record = Record();
 		records.push(record);
+		if(callback) await callback(offset, fileLength, 0);
 	}
+
+	if(callback) await callback(offset, fileLength, 1);
 
 	// resolve all outstanding object references
 	FutureObjectIndex.forEach(link => {
 		link(); // mutates existing records
 	});
 
+	if(callback) await callback(offset, fileLength, 2);
 
 	// inspect this value; it should have everything
 	const RootObject = ObjectIndex[ROOT_ID];
