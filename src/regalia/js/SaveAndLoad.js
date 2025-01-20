@@ -514,18 +514,20 @@ var SavedGames = {
                 return SetupCustomPropertyData([adaptText(prop.Name), adaptText(prop.Value)]);
             });
 
-            if(gameObj.vartype == "VT_STRINGARRAY") {
+            if(gameObj.vartype.endsWith("ARRAY")) {
+                const stringArray = gameObj.vartype == "VT_STRINGARRAY";
+                const numberArray = gameObj.vartype == "VT_NUMBERARRAY";
                 gameObj.VarArray = saveObj.VarArray.map(el => {
-                    if(typeof(el) == 'string') {
-                        // Single string
-                        return adaptText(el);
+                    if(Array.isArray(el)) {
+                        if(stringArray) return el.map(adaptText_nobr);
+                        if(numberArray) return el.map(Number);
+                        return el.map(DateTime);
                     } else {
-                        // Array of strings
-                        return el.map(adaptText_nobr);
+                        if(stringArray) return adaptText(el);
+                        if(numberArray) return Number(el);
+                        return DateTime(el);
                     }
                 });
-            } else if(gameObj.vartype.endsWith('ARRAY')) {
-                update(gameObj, 'VarArray', saveObj);  // array of numbers/datetime
             }
             update(gameObj, 'dNumType', saveObj);
             update(gameObj, 'sString', saveObj, '', adaptText);
