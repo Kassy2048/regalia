@@ -482,6 +482,10 @@ body {
     margin: 20px 0;
 }
 
+.import-menu-status {
+    margin-bottom: 5px;
+}
+
 .cheat-menu-title, .cheat-menu-subtitle {
     flex: 0 0 auto;
 }

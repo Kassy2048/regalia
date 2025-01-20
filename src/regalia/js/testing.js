@@ -265,6 +265,7 @@ $(function() {
     });
 
     $(".import_savegames").on('click', function () {
+        $('.import-menu-status').html('');
         $('.import-menu').removeClass('hidden');
         $('.import-menu, .import-menu-actions button, .import-menu-content, .import-menu-content input').off();
         $('.import-menu-content input[type=file]').val('');
@@ -282,10 +283,23 @@ $(function() {
             const reader = new FileReader();
             if(file.name.toLowerCase().endsWith('.rsv')) {
                 reader.onload = async (e) => {
-                    const root = await SavedGames.importRSV(e.target.result);
-                    $('.import-menu').addClass('hidden');
-                    hideSaveAndLoadMenus();
-                    handleFileSelect(false, '', root);
+                    try {
+                        $('.import-menu-status').html('Loading RSV file...');
+                        // Let the HTML update
+                        await new Promise(r => setTimeout(r, 0));
+
+                        const root = await SavedGames.importRSV(e.target.result);
+
+                        $('.import-menu-status').text('Importing save data...');
+                        // Let the HTML update
+                        await new Promise(r => setTimeout(r, 0));
+
+                        $('.import-menu').addClass('hidden');
+                        hideSaveAndLoadMenus();
+                        handleFileSelect(false, '', root);
+                    } finally {
+                        $('.import-menu-status').html('');
+                    }
                 };
                 reader.readAsArrayBuffer(file);
             } else {
