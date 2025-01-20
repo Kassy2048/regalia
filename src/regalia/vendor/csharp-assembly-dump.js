@@ -621,10 +621,9 @@ while (offset < fileLength) {
 }
 
 // resolve all outstanding object references
-while (FutureObjectIndex.length > 0) {
-	const link = FutureObjectIndex.shift();
+FutureObjectIndex.forEach(link => {
 	link(); // mutates existing records
-}
+});
 
 
 // inspect this value; it should have everything
