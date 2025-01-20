@@ -156,7 +156,7 @@ var Finder = {
 
         function buildNameMap(list, propName, map) {
             return buildMap(list, (item) => {
-                if(propName in item && item[propName]) {
+                if(propName in item /*&& item[propName]*/) {
                     return item[propName].trim().toLowerCase();
                 }
                 return undefined;
