@@ -293,6 +293,7 @@ $(function() {
                     SavedGames.import(JSON.parse(this.result));
                     $('.import-menu').addClass('hidden');
                     hideSaveAndLoadMenus();
+                    GameUI.showMessage('Saves List Imported', {type: 'success', timeout: 3.0});
                 };
                 reader.readAsText(file);
             }
