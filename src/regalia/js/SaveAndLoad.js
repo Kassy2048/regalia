@@ -674,6 +674,15 @@ var SavedGames = {
 
         console.log(`Done.`);
     },
+
+    renameSave: function (id, name) {
+        const savedGames = this.getIndex();
+        savedGames[id].name = name;
+        persistKeyValue(this.keyForIndex(), JSON.stringify(savedGames));
+
+        // No need to update the name in the full save data as it is never used
+        // and it takes a significant time
+    },
 };
 
 function persistKeyValue(key, value) {

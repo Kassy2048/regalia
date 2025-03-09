@@ -44,7 +44,6 @@ var GameUI = {
 
     enableSaveAndLoad: function () {
         $('#save').prop('disabled', false);
-        $('#load').prop('disabled', false);
         $('#back').prop('disabled', !GameHistory.canGoBack());
     },
 
