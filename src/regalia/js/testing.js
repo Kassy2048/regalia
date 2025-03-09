@@ -39,8 +39,8 @@ $(function() {
     });
 
     $(document).keydown(function(e) {
-        switch (e.keyCode) {
-            case 32: // Space
+        switch (e.originalEvent.code) {
+            case "Space":
                 {
                     if (GameController.gamePaused) {
                         e.preventDefault();
@@ -48,17 +48,17 @@ $(function() {
                     }
                     break;
                 }
-            case 119:
+            case "F8":
                 {
                     handleFileSave(true);
                     break;
                 }
-            case 120:
+            case "F9":
                 {
                     handleFileSelect(true);
                     break;
                 }
-            case 192: // Backtick
+            case "Backquote":
                 {
                     toggleBigPictureMode();
                 }
@@ -90,7 +90,7 @@ $(function() {
 
     function onKeyupEnter(selector, fn) {
         $(selector).on('keyup', function (e) {
-            if (e.which === 13) { // return key
+            if (e.key === "Enter") { // return key
                 fn();
             }
         });
