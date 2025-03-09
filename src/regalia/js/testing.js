@@ -426,9 +426,14 @@ function handleFileSave(bQuick, bNew, CurID, oldSaveName) {
         SavedGames.createSave(0, 'QuickSave', curdate, SavedGames.saveDataFor(TheGame));
         GameUI.showMessage('Quick Saved', {type: 'success', timeout: 3.0});
     } else {
-        var saveName = prompt("Give a name for the save", oldSaveName);
-        if (saveName === null) {
-            return;
+        var saveName = oldSaveName || "";
+        try {
+            saveName = prompt("Give a name for the save", oldSaveName);
+            if (saveName === null) {
+                return;
+            }
+        } catch {
+            // window.prompt() does not exist on Electron
         }
 
         SavedGames.createSave(bNew ? SavedGames.nextSaveId() : CurID, saveName, curdate, SavedGames.saveDataFor(TheGame));
