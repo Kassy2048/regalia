@@ -5,7 +5,6 @@
 function hideSaveAndLoadMenus() {
     GameUI.showGameElements();
     $(".save-menu").addClass("hidden");
-    $(".load-menu").addClass("hidden");
 }
 
 $(function() {
@@ -170,26 +169,73 @@ $(function() {
         });
     }
 
-    function addSavesToTable($tbody, buttonTitle) {
+    function addSavesToTable($tbody) {
+        function updateSaveName(saveName) {
+            saveName.style.height = "auto";
+            const height = saveName.scrollHeight;
+            if(height > 0) saveName.style.height = height + "px";
+        }
+
         var savedGames = SavedGames.getSortedSaves();
         savedGames.forEach(function (savedGame) {
             var $tr = $('<tr></tr>');
+            $tr.append('<td><button class="btn load-save">Load</button></td>');
             $tr.append('<td>' + savedGame.id + '</td>');
-            $tr.append('<td>' + savedGame.name + '</td>');
+            $tr.append('<td><textarea class="save-name" rows="1" spellcheck="false"></textarea><button class="btn rename-save" disabled>Rename</button></td>');
             $tr.append('<td>' + formatDate(new Date(savedGame.date)) + '</td>');
-            $tr.append('<td><button class="btn save-or-load">' + buttonTitle + '</button></td>');
+            $tr.append('<td><button class="btn overwrite-save">Overwrite Save</button></td>');
             $tr.append('<td><button class="btn btn-danger destroy-save">Destroy</button></td>');
 
-            var $saveOrLoadButton = $tr.find('button.save-or-load');
-            $saveOrLoadButton.data('save-id', savedGame.id);
-            $saveOrLoadButton.data('save-name', savedGame.name);
+            const $saveButton = $tr.find('button.overwrite-save');
+            $saveButton.data('save-id', savedGame.id);
+            $saveButton.data('save-name', savedGame.name);
 
-            var $destroyButton = $tr.find('button.destroy-save');
+            const $loadButton = $tr.find('button.load-save');
+            $loadButton.data('save-id', savedGame.id);
+
+            const $destroyButton = $tr.find('button.destroy-save');
             $destroyButton.data('save-id', savedGame.id);
+
+            const $renameButton = $tr.find('button.rename-save');
+
+            const $saveName = $tr.find('textarea.save-name');
+            $saveName.val(savedGame.name);
+            // updateSaveName($saveName[0]);
+            $saveName.on('input', function(e) {
+                // Resize the area height if needed
+                updateSaveName(this);
+                $renameButton.prop('disabled', false);
+            }).on('keydown', function(e) {
+                e = e.originalEvent;
+                // Apply rename on return key
+                if(e.key == 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $renameButton.focus();
+                    $renameButton.click();
+                }
+            });
+            // Force height update
+            window.setTimeout(() => updateSaveName($saveName[0]), 0);
+
+            $renameButton.on('click', function(e) {
+                SavedGames.renameSave(savedGame.id, $saveName.val());
+                $renameButton.prop('disabled', true);
+                // Update data for overwrite
+                $saveButton.data('save-name', savedGame.name);
+            });
+
+            // Disable overwriting/renaming for quick save
+            if(savedGame.id == 0) {
+                $renameButton.prop('disabled', true);
+                $saveName.prop('disabled', true);
+                $renameButton.off('click');
+                $saveButton.prop('disabled', true);
+                $saveButton.off('click');
+            }
 
             $tbody.append($tr);
         });
-
 
         // Set visibility of things that care about there being saves
         $tbody.closest('table').toggle(savedGames.length > 0);
@@ -253,7 +299,7 @@ $(function() {
         });
     });
     
-    var createSaveOrLoadMenuHandler = function ($backdrop, $menu, saveOrLoadButtonText, onSelect) {
+    var createSaveOrLoadMenuHandler = function ($backdrop, $menu) {
         return function (e) {
             $menu.off('click');
 
@@ -262,7 +308,7 @@ $(function() {
             $menuChoices.empty();
 
             $menu.find('table').hide();
-            addSavesToTable($menuChoices, saveOrLoadButtonText);
+            addSavesToTable($menuChoices);
 
             $menu.on('click', function (e) {
                 e.stopPropagation();
@@ -271,14 +317,19 @@ $(function() {
                 var saveId = $(e.currentTarget).data('save-id');
                 handleDestroySave(saveId);
             });
-            $menuChoices.on('click', 'button.save-or-load', function (e) {
+            $menuChoices.on('click', 'button.load-save', function (e) {
+                hideSaveAndLoadMenus();
+                var saveId = $(e.currentTarget).data('save-id');
+                handleFileSelect(false, saveId);
+            });
+            $menuChoices.on('click', 'button.overwrite-save', function (e) {
                 hideSaveAndLoadMenus();
                 var saveId = $(e.currentTarget).data('save-id');
                 var saveName = $(e.currentTarget).data('save-name');
-                onSelect(saveId, saveName);
+                handleFileSave(false, false, saveId, saveName);
             });
 
-            setElementTopleftToCursor($menu, e);
+            // setElementTopleftToCursor($menu, e);
             hideSaveAndLoadMenus();
             $backdrop.removeClass("hidden");
 
@@ -291,12 +342,7 @@ $(function() {
             });
         };
     };
-    $("#load").click(createSaveOrLoadMenuHandler($('.load-menu'), $(".load-menu-content"), 'Load', function (saveId) {
-        handleFileSelect(false, saveId);
-    }));
-    $("#save").click(createSaveOrLoadMenuHandler($(".save-menu"), $('.save-menu-content'), 'Overwrite Save', function (saveId, saveName) {
-        handleFileSave(false, false, saveId, saveName);
-    }));
+    $("#save").click(createSaveOrLoadMenuHandler($(".save-menu"), $('.save-menu-content')));
     $("div.genderchoiceSelect").click(function() {
         Globals.selectedObj = $(this).val();
         if (Globals.selectedObj != null) {
