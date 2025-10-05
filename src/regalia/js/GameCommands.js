@@ -338,6 +338,10 @@ var GameCommands = {
                 AddTextToRTF(cmdtxt + "</br>", "Black", "Regular");
                 break;
             }
+            case "CT_DEBUGTEXT": {
+                console.debug(cmdtxt);
+                break;
+            }
             case "CT_ENDGAME": {
                 AddTextToRTF(cmdtxt + "\r\n", "Black", "Regular");
                 GameUI.showMessage('EndGame', {type: 'warning', timeout: 5.0});
