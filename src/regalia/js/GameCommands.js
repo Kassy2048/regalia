@@ -124,7 +124,7 @@ var GameCommands = {
                 break;
             }
             case "CT_LOOP_BREAK": {
-                Globals.loopArgs.mustBreak = true;
+                this.exitLoop();
                 return true;
             }
             case "CT_EXPORTVARIABLE": {
@@ -1432,6 +1432,18 @@ var GameCommands = {
                 GameController.startAwaitingInput();
                 break;
             }
+
+            /* Internal commands (arguments are in CustomChoices) */
+
+            /** This command is put just before a loop condition when this is not
+             * the first iteration in order to set the loop arguments.
+             */
+            case "CT_REGALIA_LOOPARGS": {
+                Globals.loopArgs = commandBeingProcessed.CustomChoices[0];
+                Globals.loopArgsValid = true;
+                // loopArgsValid will be unset by the loop condition
+                break;
+            }
         }
     },
 
@@ -1494,6 +1506,39 @@ var GameCommands = {
         GameUI.refreshRoomObjects();
         SetupStatusBars();
         return bResult;
+    },
+
+    exitLoop: function() {
+        // Find the loop to exit from in the current stack
+        const currentStack = CommandLists.getCurrentStack();
+        let needLoopCond = false;
+        for (const [i, commandOrCondition] of currentStack.commands.entries()) {
+            const payload = commandOrCondition.payload;
+            if (payload instanceof command) {
+                if (payload.cmdtype === 'CT_REGALIA_LOOPARGS') {
+                    // If a loop condition is following, this is the loop we have to exit from
+                    needLoopCond = true;
+                    continue;
+                }
+            } else if (needLoopCond && payload instanceof ragscondition) {
+                if (payload.Checks.length == 1 && isLoopCheck(payload.Checks[0])) {
+                    // Remove all the commands up to the current one (included)
+                    currentStack.commands.splice(0, i + 1);
+                    RestoreLoopObject();
+                    return true;
+                }
+            }
+
+            if (needLoopCond) {
+                console.warn("BUG: no loop condition found after CT_REGALIA_LOOPARGS",
+                        Array.from(currentStack));
+                break;
+            }
+        }
+
+        // No loop to exit from found
+        console.log("BUG: no loop to break from found", Array.from(currentStack));
+        return false;
     },
 
     addToMaster: function (commands) {
