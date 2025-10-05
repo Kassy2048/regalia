@@ -84,7 +84,7 @@ $(function() {
                 }
             case "F8":
                 {
-                    handleFileSave(true);
+                    if (!GameUI.saveDisabled) handleFileSave(true);
                     break;
                 }
             case "F9":
@@ -401,6 +401,9 @@ $(function() {
                     hideSaveAndLoadMenus();
                 });
             });
+
+            $menu.find('button.overwrite-save, #new_savegame')
+                    .prop('disabled', GameUI.saveDisabled);
         };
     };
     $("#save").click(createSaveOrLoadMenuHandler($(".save-menu"), $('.save-menu-content')));

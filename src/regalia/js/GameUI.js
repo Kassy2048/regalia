@@ -1,4 +1,6 @@
 var GameUI = {
+    saveDisabled: false,
+
     setGameTitle: function () {
         var title = GameController.title();
         document.title = title;
@@ -37,13 +39,12 @@ var GameUI = {
     },
 
     disableSaveAndLoad: function () {
-        $('#save').prop('disabled', true);
-        // $('#load').prop('disabled', true);
+        this.saveDisabled = true;
         $('#back').prop('disabled', true);
     },
 
     enableSaveAndLoad: function () {
-        $('#save').prop('disabled', false);
+        this.saveDisabled = false;
         $('#back').prop('disabled', !GameHistory.canGoBack());
     },
 
