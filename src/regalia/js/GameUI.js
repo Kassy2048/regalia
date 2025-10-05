@@ -413,7 +413,7 @@ var GameUI = {
             this.lastScrollHeight = MainText[0].scrollHeight;
         }
 
-        if(!GameController.gamePaused) {
+        if(GameController.shouldRunCommands()) {
             GameHistory.pushState();
             $('#back').prop('disabled', !GameHistory.canGoBack());
         }
