@@ -4,7 +4,8 @@ var GameConditions = {
         var counter = 0;
 
         function performLoopIteration() {
-            if (Globals.loopArgs.idx < Globals.loopArgs.array.length) {
+            if (!Globals.loopArgs.mustBreak
+                    && Globals.loopArgs.idx < Globals.loopArgs.array.length) {
                 Globals.loopArgs.object = Globals.loopArgs.array[Globals.loopArgs.idx];
                 Globals.loopArgs.idx++;
 
@@ -37,11 +38,13 @@ var GameConditions = {
 
                 switch (tempcheck.CondType) {
                     case "CT_Loop_While": {
-                        if (this.testVariable(step2, step3, step4)) {
+                        if (!Globals.loopArgs.mustBreak
+                                && this.testVariable(step2, step3, step4)) {
                             GameCommands.insertToMaster([tempcond]);
                             GameCommands.insertToMaster(tempcond.PassCommands);
                         } else {
                             Logger.logEvaluatedCondition(tempcond, bResult);
+                            Globals.loopArgs.mustBreak = false;
                         }
                         break;
                     }

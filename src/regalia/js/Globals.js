@@ -10,7 +10,8 @@ var Globals = {
     loopArgs: {
         object: null,
         idx: 0,
-        array: null
+        array: null,
+        mustBreak: false
     },
     inputDataObject: null,
     movingDirection: "",
@@ -24,6 +25,7 @@ function ResetLoopObjects() {
     Globals.loopArgs = {
         array: null,
         idx: 0,
-        object: null
+        object: null,
+        mustBreak: false
     };
 }

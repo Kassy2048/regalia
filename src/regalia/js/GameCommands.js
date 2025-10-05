@@ -124,6 +124,7 @@ var GameCommands = {
                 break;
             }
             case "CT_LOOP_BREAK": {
+                Globals.loopArgs.mustBreak = true;
                 return true;
             }
             case "CT_EXPORTVARIABLE": {
