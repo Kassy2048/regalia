@@ -527,6 +527,12 @@ function GetArrayIndex(varname, n) {
 }
 
 function getObjectClass(obj) {
+    if (obj instanceof command) return 'command';
+    if (obj instanceof ragscondition) return 'ragscondition';
+    if (obj instanceof action) return 'action';
+
+    if(typeof obj !== "object") return undefined;
+
     if (obj && obj.constructor && obj.constructor.toString) {
         var arr = obj.constructor.toString().match(/function\s*(\w+)/);
         if (arr && arr.length == 2) {
