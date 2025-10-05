@@ -46,7 +46,16 @@ $(function() {
             SoundEffect.muted = true;
             $('#sfx_button').addClass('off');
         }
+        Settings.sfxMuted = SoundEffect.muted;
     });
+
+    if (Settings.sfxMuted) {
+        SoundEffect.muted = true;
+        $('#sfx_button').addClass('off');
+    } else {
+        SoundEffect.muted = false;
+        $('#sfx_button').removeClass('off');
+    }
 
     const BGMusic  = document.getElementById('BGMusic');
     $("#music_button").click(function () {
@@ -57,7 +66,16 @@ $(function() {
             BGMusic.muted = true;
             $('#music_button').addClass('off');
         }
+        Settings.musicMuted = BGMusic.muted;
     });
+
+    if (Settings.musicMuted) {
+        BGMusic.muted = true;
+        $('#music_button').addClass('off');
+    } else {
+        BGMusic.muted = false;
+        $('#music_button').removeClass('off');
+    }
 
     $("#history_button").click(function () {
         if(!GameHistory.enabled) {
@@ -69,8 +87,16 @@ $(function() {
             $('#back').prop('disabled', true);
             $('#history_button').addClass('off');
         }
+        Settings.historyEnabled = GameHistory.enabled;
     });
-    $('#history_button').addClass('off');
+
+    if (Settings.historyEnabled) {
+        GameHistory.enabled = true;
+        $('#history_button').addClass('on');
+    } else {
+        GameHistory.enabled = false;
+        $('#history_button').addClass('off');
+    }
 
     $(document).keydown(function(e) {
         switch (e.originalEvent.code) {
@@ -680,3 +706,35 @@ function GetImageMimeType(lastthree) {
     }
     return "";
 }
+
+const Settings = {
+    _get: function(name, defValue) {
+        const value = localStorage['regalia_' + name];
+        return value === undefined ? defValue : JSON.parse(value);
+    },
+
+    _set: function(name, value) {
+        localStorage['regalia_' + name] = JSON.stringify(value);
+    },
+
+    get historyEnabled() {
+        return this._get('historyEnabled', false);
+    },
+    set historyEnabled(value) {
+        return this._set('historyEnabled', !!value);
+    },
+
+    get sfxMuted() {
+        return this._get('sfxMuted', false);
+    },
+    set sfxMuted(value) {
+        return this._set('sfxMuted', !!value);
+    },
+
+    get musicMuted() {
+        return this._get('musicMuted', false);
+    },
+    set musicMuted(value) {
+        return this._set('musicMuted', !!value);
+    },
+};
