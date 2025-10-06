@@ -71,6 +71,7 @@ var GameActions = {
             SetBorders();
             runAfterPause(function () {
                 CommandLists.finishNestedCommandList(commandList);
+                SetBorders();
             });
         }
 
