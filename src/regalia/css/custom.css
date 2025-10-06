@@ -22,7 +22,6 @@ body {
 
 #menu {
     top: 0;
-    height: 30px;
     display: inline-block;
     flex: 0 0 auto;
 }
@@ -96,11 +95,12 @@ body {
 #menu {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
 }
 
 .menuitem {
-    padding: 0 20px;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
 }
 
 .game-version {
