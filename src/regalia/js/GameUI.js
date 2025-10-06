@@ -3,8 +3,15 @@ var GameUI = {
 
     setGameTitle: function () {
         var title = GameController.title();
-        document.title = title;
+        if (TheGame.GameVersion !== undefined && TheGame.GameVersion.length > 0) {
+            version = ' (' + TheGame.GameVersion + ')';
+        } else {
+            version = '';
+        }
+
+        document.title = title + version;
         $('.game-title').text(title);
+        $('.game-version').text(version);
     },
 
     setDefaultCompass: function () {
