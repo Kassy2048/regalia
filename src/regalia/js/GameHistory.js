@@ -108,6 +108,12 @@ const GameHistory = {
     canGoBack: function() {
         return this.states.length > 0;
     },
+
+    noGoBackReason: function() {
+        if (!this.enabled) return 'History is disabled';
+        if (this.states.length == 0) return 'History is empty';
+        return '';
+    },
 };
 
 GameHistory.reset();

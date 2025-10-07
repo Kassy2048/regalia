@@ -21,6 +21,7 @@
     <script src="regalia/vendor/lzma_worker.min.js"></script>
     <script src="regalia/vendor/csharp-assembly-dump.js"></script>
     <script src="regalia/js/polyfills.js"></script>
+    <script src="regalia/js/Settings.js"></script>
     <script src="regalia/game/Game.js"></script>
     <script src="regalia/js/DateTimes.js"></script>
     <script src="regalia/js/Constants.js"></script>
@@ -75,13 +76,11 @@
         <button id="cheat_button">Cheat</button>
     </div>
     <div class="menuitem">
-        <button id="shrink_ui">Shrink UI</button>
-        <button id="unshrink_ui" style="display: none;">Unshrink UI</button>
+        <button id="options_button">Options</button>
     </div>
     <div class="menuitem">
-        <div id="sfx_button" title="Toggle sound effects on/off"></div>
-        <div id="music_button" title="Toggle music on/off"></div>
-        <div id="history_button" title="Toggle history on/off"></div>
+        <button id="shrink_ui">Shrink UI</button>
+        <button id="unshrink_ui" style="display: none;">Unshrink UI</button>
     </div>
     <div class="menuitem">
         <b id="regalia_version"></b>
@@ -296,6 +295,24 @@
 </div>
 
 <div class="cheat-menu hidden modal-backdrop"></div>
+
+<div class="options-menu hidden modal-backdrop">
+    <div class="options-menu-content modal-content">
+        <div class="modal-header">
+            <h3>Options</h3>
+        </div>
+        <div class="modal-body">
+            <form id="options-form">
+                <label><input type="checkbox" name="mute-music" />Mute music</label>
+                <label><input type="checkbox" name="mute-sfx" />Mute sound effects</label>
+                <label><input type="checkbox" name="enable-history" />Enable history (back button)</label>
+                <label><input type="checkbox" name="enable-debug" />Debug mode</label>
+            </form></div>
+        <div class="modal-footer">
+            <button class="btn close-btn">Close</button>
+        </div>
+    </div>
+</div>
 
 <div id="tooltip">
 </div>

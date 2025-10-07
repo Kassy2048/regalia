@@ -47,12 +47,14 @@ var GameUI = {
 
     disableSaveAndLoad: function () {
         this.saveDisabled = true;
-        $('#back').prop('disabled', true);
+        $('#back').prop('disabled', true)
+                .prop('title', 'Cannot go back now');
     },
 
     enableSaveAndLoad: function () {
         this.saveDisabled = false;
-        $('#back').prop('disabled', !GameHistory.canGoBack());
+        $('#back').prop('disabled', !GameHistory.canGoBack())
+            .prop('title', GameHistory.noGoBackReason());
     },
 
     clearInputChoices: function () {
@@ -422,7 +424,8 @@ var GameUI = {
 
         if(GameController.shouldRunCommands()) {
             GameHistory.pushState();
-            $('#back').prop('disabled', !GameHistory.canGoBack());
+            $('#back').prop('disabled', !GameHistory.canGoBack())
+                    .prop('title', GameHistory.noGoBackReason());
         }
     },
 

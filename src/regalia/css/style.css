@@ -79,7 +79,8 @@ table {
     width: 100%;
 }
 
-.save-menu-content {
+.save-menu-content,
+.modal-content {
     background-color: White;
     max-height: 80%;
     border: 1px solid grey;
@@ -89,11 +90,13 @@ table {
     margin-top: 40px;  /* menu height + 10 px */
 }
 
-.save-menu-content h3 {
+.save-menu-content h3,
+.modal-content h3 {
     margin: 0 0 4px 0;
 }
 
-.save-menu-content  > * {
+.save-menu-content > *,
+.modal-content > * {
     flex: 0 0 auto;
 }
 
@@ -101,9 +104,21 @@ table {
     flex: 1 1 auto;
 }
 
-.savegames-header {
-    padding: 8px;
+.savegames-header,
+.modal-header,
+.modal-body,
+.modal-footer {
+    margin: 8px;
     flex: 0 0 auto;
+}
+
+.modal-header {
+    border-bottom: 1px solid black;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: space-evenly;
 }
 
 .btn {
@@ -291,4 +306,15 @@ td {
 
 #MessagePane .message-close:hover::after {
     opacity: 1.0;
+}
+
+/*
+.options-menu-content .modal-body {
+    display: flex;
+}
+*/
+
+#options-form {
+    display: flex;
+    flex-direction: column;
 }

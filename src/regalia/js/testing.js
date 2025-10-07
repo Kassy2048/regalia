@@ -37,67 +37,6 @@ $(function() {
         toggleBigPictureMode(false);
     });
 
-    const SoundEffect = document.getElementById('SoundEffect');
-    $("#sfx_button").click(function () {
-        if(SoundEffect.muted) {
-            SoundEffect.muted = false;
-            $('#sfx_button').removeClass('off');
-        } else {
-            SoundEffect.muted = true;
-            $('#sfx_button').addClass('off');
-        }
-        Settings.sfxMuted = SoundEffect.muted;
-    });
-
-    if (Settings.sfxMuted) {
-        SoundEffect.muted = true;
-        $('#sfx_button').addClass('off');
-    } else {
-        SoundEffect.muted = false;
-        $('#sfx_button').removeClass('off');
-    }
-
-    const BGMusic  = document.getElementById('BGMusic');
-    $("#music_button").click(function () {
-        if(BGMusic.muted) {
-            BGMusic.muted = false;
-            $('#music_button').removeClass('off');
-        } else {
-            BGMusic.muted = true;
-            $('#music_button').addClass('off');
-        }
-        Settings.musicMuted = BGMusic.muted;
-    });
-
-    if (Settings.musicMuted) {
-        BGMusic.muted = true;
-        $('#music_button').addClass('off');
-    } else {
-        BGMusic.muted = false;
-        $('#music_button').removeClass('off');
-    }
-
-    $("#history_button").click(function () {
-        if(!GameHistory.enabled) {
-            GameHistory.enabled = true;
-            $('#history_button').removeClass('off');
-        } else {
-            GameHistory.enabled = false;
-            GameHistory.reset();
-            $('#back').prop('disabled', true);
-            $('#history_button').addClass('off');
-        }
-        Settings.historyEnabled = GameHistory.enabled;
-    });
-
-    if (Settings.historyEnabled) {
-        GameHistory.enabled = true;
-        $('#history_button').addClass('on');
-    } else {
-        GameHistory.enabled = false;
-        $('#history_button').addClass('off');
-    }
-
     $(document).keydown(function(e) {
         switch (e.originalEvent.code) {
             case "Space":
@@ -530,10 +469,77 @@ $(function() {
         $("#tooltip").css("visibility", "hidden");
     });
 
-    $("#back").click(function () {
+    const $backButton = $("#back");
+    $backButton.click(function () {
         GameHistory.popState();
         this.disabled = !GameHistory.canGoBack();
+        this.title = GameHistory.noGoBackReason();
     });
+
+    /* Options dialog setup */
+    {
+        const $backdrop = $(".options-menu");
+        const $menu = $('.options-menu-content');
+        const optionsForm = document.getElementById('options-form');
+
+        $backdrop.on('click', (e) => {
+            if (e.target !== e.currentTarget) return;
+            $backdrop.addClass("hidden");
+        });
+
+        const BGMusic = document.getElementById('BGMusic');
+        const SoundEffect = document.getElementById('SoundEffect');
+
+        BGMusic.muted = Settings.musicMuted;
+        SoundEffect.muted = Settings.sfxMuted;
+        GameHistory.enabled = Settings.historyEnabled;
+
+        $(optionsForm).on('change', (e) => {
+            const field = e.target;
+            switch(field.name) {
+                case 'mute-music':
+                    BGMusic.muted = field.checked;
+                    Settings.musicMuted = field.checked;
+                    break;
+
+                case 'mute-sfx':
+                    SoundEffect.muted = field.checked;
+                    Settings.sfxMuted = field.checked;
+                    break;
+
+                case 'enable-history':
+                    if (Settings.historyEnabled !== field.checked) {
+                        GameHistory.enabled = field.checked;
+                        if (!field.checked) {
+                            GameHistory.reset();
+                            $backButton.prop('disabled', true);
+                        }
+                        $backButton.prop('title', GameHistory.noGoBackReason());
+                        Settings.historyEnabled = field.checked;
+                    }
+                    break;
+
+                case 'enable-debug':
+                    Settings.debugEnabled = field.checked;
+                    break;
+            }
+        });
+
+        $("#options_button").click((e) => {
+            optionsForm.elements['mute-music'].checked = Settings.musicMuted;
+            optionsForm.elements['mute-sfx'].checked = Settings.sfxMuted;
+            optionsForm.elements['enable-history'].checked = Settings.historyEnabled;
+            optionsForm.elements['enable-debug'].checked = Settings.debugEnabled;
+
+            $backdrop.removeClass("hidden");
+        });
+
+        $('.options-menu-content .close-btn').on('click', (e) => {
+            $backdrop.addClass("hidden");
+        });
+    }
+
+    $backButton.prop('title', GameHistory.noGoBackReason());
 
     receivedText();
 });
@@ -622,7 +628,8 @@ function handleFileSelect(bQuick, CurID, rsvRoot) {
     $("#cmdinputmenu").css("visibility", "hidden");
     $("#Continue").css("background-color", "rgb(128, 128, 128)");
     $("#Continue").css('visibility', "hidden");
-    $("#back").prop('disabled', true);
+    $("#back").prop('disabled', true)
+            .prop('title', GameHistory.noGoBackReason());
     GameUI.showGameElements();
 
     if (bQuick) {
@@ -706,35 +713,3 @@ function GetImageMimeType(lastthree) {
     }
     return "";
 }
-
-const Settings = {
-    _get: function(name, defValue) {
-        const value = localStorage['regalia_' + name];
-        return value === undefined ? defValue : JSON.parse(value);
-    },
-
-    _set: function(name, value) {
-        localStorage['regalia_' + name] = JSON.stringify(value);
-    },
-
-    get historyEnabled() {
-        return this._get('historyEnabled', false);
-    },
-    set historyEnabled(value) {
-        return this._set('historyEnabled', !!value);
-    },
-
-    get sfxMuted() {
-        return this._get('sfxMuted', false);
-    },
-    set sfxMuted(value) {
-        return this._set('sfxMuted', !!value);
-    },
-
-    get musicMuted() {
-        return this._get('musicMuted', false);
-    },
-    set musicMuted(value) {
-        return this._set('musicMuted', !!value);
-    },
-};

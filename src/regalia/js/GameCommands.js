@@ -88,6 +88,7 @@ var GameCommands = {
             case "CT_MM_GETRANDOMGROUP": {
                 var tempvar = Finder.variable(part2);
                 if (tempvar != null) {
+                    // FIXME Build and use a map instead of iterating
                     var images = TheGame.Images.filter(function (image) {
                         return image.GroupName === part3;
                     });
@@ -339,7 +340,7 @@ var GameCommands = {
                 break;
             }
             case "CT_DEBUGTEXT": {
-                console.debug(cmdtxt);
+                if (Settings.debugEnabled) console.debug(cmdtxt);
                 break;
             }
             case "CT_ENDGAME": {
