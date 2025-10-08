@@ -1,5 +1,9 @@
 var GameCommands = {
     runSingleCommand: function (commandBeingProcessed, part2, part3, part4, cmdtxt) {
+        if (Settings.debugEnabled) {
+            console.debug(commandBeingProcessed.cmdtype, part2, part3, part4, cmdtxt);
+        }
+
         var objectBeingActedUpon = CommandLists.objectBeingActedUpon();
         switch (commandBeingProcessed.cmdtype) {
             case "CT_LAYEREDIMAGE_ADD": {
@@ -1503,6 +1507,10 @@ var GameCommands = {
                     alert("Rags can not process the command correctly.  If you are the game author," + " please correct the error in this command:" + commandBeingProcessed.cmdtype);
                 }
             } else {
+                if (Settings.debugEnabled) {
+                    console.debug(commandOrCondition.payload);
+                }
+
                 var nextCommands = this.processCondition(commandOrCondition, loopObj);
                 if (nextCommands) {
                     this.insertToMaster(nextCommands);
