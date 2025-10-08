@@ -1,60 +1,59 @@
 const Settings = {
+    _storageName: function(name) {
+        return 'regalia_' + name;
+    },
+
     _get: function(name, defValue) {
-        const value = localStorage['regalia' + name];
+        const value = localStorage[this._storageName(name)];
         return value === undefined ? defValue : JSON.parse(value);
     },
 
     _set: function(name, value) {
-        localStorage['regalia' + name] = JSON.stringify(value);
+        localStorage[this._storageName(name)] = JSON.stringify(value);
     },
 
-    _init: function() {
-        this._historyEnabled = this._get('_historyEnabled', this._historyEnabled);
-        this._historySize = this._get('_historySize', this._historySize);
-        this._sfxMuted = this._get('_sfxMuted', this._sfxMuted);
-        this._musicMuted = this._get('_musicMuted', this._musicMuted);
-        this._debugEnabled = this._get('_debugEnabled', this._debugEnabled);
+    addBoolSetting: function(name, defValue) {
+        if(this[name] !== undefined) {
+            throw new Error('Setting with name "' + name + '" already exists!');
+        }
+
+        let value = this._get(name, !!defValue);
+        Object.defineProperty(this, name, {
+            get() {
+                return value;
+            },
+            set(newValue) {
+                this._set(name, value = !!newValue);
+            },
+            enumerable: true,
+        });
     },
 
-    _historyEnabled: false,
-    get historyEnabled() {
-        return this._historyEnabled;
-    },
-    set historyEnabled(value) {
-        return this._set('_historyEnabled', this._historyEnabled = !!value);
-    },
+    addIntSetting: function(name, defValue) {
+        if(this[name] !== undefined) {
+            throw new Error('Setting with name "' + name + '" already exists!');
+        }
 
-    _historySize: 100,
-    get historySize() {
-        return this._historySize;
-    },
-    set historySize(value) {
-        return this._set('_historySize', this._historySize = parseInt(value));
-    },
+        function parseIntSafe(value) {
+            let num = parseInt(value);
+            return isNaN(num) ? 0 : num;
+        }
 
-    _sfxMuted: false,
-    get sfxMuted() {
-        return this._sfxMuted;
-    },
-    set sfxMuted(value) {
-        return this._set('_sfxMuted', this._sfxMuted = !!value);
-    },
-
-    _musicMuted: false,
-    get musicMuted() {
-        return this._musicMuted;
-    },
-    set musicMuted(value) {
-        return this._set('_musicMuted', this._musicMuted =  !!value);
-    },
-
-    _debugEnabled: false,
-    get debugEnabled() {
-        return this._debugEnabled;
-    },
-    set debugEnabled(value) {
-        return this._set('_debugEnabled', this._debugEnabled = !!value);
+        let value = parseIntSafe(this._get(name, defValue));
+        Object.defineProperty(this, name, {
+            get() {
+                return value;
+            },
+            set(newValue) {
+                this._set(name, value = parseIntSafe(newValue));
+            },
+            enumerable: true,
+        });
     },
 };
 
-Settings._init();
+Settings.addBoolSetting('historyEnabled', false);
+Settings.addIntSetting('historySize', 100);
+Settings.addBoolSetting('sfxMuted', false);
+Settings.addBoolSetting('musicMuted', false);
+Settings.addBoolSetting('debugEnabled', false);
