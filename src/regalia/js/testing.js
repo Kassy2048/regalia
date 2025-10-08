@@ -487,28 +487,51 @@ $(function() {
             $backdrop.addClass("hidden");
         });
 
+        function setVolume(audioEl, volume) {
+            volume /= 100;
+            audioEl.volume = volume;
+            // iOS workaround (because audioEl.volume is read-only)
+            audioEl.muted = volume == 0;
+        }
+
         const BGMusic = document.getElementById('BGMusic');
         const SoundEffect = document.getElementById('SoundEffect');
 
-        BGMusic.muted = Settings.musicMuted;
-        SoundEffect.muted = Settings.sfxMuted;
+        setVolume(BGMusic, Settings.musicVolume);
+        setVolume(SoundEffect, Settings.sfxVolume);
         GameHistory.enabled = Settings.historyEnabled;
         GameHistory.MAX_HISTORY_SIZE = Settings.historySize;
 
-        $(optionsForm).on('change', (e) => {
+        function onOptionChange(e) {
             const field = e.target;
             switch(field.name) {
-                case 'mute-music':
-                    BGMusic.muted = field.checked;
-                    Settings.musicMuted = field.checked;
+                case 'music-volume':
+                case 'music-volume-slider': {
+                    const value = parseInt(field.value);
+                    setVolume(BGMusic, value);
+                    Settings.musicVolume = value;
+                    if(field.name === 'music-volume') {
+                        optionsForm.elements['music-volume-slider'].value = value;
+                    } else {
+                        optionsForm.elements['music-volume'].value = value;
+                    }
                     break;
+                }
 
-                case 'mute-sfx':
-                    SoundEffect.muted = field.checked;
-                    Settings.sfxMuted = field.checked;
+                case 'sfx-volume':
+                case 'sfx-volume-slider': {
+                    const value = parseInt(field.value);
+                    setVolume(SoundEffect, value);
+                    Settings.sfxVolume = value;
+                    if(field.name === 'sfx-volume') {
+                        optionsForm.elements['sfx-volume-slider'].value = value;
+                    } else {
+                        optionsForm.elements['sfx-volume'].value = value;
+                    }
                     break;
+                }
 
-                case 'enable-history':
+                case 'enable-history': {
                     if (Settings.historyEnabled !== field.checked) {
                         GameHistory.enabled = field.checked;
                         if (!field.checked) {
@@ -519,30 +542,46 @@ $(function() {
                         Settings.historyEnabled = field.checked;
                     }
                     break;
+                }
 
-                case 'history-size':
+                case 'history-size': {
                     const value = parseInt(field.value);
                     Settings.historySize = value;
                     GameHistory.MAX_HISTORY_SIZE = value;
                     break;
+                }
 
-                case 'enable-debug':
+                case 'enable-debug': {
                     Settings.debugEnabled = field.checked;
                     break;
+                }
 
-                case 'enable-darkmode':
+                case 'enable-darkmode': {
                     Settings.darkMode = field.checked;
                     GameUI.setDarkMode(Settings.darkMode);
                     break;
+                }
             }
-        }).on('submit', (e) => {
-            e.preventDefault();
-            $backdrop.addClass("hidden");
-        });
+        }
+
+        $(optionsForm)
+            .on('change', onOptionChange)
+            .on('input', (e) => {
+                const field = e.target;
+                // The change event is only triggered when the user release the
+                // mouse button for sliders, so use the input event instead.
+                if(field.name.endsWith('-slider')) onOptionChange(e);
+            })
+            .on('submit', (e) => {
+                e.preventDefault();
+                $backdrop.addClass("hidden");
+            });
 
         $("#options_button").on('click', (e) => {
-            optionsForm.elements['mute-music'].checked = Settings.musicMuted;
-            optionsForm.elements['mute-sfx'].checked = Settings.sfxMuted;
+            optionsForm.elements['music-volume'].value = Settings.musicVolume;
+            optionsForm.elements['music-volume-slider'].value = Settings.musicVolume;
+            optionsForm.elements['sfx-volume'].value = Settings.sfxVolume;
+            optionsForm.elements['sfx-volume-slider'].value = Settings.sfxVolume;
             optionsForm.elements['enable-history'].checked = Settings.historyEnabled;
             optionsForm.elements['history-size'].value = Settings.historySize;
             optionsForm.elements['enable-debug'].checked = Settings.debugEnabled;

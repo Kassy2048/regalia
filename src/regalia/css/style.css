@@ -361,6 +361,10 @@ td {
     flex-direction: column;
 }
 
+#options-form input[name$="-volume"] {
+    width: 3.5em;
+}
+
 #options-form input[name="history-size"] {
     width: 4em;
 }
@@ -371,4 +375,6 @@ td {
 
 #options-form label {
     padding-left: 3px;
+    display: flex;
+    gap: 0.25em;
 }

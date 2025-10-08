@@ -55,8 +55,8 @@ const Settings = {
 Settings.addBoolSetting('historyEnabled', false);
 Settings.addIntSetting('historySize', 100);
 
-Settings.addBoolSetting('sfxMuted', false);
-Settings.addBoolSetting('musicMuted', false);
+Settings.addIntSetting('musicVolume', 100);
+Settings.addIntSetting('sfxVolume', 100);
 
 Settings.addBoolSetting('debugEnabled', false);
 

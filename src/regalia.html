@@ -303,8 +303,18 @@
         </div>
         <div class="modal-body">
             <form id="options-form">
-                <label><input type="checkbox" name="mute-music" />Mute music</label>
-                <label><input type="checkbox" name="mute-sfx" />Mute sound effects</label>
+                <label>
+                    <span style="flex-grow: 1">Music volume:</span>
+                    <input type="number" name="music-volume" min="0" max="100" step="1" />
+                    (%)
+                    <input type="range" name="music-volume-slider" min="0" max="100" step="1" />
+                </label>
+                <label>
+                    <span style="flex-grow: 1">SFX volume:</span>
+                    <input type="number" name="sfx-volume" min="0" max="100" step="1" />
+                    (%)
+                    <input type="range" name="sfx-volume-slider" min="0" max="100" step="1" />
+                </label>
                 <br>
                 <label><input type="checkbox" name="enable-history" />Enable history (back button)</label>
                 <label>History size: <input type="number" name="history-size" min="1" step="1" value="10" /> (states)</label>
