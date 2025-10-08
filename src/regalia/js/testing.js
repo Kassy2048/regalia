@@ -653,6 +653,8 @@ function handleFileSelect(bQuick, CurID, rsvRoot) {
 
     if (TheGame.bgMusic !== undefined && TheGame.bgMusic.length > 0) {
         GameUI.playBgMusic(imagePath(TheGame.bgMusic));
+    } else {
+        GameUI.playBgMusic(null);
     }
 
     if (bQuick) {
@@ -728,6 +730,8 @@ function StartGame() {
     GameActions.runEvents("<<On Game Start>>", function () {
         if (TheGame.bgMusic !== undefined && TheGame.bgMusic.length > 0) {
             GameUI.playBgMusic(imagePath(TheGame.bgMusic));
+        } else {
+            GameUI.playBgMusic(null);
         }
     });
 }
