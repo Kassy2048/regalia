@@ -529,6 +529,11 @@ $(function() {
                 case 'enable-debug':
                     Settings.debugEnabled = field.checked;
                     break;
+
+                case 'enable-darkmode':
+                    Settings.darkMode = field.checked;
+                    GameUI.setDarkMode(Settings.darkMode);
+                    break;
             }
         }).on('submit', (e) => {
             e.preventDefault();
@@ -541,6 +546,7 @@ $(function() {
             optionsForm.elements['enable-history'].checked = Settings.historyEnabled;
             optionsForm.elements['history-size'].value = Settings.historySize;
             optionsForm.elements['enable-debug'].checked = Settings.debugEnabled;
+            optionsForm.elements['enable-darkmode'].checked = Settings.darkMode;
 
             $backdrop.removeClass("hidden");
         });
@@ -551,6 +557,8 @@ $(function() {
     }
 
     $backButton.prop('title', GameHistory.noGoBackReason());
+
+    GameUI.setDarkMode(Settings.darkMode);
 
     receivedText();
 });

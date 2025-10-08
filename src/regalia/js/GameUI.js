@@ -469,4 +469,132 @@ var GameUI = {
             }, params.timeout * 1000.0);
         }
     },
+
+    // Dark color conversion cache
+    darkColorMap: {},
+    darkColorElement: null,
+
+    /** Convert the given color to use in dark mode.
+     * The color is converted to HSL and the lightness component is inverted to
+     * produce the dark mode color.
+     */
+    getDarkColor: function(color) {
+        color = color.trim();
+
+        // Use value from cache if available
+        let result = this.darkColorMap[color];
+        if(result !== undefined) return result;
+
+        // Convert CSS color to rgb(a) color
+        if(this.darkColorElement === null) {
+            this.darkColorElement = document.createElement('div');
+            this.darkColorElement.id = 'dark-color-element';
+            this.darkColorElement.style.display = 'none';
+            document.body.appendChild(this.darkColorElement);
+        }
+
+        this.darkColorElement.style.color = color;
+        const rgbColor = window.getComputedStyle(this.darkColorElement).color;
+
+        // Parse the color
+        const m = rgbColor.match(/^rgb(a)?\s*\(\s*([^\)]+)\s*\)/);
+        if(!m) {
+            console.warn('Cannot parse color "' + color + '" (' + rgbColor + ')');
+            return color;
+        }
+
+        const hasAlpha = m[1] !== undefined;
+        const rgba = m[2].split(',').map(comp => parseFloat(comp));
+
+        if(rgba.length < 3) {
+            console.warn('Cannot parse color "' + color + '" (' + rgbColor + ')');
+            return color;
+        }
+
+        const rgb = rgba.slice(0, 3);
+
+        // Use value from cache if available
+        let hsl = this.darkColorMap[rgb];
+        if(hsl === undefined) {
+            // Convert to HSL
+            // https://css-tricks.com/converting-color-spaces-in-javascript/
+            function RGBToHSL(r,g,b) {
+                // Make r, g, and b fractions of 1
+                r /= 255;
+                g /= 255;
+                b /= 255;
+
+                // Find greatest and smallest channel values
+                const cmin = Math.min(r,g,b);
+                const cmax = Math.max(r,g,b);
+                const delta = cmax - cmin;
+                let h = 0, s = 0, l = 0;
+
+                // Calculate hue
+                // No difference
+                if (delta == 0) h = 0;
+                // Red is max
+                else if (cmax == r) h = ((g - b) / delta) % 6;
+                // Green is max
+                else if (cmax == g) h = (b - r) / delta + 2;
+                // Blue is max
+                else h = (r - g) / delta + 4;
+
+                h = Math.round(h * 60);
+
+                // Make negative hues positive behind 360°
+                if (h < 0) h += 360;
+
+                // Calculate lightness
+                l = (cmax + cmin) / 2;
+
+                // Calculate saturation
+                s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+
+                // Multiply l and s by 100
+                s = +(s * 100).toFixed(1);
+                l = +(l * 100).toFixed(1);
+
+                return [h, s, l];
+            }
+
+            hsl = RGBToHSL(...rgb);
+            // Invert the lightness
+            hsl[2] = 100 - hsl[2];
+
+            // Cache the conversion from rgb
+            this.darkColorMap[rgb] = hsl;
+        }
+
+        result = 'hsl(' + hsl[0] + ' ' + hsl[1] + ' ' + hsl[2] + ' ' +
+                (hasAlpha ? ('/ ' + rgba[3]) : '') + ')';
+
+        // Cache the conversion from color text
+        this.darkColorMap[color] = result;
+
+        return result;
+    },
+
+    setDarkMode: function(enabled) {
+        if(enabled) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+
+        // Convert the colors in MainText
+        document.querySelectorAll('#MainText span[style^="color:"]').forEach(el => {
+            if(enabled) {
+                if(el.dataset.color === undefined) {
+                    el.dataset.color = el.style.color;
+                    el.style.color = this.getDarkColor(el.style.color);
+                }
+            } else {
+                if(el.dataset.color !== undefined) {
+                    el.style.color = el.dataset.color;
+                    delete el.dataset.color;
+                }
+            }
+        });
+    },
 };

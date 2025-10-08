@@ -201,7 +201,7 @@ body {
 }
 
 #RoomThumbImg.has-actions, #PlayerImg.has-actions {
-    border: 2px solid green;
+    border: 2px solid var(--theme-green);
     cursor: pointer;
 }
 
@@ -247,7 +247,7 @@ body {
 
 #inputmenu, #cmdinputmenu, #playernamechoice, #genderchoice, #textchoice, #textactionchoice {
     position: absolute;
-    background-color: white;
+    background-color: var(--main-bg-color);
     border: 1px solid grey;
     visibility: hidden;
     left: 0;
@@ -323,8 +323,8 @@ body {
 }
 
 #inputchoices .inputchoices:hover, #cmdinputchoices .inputchoices:hover {
-    background-color: #b5b5b5;
-    color: black;
+    background-color: var(--popup-bg-color);
+    color: var(--main-text-color);
 }
 
 #CancelInput, #cmdCancelInput {
@@ -338,7 +338,7 @@ body {
 #Actionchoices .ActionChoices:not(.no-actions):hover
 {
     cursor: pointer;
-    background-color: #b5b5b5;
+    background-color: var(--popup-bg-color);
 }
 
 .RoomObjects, .VisibleCharacters {
@@ -425,8 +425,8 @@ body {
     cursor: pointer;
     visibility: visible;
     /* opacity: 0.5; */
-    /* background-color: green; */
-    border: 1px solid black;
+    /* background-color: var(--theme-green); */
+    border: 1px solid var(--main-text-color);
     font-weight: bold;
     display: flex;
     text-align: center;
@@ -434,6 +434,10 @@ body {
     flex-direction: column;
     /* Only make the background transparent, not the text */
     background-color: rgba(0, 128, 0, 0.6);
+}
+
+.dark-mode .compass-direction.active {
+    background-color: rgba(128, 255, 128, 0.6);
 }
 
 .compass-direction.active:hover {
@@ -460,7 +464,7 @@ body {
     padding: 15px;
     position: fixed;
     border: 1px solid grey;
-    background: white;
+    background: var(--main-bg-color);
     display: flex;
     flex-direction: column;
 }
@@ -526,14 +530,19 @@ body {
     background-color: #00e7ff;
 }
 
+.dark-mode .freeze-button.frozen {
+    /* No change, lightness is 50% */
+    background-color: #00e7ff;
+}
+
 .live-timer-display {
-    background-color: white;
+    background-color: var(--main-bg-color);
     z-index: 1;
     position: absolute;
     right: 0;
     bottom: 0;
-    border-top: 2px solid black;
-    border-left: 2px solid black;
+    border-top: 2px solid var(--main-text-color);
+    border-left: 2px solid var(--main-text-color);
 }
 
 .live-timer-display table {
@@ -543,8 +552,12 @@ body {
 .live-timer-display h4 {
     margin: 0;
     background: #ccc;
-    border-bottom: 2px solid black;
+    border-bottom: 2px solid var(--main-text-color);
     padding: 3px;
+}
+
+.dark-mode .live-timer-display h4 {
+    background-color: #333;
 }
 
 .live-timer-display-rows td {
@@ -552,8 +565,8 @@ body {
 }
 
 .live-timer-display-rows tr:hover td {
-    background-color: #b5b5b5;
-    border-color: #b5b5b5;
+    background-color: var(--popup-bg-color);
+    border-color: var(--popup-bg-color);
     cursor: pointer;
 }
 

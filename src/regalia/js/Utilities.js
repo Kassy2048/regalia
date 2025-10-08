@@ -415,12 +415,19 @@ function AddTextToRTF(text, clr, fontst) {
         // [c Green]green text[/c]
         replacedtext = replacedtext.replace(/\[c\s*([^\]]+)]/gi, function (match, colortype) {
             var colorinserter = "<span style='color:";
+            let cssColor;
             if (colortype.indexOf(",") > -1) {
-                colorinserter += "rgb(" + colortype + ");'>";
+                cssColor = "rgb(" + colortype + ")";
             } else {
-                colorinserter += colortype + ";'>";
+                cssColor = colortype;
             }
-            return colorinserter;
+
+            if (Settings.darkMode) {
+                return colorinserter + GameUI.getDarkColor(cssColor) +
+                        ";' data-color='" + cssColor +"'>";
+            } else {
+                return colorinserter + cssColor + ";'>";
+            }
         });
 
         // [f Arial,16]special font[/f]

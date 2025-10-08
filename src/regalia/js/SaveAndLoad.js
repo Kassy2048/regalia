@@ -124,6 +124,7 @@ var SavedGames = {
             }
             const mainText = LZMA.decompress(new Int8Array(zData.buffer));
             $("#MainText").html(mainText);
+            GameUI.setDarkMode(Settings.darkMode);
         }
     },
 
