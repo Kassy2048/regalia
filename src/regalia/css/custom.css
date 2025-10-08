@@ -628,3 +628,11 @@ body {
     /* History icons created by Freepik - Flaticon (https://www.flaticon.com/free-icons/history) */
     background-image: url('../images/history-off.png');
 }
+
+.RoomObjects,
+.ActionChoices,
+.compass-direction,
+.inputchoices,
+label {
+    user-select: none;
+}
