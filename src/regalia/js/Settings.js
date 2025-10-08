@@ -60,4 +60,5 @@ Settings.addBoolSetting('musicMuted', false);
 
 Settings.addBoolSetting('debugEnabled', false);
 
-Settings.addBoolSetting('darkMode', false);
+Settings.addBoolSetting('darkMode', window.matchMedia &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches);
