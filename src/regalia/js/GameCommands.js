@@ -1282,7 +1282,6 @@ var GameCommands = {
             }
             case "CT_DISPLAYCHARDESC": {
                 AddTextToRTF(Finder.character(part2).Description + "\r\n", "Black", "Regular");
-                var bfoundanitem = false;
                 break;
             }
             case "CT_MOVECHAR": {
