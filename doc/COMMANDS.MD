@@ -16,6 +16,10 @@ This command lets you remove a custom choice to an Action that takes custom inpu
 
 This command will display the selected character's description to the player.
 
+## *CT_CHAR_DISPLAYPORT*
+
+(TODO)
+
 ## CT_MOVECHAR
 
 This command will move the selected character to the selected room.
@@ -24,13 +28,37 @@ This command will move the selected character to the selected room.
 
 This command will move the selected character's inventory to the player.  This will only move carryable, visible items.
 
+## *CT_CHAR_MOVETOOBJ*
+
+(TODO)
+
+## *CT_CHAR_SETPORT*
+
+(TODO)
+
 ## CT_SETCHARACTION
 
 This command lets you activate or deactivate certain actions availabe on a character.  Select your character in the combo box, then select from their list of available actions and events.  You can enable and disable any event or action you'd like for the character.
 
+## *CT_CHAR_SET_CUSTOM_PROPERTY*
+
+(TODO)
+
+## *CT_CHAR_SET_CUSTOM_PROPERTY_JS*
+
+(TODO)
+
 ## CT_SETCHARDESC
 
 This command lets you change a character's description.  Select your character in the combo box, then type in their new description.
+
+## *CT_CHAR_SET_GENDER*
+
+(TODO)
+
+## *CT_CHAR_SET_NAME*
+
+(TODO)
 
 ## CT_COMMENT
 
@@ -39,6 +67,10 @@ This command does nothing except let the designer store comments in the game fil
 ## CT_DEBUGTEXT
 
 This command shows useful text messages in the player, but they will only show up when you are debugging your game.  During normal gameplay, these messages will not show up. In order to debug your game, simply choose "Debug Current Game" under the Tools menu.
+
+## *CT_JAVA_SET_RAGS*
+
+(TODO)
 
 ## CT_DISPLAYTEXT
 
@@ -63,6 +95,42 @@ This command lets you change the main picture's layered image viewed by the play
 ## CT_DISPLAYPICTURE
 
 This command lets you change the main picture viewed by the player.  Simply select the picture you'd like to display to the player.
+
+## *CT_MM_SET_BACKGROUND_MUSIC*
+
+(TODO)
+
+## *CT_MM_STOP_BACKGROUND_MUSIC*
+
+(TODO)
+
+## *CT_MM_PLAY_SOUNDEFFECT*
+
+(TODO)
+
+## *CT_MM_SET_MAIN_COMPASS*
+
+(TODO)
+
+## *CT_MM_SET_UD_COMPASS*
+
+(TODO)
+
+## *CT_LAYEREDIMAGE_ADD*
+
+(TODO)
+
+## *CT_LAYEREDIMAGE_CLEAR*
+
+(TODO)
+
+## *CT_LAYEREDIMAGE_REMOVE*
+
+(TODO)
+
+## *CT_LAYEREDIMAGE_REPLACE*
+
+(TODO)
 
 ## CT_DISPLAYITEMDESC
 
@@ -104,9 +172,21 @@ This command will move the selected object into the selected room.  First, selec
 
 This command lets you activate or deactivate certain actions availabe on an item/object.  Select your item in the combo box, then select from their list of available actions and events.  You can enable and disable any event or action you'd like for the selected item/object.
 
+## *CT_ITEM_SET_CUSTOM_PROPERTY*
+
+(TODO)
+
+## *CT_ITEM_SET_CUSTOM_PROPERTY_JS*
+
+(TODO)
+
 ## CT_SETITEMDESC
 
 This command lets you modify the description of an item/object.  First, select the item/object, then type in its new description.
+
+## *CT_ITEM_SET_NAME_OVERRIDE*
+
+(TODO)
 
 ## CT_SETLOCKEDUNLOCKED
 
@@ -136,6 +216,10 @@ This command will exit the current loop condition if you are currently in a loop
 
 This command will stop a player from moving.  This command is typically used in the **\<\<on player enter\>\>** or **\<\<on player leave\>\>** events of a room, but could be used anywhere.  If a player is in the process of moving to another room, this command will cancel the move and the player will remain in their current room.
 
+## *CT_DISPLAYPLAYERDESC*
+
+(TODO)
+
 ## CT_SETLAYEREDPLAYERPORTRAIT
 
 This command will change the player's layered portrait in the rags player.  Simply select the picture you'd like displayed in the portrait panel.  This should be a transparent GIF image that will lay over the portrait's background image.
@@ -152,9 +236,37 @@ This command will move the player's entire inventory to the selected room.
 
 This command will move the player to the selected room.
 
+## *CT_MOVETOCHAR*
+
+(TODO)
+
+## *CT_MOVETOOBJ*
+
+(TODO)
+
+## *CT_PLAYER_SET_CUSTOM_PROPERTY*
+
+(TODO)
+
+## *CT_PLAYER_SET_CUSTOM_PROPERTY_JS*
+
+(TODO)
+
+## *CT_SETPLAYERACTION*
+
+(TODO)
+
+## *CT_SETPLAYERDESC*
+
+(TODO)
+
 ## CT_SETPLAYERGENDER
 
 This command will change your player's gender.  This will affect certain text replacement triggers such as **[man/woman]** **[boy/girl]** or **[male/female]**.
+
+## *CT_SETPLAYERNAME*
+
+(TODO)
 
 ## CT_SETPLAYERPORTRAIT
 
@@ -176,6 +288,14 @@ This command will move items in the selected room to the player.  This will only
 
 This command lets you activate or deactivate certain actions availabe on a room.  Select your room in the combo box, then select from their list of available actions and events.  You can enable and disable any event or action you'd like for the selected room.
 
+## *CT_ROOM_SET_CUSTOM_PROPERTY*
+
+(TODO)
+
+## *CT_ROOM_SET_CUSTOM_PROPERTY_JS*
+
+(TODO)
+
 ## CT_SETROOMDESCRIPTION
 
 This command will set the selected room's description.  You just need to choose which a room, then type in that room's new description.  Please note that this will NOT display the new description, merely change it.
@@ -188,6 +308,10 @@ This command will let you activate or deactivate exits from the selected room.  
 
 This command will let you change the exit destination from the selected room.  First, select the room whose exits are to be modified.  Next, select the direction to change.  Finally, specify the new room to link to.  By default, these new destinations are active.
 
+## *CT_ROOM_SET_NAME_OVERRIDE*
+
+(TODO)
+
 ## CT_SETROOMLAYEREDPIC
 
 This command will set the selected room's default layered picture.  You just need to choose which a room, then select the appropriate picture.  This should typically be a transparent GIF that will be imposed over the room's main picture.  Please note that this will NOT display the new picture, merely change it.
@@ -196,6 +320,10 @@ This command will set the selected room's default layered picture.  You just nee
 
 This command will set the selected room's default picture.  You just need to choose which a room, then select the appropriate picture.  Please note that this will NOT display the new picture, merely change it.
 
+## *CT_Status_ItemVisibleInvisible*
+
+(TODO)
+
 ## CT_EXECUTETIMER
 
 This command will immediately run the selected timer.  This command is the equivalent of a function call, immediately executing the **\<\<on each turn\>\>** event of the selected timer.  This is an excellent way of grouping commonly called commands and condition checks together so you're not copying the same commands and conditions throughout your game.
@@ -203,6 +331,14 @@ This command will immediately run the selected timer.  This command is the equiv
 ## CT_RESETTIMER
 
 This command will immediately reset the turn count of the selected timer to 0.  This command has one extra powerful feature.  If you use this command within a timer and reset the currently running timer, the timer will immediately restart like a while loop.  This is a powerful way to loop through a large number of items and do a great deal of processing in your RAGS game.
+
+## *CT_TIMER_SET_CUSTOM_PROPERTY*
+
+(TODO)
+
+## *CT_TIMER_SET_CUSTOM_PROPERTY_JS*
+
+(TODO)
 
 ## CT_SETTIMER
 
@@ -216,17 +352,65 @@ This command will display the contents of a variable to the player.  You just ne
 
 This command will set the contents of a variable.  Once you select the variable you'd like to modify, the options will change based on the variable type.  You will be able to add, subtract, add days, set text, etc... depending on the variable type you are manipulating.  You can also use variable replacements to set the contents of a variable ex. **[v: SomeVariable]**
 
+## *CT_ITEM_GETRANDOMGROUP*
+
+(TODO)
+
+## *CT_MM_GETRANDOMGROUP*
+
+(TODO)
+
+## *CT_VARIABLE_SET_JAVASCRIPT*
+
+(TODO)
+
 ## CT_SETVARIABLEBYINPUT
 
 This command will set the contents of a text variable with the player's input.  You need to specify which type of input you will be receiving from the player.  You can choose objects, characters, objects and characters, inventory, custom, or text input just like at the action level.  The Player's reponse is stored in the selected text variable.  This can be used as a custom storage for a player's name so that it can be easily modifed later, or any other input data you'd like to track and be able to directly modify later in the game.
+
+## *CT_SETVARIABLE_NUMERIC_BYINPUT*
+
+(TODO)
+
+## *CT_VARIABLE_SET_CUSTOM_PROPERTY*
+
+(TODO)
+
+## *CT_VARIABLE_SET_CUSTOM_PROPERTY_JS*
+
+(TODO)
 
 ## CT_VARIABLE_SET_RANDOMLY
 
 This command will set the contents of a numeric variable randomly.  In order to set the variable randomly, the numeric variable must have its enforce limits turned on.  The min and max limits are what RAGS uses to randomize the value.
 
+## *CT_VARIABLE_SET_WITH_CHARPROPERTYVALUE*
+
+(TODO)
+
+## *CT_VARIABLE_SET_WITH_ITEMPROPERTYVALUE*
+
+(TODO)
+
+## *CT_VARIABLE_SET_WITH_PLAYERPROPERTYVALUE*
+
+(TODO)
+
+## *CT_VARIABLE_SET_WITH_ROOMPROPERTYVALUE*
+
+(TODO)
+
+## *CT_VARIABLE_SET_WITH_TIMERPROPERTYVALUE*
+
+(TODO)
+
 ## CT_VARIABLE_SET_WITH_VARIABLE
 
 This command will set the contents of a variable with the value of another variable.  Once you select the variable you'd like to modify, the options will change based on the variable type.  You will be able to add, subtract, add days, set text, etc... depending on the variable type you are manipulating.
+
+## *CT_VARIABLE_SET_WITH_VARIABLEPROPERTYVALUE*
+
+(TODO)
 
 ## CT_ENDGAME
 
