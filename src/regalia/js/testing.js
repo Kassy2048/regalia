@@ -730,6 +730,7 @@ function retrieveExportData() {
 }
 
 function SetupGameDataWithMap() {
+    ResetActionLinks();
     const gameData = SetupGameData();
     Finder.addMaps(gameData);
     return gameData;
