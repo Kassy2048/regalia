@@ -4,7 +4,7 @@ function ragsimage() {
     this.curfilename = "";
     this.GroupName = "";
     this.TheType = "";
-    this.LayeredImages = "";
+    this.LayeredImages = [""];
     this.EnhInputData = new enhinputdata();
 }
 
