@@ -308,13 +308,20 @@ td {
     opacity: 1.0;
 }
 
-/*
-.options-menu-content .modal-body {
-    display: flex;
-}
-*/
-
 #options-form {
     display: flex;
     flex-direction: column;
+    gap: 0.25em;
+}
+
+#options-form input[name="history-size"] {
+    width: 4em;
+}
+
+#options-form input[type="checkbox"] {
+    margin-left: 0;
+}
+
+#options-form label {
+    padding-left: 3px;
 }

@@ -493,6 +493,7 @@ $(function() {
         BGMusic.muted = Settings.musicMuted;
         SoundEffect.muted = Settings.sfxMuted;
         GameHistory.enabled = Settings.historyEnabled;
+        GameHistory.MAX_HISTORY_SIZE = Settings.historySize;
 
         $(optionsForm).on('change', (e) => {
             const field = e.target;
@@ -519,16 +520,26 @@ $(function() {
                     }
                     break;
 
+                case 'history-size':
+                    const value = parseInt(field.value);
+                    Settings.historySize = value;
+                    GameHistory.MAX_HISTORY_SIZE = value;
+                    break;
+
                 case 'enable-debug':
                     Settings.debugEnabled = field.checked;
                     break;
             }
+        }).on('submit', (e) => {
+            e.preventDefault();
+            $backdrop.addClass("hidden");
         });
 
-        $("#options_button").click((e) => {
+        $("#options_button").on('click', (e) => {
             optionsForm.elements['mute-music'].checked = Settings.musicMuted;
             optionsForm.elements['mute-sfx'].checked = Settings.sfxMuted;
             optionsForm.elements['enable-history'].checked = Settings.historyEnabled;
+            optionsForm.elements['history-size'].value = Settings.historySize;
             optionsForm.elements['enable-debug'].checked = Settings.debugEnabled;
 
             $backdrop.removeClass("hidden");

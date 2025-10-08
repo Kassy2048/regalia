@@ -1,5 +1,5 @@
 const GameHistory = {
-    MAX_HISTORY_SIZE: 100,  // TODO
+    MAX_HISTORY_SIZE: 100,  // Erased by user settings
     states: [],
     /** Deep copy of TheGame when last state was saved */
     oldGameData: null,

@@ -10,6 +10,7 @@ const Settings = {
 
     _init: function() {
         this._historyEnabled = this._get('_historyEnabled', this._historyEnabled);
+        this._historySize = this._get('_historySize', this._historySize);
         this._sfxMuted = this._get('_sfxMuted', this._sfxMuted);
         this._musicMuted = this._get('_musicMuted', this._musicMuted);
         this._debugEnabled = this._get('_debugEnabled', this._debugEnabled);
@@ -21,6 +22,14 @@ const Settings = {
     },
     set historyEnabled(value) {
         return this._set('_historyEnabled', this._historyEnabled = !!value);
+    },
+
+    _historySize: 100,
+    get historySize() {
+        return this._historySize;
+    },
+    set historySize(value) {
+        return this._set('_historySize', this._historySize = parseInt(value));
     },
 
     _sfxMuted: false,
