@@ -651,6 +651,10 @@ function handleFileSelect(bQuick, CurID, rsvRoot) {
             .prop('title', GameHistory.noGoBackReason());
     GameUI.showGameElements();
 
+    if (TheGame.bgMusic !== undefined && TheGame.bgMusic.length > 0) {
+        GameUI.playBgMusic(imagePath(TheGame.bgMusic));
+    }
+
     if (bQuick) {
         GameUI.showMessage('Quick Loaded', {type: 'success', timeout: 3.0});
     } else {
@@ -721,7 +725,11 @@ function StartGame() {
         ChangeRoom(currentroom, true, true);
     }
     SetPortrait(TheGame.Player.PlayerPortrait);
-    GameActions.runEvents("<<On Game Start>>", function () {}); // TODO
+    GameActions.runEvents("<<On Game Start>>", function () {
+        if (TheGame.bgMusic !== undefined && TheGame.bgMusic.length > 0) {
+            GameUI.playBgMusic(imagePath(TheGame.bgMusic));
+        }
+    });
 }
 
 function GetImageMimeType(lastthree) {

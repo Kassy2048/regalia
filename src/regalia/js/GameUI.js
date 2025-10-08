@@ -597,4 +597,29 @@ var GameUI = {
             }
         });
     },
+
+    playBgMusic: function(path) {
+        const mplayer = $("#BGMusic")[0];
+        if(path === null) {
+            // Stop
+            mplayer.pause();
+        } else  {
+            $("#bgmusicsource").attr("src", path);
+            mplayer.load();
+            // FIXME Rags applies a fadein effect
+            mplayer.play();
+        }
+    },
+
+    playSoundEffect: function(path) {
+        const mplayer = $("#SoundEffect")[0];
+        if(path === null) {
+            // Stop (unused)
+            mplayer.pause();
+        } else  {
+            mplayer.src = path;
+            mplayer.load();
+            mplayer.play();
+        }
+    },
 };

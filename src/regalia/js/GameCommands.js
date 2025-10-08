@@ -1100,22 +1100,15 @@ var GameCommands = {
                 break;
             }
             case "CT_MM_SET_BACKGROUND_MUSIC": {
-                var newmusic = "images/" + part2;
-                var mplayer = $("#BGMusic");
-                $("#bgmusicsource").attr("src", newmusic);
-                mplayer[0].load();
-                mplayer[0].play();
+                GameUI.playBgMusic(imagePath(part2));
                 break;
             }
             case "CT_MM_STOP_BACKGROUND_MUSIC": {
-                $("#BGMusic")[0].pause();
+                GameUI.playBgMusic(null);
                 break;
             }
             case "CT_MM_PLAY_SOUNDEFFECT": {
-                var newmusic = "images/" + part2;
-                var mplayer = $("#SoundEffect").attr('src', newmusic)[0];
-                mplayer.load();
-                mplayer.play();
+                GameUI.playSoundEffect(imagePath(part2));
                 break;
             }
             case "CT_MM_SET_UD_COMPASS": {
