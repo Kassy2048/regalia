@@ -1075,6 +1075,10 @@ var GameCommands = {
                 }
                 break;
             }
+            case "CT_SETROOMLAYEREDPIC": {
+                // FIXME Implement it
+                break;
+            }
             case "CT_SETPLAYERPORTRAIT": {
                 TheGame.Player.PlayerPortrait = part2;
                 SetPortrait(part2);
@@ -1433,6 +1437,9 @@ var GameCommands = {
                 GameController.startAwaitingInput();
                 break;
             }
+            case "CT_COMMENT": {
+                break;
+            }
 
             /* Internal commands (arguments are in CustomChoices) */
 
@@ -1444,6 +1451,10 @@ var GameCommands = {
                 Globals.loopArgsValid = true;
                 // loopArgsValid will be unset by the loop condition
                 break;
+            }
+
+            default: {
+                console.log('Unknown command ' + commandBeingProcessed.cmdtype);
             }
         }
     },
