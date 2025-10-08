@@ -43,7 +43,18 @@ const GameHistory = {
             // Save info to revert this state
             const state = {
                 // Save the game data changes
-                gameChanges: DeepDiff.diff(TheGame, this.oldGameData),
+                gameChanges: DeepDiff.diff(TheGame, this.oldGameData, {prefilter: (path, key) => {
+                    // Ignore properties that cannot change
+                    switch(key) {
+                        case 'PassCommands':
+                        case 'FailCommands':
+                        case 'Conditions':
+                        case 'Checks':
+                        case 'EnhInputData':
+                            return true;
+                    }
+                    return false;
+                }}),
                 textChild: this.oldTextChild,
                 currentImage: this.oldImage,
             };
