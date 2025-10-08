@@ -1101,10 +1101,12 @@ var GameCommands = {
             }
             case "CT_MM_SET_BACKGROUND_MUSIC": {
                 GameUI.playBgMusic(imagePath(part2));
+                TheGame.bgMusic = part2;
                 break;
             }
             case "CT_MM_STOP_BACKGROUND_MUSIC": {
                 GameUI.playBgMusic(null);
+                TheGame.bgMusic = '';
                 break;
             }
             case "CT_MM_PLAY_SOUNDEFFECT": {
