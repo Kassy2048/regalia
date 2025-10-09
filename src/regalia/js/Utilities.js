@@ -921,3 +921,39 @@ function GetExit(room, dir) {
     }
     return null;
 }
+
+function ArrayCloneForDiff(array) {
+    const result = new Array(array.length);
+    for(let i = 0 ; i < array.length ; ++i) {
+        const el = array[i];
+        if(el instanceof Object) {
+            if(el.cloneForDiff !== undefined) {
+                result[i] = el.cloneForDiff();
+            } else if(Array.isArray(el)) {
+                // variable.VarArray case
+                result[i] = ArrayCloneForDiff(el);
+            } else {
+                result[i] = el;
+            }
+        } else {
+            result[i] = el;
+        }
+    }
+
+    return result;
+}
+
+function GameCloneForDiff(game) {
+    // Only clone the properties that can change
+    return {
+        Rooms: ArrayCloneForDiff(game.Rooms),
+        Player: game.Player.cloneForDiff(),
+        Characters: ArrayCloneForDiff(game.Characters),
+        Objects: ArrayCloneForDiff(game.Objects),
+        Images: ArrayCloneForDiff(game.Images),
+        Variables: ArrayCloneForDiff(game.Variables),
+        Timers: ArrayCloneForDiff(game.Timers),
+        StatusBarItems: ArrayCloneForDiff(game.StatusBarItems),
+        bgMusic: game.bgMusic,
+    };
+}

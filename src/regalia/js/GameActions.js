@@ -4,7 +4,7 @@ var GameActions = {
         var bPassed = true;
         if (act.bConditionFailOnFirst) {
             for (var i = 0; i < act.Conditions.length; i++) {
-                var tempcond = GetActionCommand(act.Conditions[i]);
+                var tempcond = act.Conditions[i];
                 if (GameConditions.testCondition(tempcond, act, null)) {
                     if (tempcond.Checks.length == 1 && isLoopCheck(tempcond.Checks[0])) {
                         // Do nothing?
@@ -19,7 +19,7 @@ var GameActions = {
         } else {
             bPassed = (act.Conditions.length === 0);
             for (var i = 0; i < act.Conditions.length; i++) {
-                var tempcond = GetActionCommand(act.Conditions[i]);
+                var tempcond = act.Conditions[i];
                 var btestresult = GameConditions.testCondition(tempcond, act, null);
                 if (btestresult) {
                     bPassed = btestresult;
@@ -29,7 +29,7 @@ var GameActions = {
                 }
             }
         }
-        GameCommands.addCommands(runNext, GetActionCommands(bPassed ? act.PassCommands : act.FailCommands));
+        GameCommands.addCommands(runNext, bPassed ? act.PassCommands : act.FailCommands);
     },
 
     processAction: function(action, bTimer, objectBeingActedUpon) {

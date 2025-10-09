@@ -6,6 +6,13 @@ function ragsimage() {
     this.TheType = "";
     this.LayeredImages = [""];
     this.EnhInputData = new enhinputdata();
+
+    this.cloneForDiff = function() {
+        // Only clone the properties that can change
+        return {
+            LayeredImages: ArrayCloneForDiff(this.LayeredImages),
+        };
+    };
 }
 
 function SetupImageData(GameData) {

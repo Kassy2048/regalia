@@ -104,7 +104,18 @@ var SavedGames = {
     },
 
     saveDataFor: function (game) {
-      return DeepDiff.diff(OriginalGame, game);
+      return DeepDiff.diff(OriginalGame, game, {prefilter: (path, key) => {
+            // Ignore properties that cannot change
+            switch(key) {
+                case 'PassCommands':
+                case 'FailCommands':
+                case 'Conditions':
+                case 'EnhInputData':
+                case 'cloneForDiff':  // function, do not compare
+                    return true;
+            }
+            return false;
+        }});
     },
 
     applySaveToGame: function (game, savedGame) {

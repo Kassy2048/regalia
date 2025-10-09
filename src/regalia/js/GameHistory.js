@@ -12,15 +12,14 @@ const GameHistory = {
         this.oldGameData = null;
         this.oldTextChild = null;
         this.oldImage = null;
-
-        if(structuredClone === undefined) {
-            console.warn("Old browser detected, rollback is disabled.");
-        }
     },
 
-    _saveOldInfo: function() {
-        // Clone current game data
-        this.oldGameData = structuredClone(TheGame);
+    _saveOldInfo: function(gameData) {
+        if(gameData === undefined) {
+            // Clone current game data
+            gameData = GameCloneForDiff(TheGame);
+        }
+        this.oldGameData = gameData;
         // Save last text history element
         this.oldTextChild = document.getElementById('MainText').lastChild;
         // Save current media
@@ -30,31 +29,19 @@ const GameHistory = {
     pushState: function() {
         if(!this.enabled) return;
 
-        if(structuredClone === undefined) {
-            // Old browser, no fast deep copy available
-            return;
-        }
+        const gameData = GameCloneForDiff(TheGame);
 
         if(this.oldGameData !== null) {
             while(this.states.length >= this.MAX_HISTORY_SIZE) {
                 this.states.shift();
             }
 
+            const start2 = window.performance.now();
+
             // Save info to revert this state
             const state = {
                 // Save the game data changes
-                gameChanges: DeepDiff.diff(TheGame, this.oldGameData, {prefilter: (path, key) => {
-                    // Ignore properties that cannot change
-                    switch(key) {
-                        case 'PassCommands':
-                        case 'FailCommands':
-                        case 'Conditions':
-                        case 'Checks':
-                        case 'EnhInputData':
-                            return true;
-                    }
-                    return false;
-                }}),
+                gameChanges: DeepDiff.diff(gameData, this.oldGameData),
                 textChild: this.oldTextChild,
                 currentImage: this.oldImage,
             };
@@ -62,7 +49,7 @@ const GameHistory = {
             this.states.push(state);
         }
 
-        this._saveOldInfo();
+        this._saveOldInfo(gameData);
     },
 
     popState: function() {

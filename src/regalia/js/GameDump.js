@@ -166,7 +166,7 @@ function DumpGame() {
     function buildActionCode(action, indent) {
         if(action.Conditions.length == 0) {
             // Only care of PassCommands
-            return buildCode(GetActionCommands(action.PassCommands), indent);
+            return buildCode(action.PassCommands, indent);
         }
 
         const withCondPassed = action.PassCommands.length != 0
@@ -188,7 +188,7 @@ function DumpGame() {
             condPassed = true;
         }
 
-        result += buildCode(GetActionCommands(action.Conditions), indent, condPassed);
+        result += buildCode(action.Conditions, indent, condPassed);
 
         if(withCondPassed) {
             // result += ident_str(indent) + '/* Commands */\n';
@@ -196,19 +196,19 @@ function DumpGame() {
             if(action.PassCommands.length == 0) {
                 result += '\n';
                 result += ident_str(indent) + 'if(!condPassed) {\n';
-                result += buildCode(GetActionCommands(action.FailCommands), indent + 1);
+                result += buildCode(action.FailCommands, indent + 1);
                 result += ident_str(indent) + '}\n';
             } else if(action.FailCommands.length == 0) {
                 result += '\n';
                 result += ident_str(indent) + 'if(condPassed) {\n';
-                result += buildCode(GetActionCommands(action.PassCommands), indent + 1);
+                result += buildCode(action.PassCommands, indent + 1);
                 result += ident_str(indent) + '}\n';
             } else {
                 result += '\n';
                 result += ident_str(indent) + 'if(condPassed) {\n';
-                result += buildCode(GetActionCommands(action.PassCommands), indent + 1);
+                result += buildCode(action.PassCommands, indent + 1);
                 result += ident_str(indent) + '} else {\n';
-                result += buildCode(GetActionCommands(action.FailCommands), indent + 1);
+                result += buildCode(action.FailCommands, indent + 1);
                 result += ident_str(indent) + '}\n';
             }
         }

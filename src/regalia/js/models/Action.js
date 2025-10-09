@@ -6,15 +6,24 @@ function action() {
     this.actionparent = "None";
     this.bConditionFailOnFirst = true;
     this.InputType = "None";
-    // The following 3 properties are arrays of keys in ActionLinks.links
-    // that map to the actual commands or condition. This speeds up
-    // the history delta computation significantly.
     this.PassCommands = [];
     this.FailCommands = [];
     this.Conditions = [];
     this.CustomChoices = [];
     this.EnhInputData = new enhinputdata();
     this.CustomChoiceTitle = "";
+
+    this.cloneForDiff = function() {
+        // Only clone the properties that can change
+        return {
+            name: this.name,
+            bActive: this.bActive,
+            overridename: this.overridename,
+            actionparent: this.actionparent,
+            InputType: this.InputType,
+            CustomChoices: ArrayCloneForDiff(this.CustomChoices),
+        };
+    };
 }
 
 function SetupActionData(GameData) {
@@ -28,27 +37,22 @@ function SetupActionData(GameData) {
     CurAction.CustomChoiceTitle = GameData[6];
     for (var i = 0; i < GameData[7].length; i++) {
         if (GameData[7][i][0] === "CMD") {
-            CurAction.PassCommands.push(LinkActionCommand(
-                    SetupCommandData(GameData[7][i])));
+            CurAction.PassCommands.push(SetupCommandData(GameData[7][i]));
         } else {
-            CurAction.PassCommands.push(LinkActionCommand(
-                    SetupConditionData(GameData[7][i])));
+            CurAction.PassCommands.push(SetupConditionData(GameData[7][i]));
         }
     }
 
     for (var j = 0; j < GameData[8].length; j++) {
         if (GameData[8][j][0] === "CMD") {
-            CurAction.FailCommands.push(LinkActionCommand(
-                    SetupCommandData(GameData[8][j])));
+            CurAction.FailCommands.push(SetupCommandData(GameData[8][j]));
         } else {
-            CurAction.FailCommands.push(LinkActionCommand(
-                    SetupConditionData(GameData[8][j])));
+            CurAction.FailCommands.push(SetupConditionData(GameData[8][j]));
         }
     }
 
     for (var k = 0; k < GameData[9].length; k++) {
-        CurAction.Conditions.push(LinkActionCommand(
-                SetupConditionData(GameData[9][k])));
+        CurAction.Conditions.push(SetupConditionData(GameData[9][k]));
     }
 
     for (var l = 0; l < GameData[10].length; l++) {
@@ -57,26 +61,4 @@ function SetupActionData(GameData) {
 
     CurAction.EnhInputData = SetupEnhInputData(GameData[11]);
     return CurAction;
-}
-
-const ActionLinks = {};
-
-function ResetActionLinks() {
-    ActionLinks.nextId = 0;
-    ActionLinks.links = {};
-}
-
-function LinkActionCommand(cmd) {
-    ActionLinks.links[ActionLinks.nextId] = cmd;
-    return ActionLinks.nextId++;
-}
-
-function GetActionCommand(id) {
-    return ActionLinks.links[id];
-}
-
-function GetActionCommands(ids) {
-    let result = [];
-    for(const id of ids) result.push(ActionLinks.links[id]);
-    return result;
 }
