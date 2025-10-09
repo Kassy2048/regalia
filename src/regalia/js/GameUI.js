@@ -598,16 +598,31 @@ var GameUI = {
         });
     },
 
+    bgMusicTimer: -1,
+
     playBgMusic: function(path) {
         const mplayer = $("#BGMusic")[0];
         if(path === null) {
             // Stop
             mplayer.pause();
-        } else  {
+        } else {
+            let volume = 0;
+            mplayer.volume = 0;
+
             $("#bgmusicsource").attr("src", path);
             mplayer.load();
-            // FIXME Rags applies a fadein effect
             mplayer.play();
+
+            // Fade-in effect
+            clearInterval(this.bgMusicTimer);
+            this.bgMusicTimer = setInterval(function() {
+                if(volume >= Settings.musicVolume) {
+                    clearInterval(GameUI.bgMusicTimer);
+                } else {
+                    ++volume;
+                    mplayer.volume = volume / 100;
+                }
+            }, 15);
         }
     },
 
@@ -616,7 +631,7 @@ var GameUI = {
         if(path === null) {
             // Stop (unused)
             mplayer.pause();
-        } else  {
+        } else {
             mplayer.src = path;
             mplayer.load();
             mplayer.play();
