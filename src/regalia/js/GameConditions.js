@@ -92,9 +92,7 @@ var GameConditions = {
                         if (!Globals.loopArgsValid) {
                             // First iteration
                             ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Objects.filter(function (item) {
-                                return item.GroupName === step2;
-                            });
+                            Globals.loopArgs.array = Finder.objectGroup(step2);
                         }
                         performLoopIteration();
                         break;

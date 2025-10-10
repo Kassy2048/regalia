@@ -78,9 +78,7 @@ var GameCommands = {
             case "CT_ITEM_GETRANDOMGROUP": {
                 var tempvar = Finder.variable(part2);
                 if (tempvar != null) {
-                    var items = TheGame.Objects.filter(function (item) {
-                        return item.GroupName === part3;
-                    });
+                    const items = Finder.objectGroup(part3);
                     if (items.length > 0) {
                         tempvar.sString = items[Math.floor(Math.random() * items.length)].name;
                         break;
@@ -92,10 +90,7 @@ var GameCommands = {
             case "CT_MM_GETRANDOMGROUP": {
                 var tempvar = Finder.variable(part2);
                 if (tempvar != null) {
-                    // FIXME Build and use a map instead of iterating
-                    var images = TheGame.Images.filter(function (image) {
-                        return image.GroupName === part3;
-                    });
+                    const images = Finder.imageGroup(part3);
                     if (images.length > 0) {
                         tempvar.sString = images[Math.floor(Math.random() * images.length)].TheName;
                         break;
