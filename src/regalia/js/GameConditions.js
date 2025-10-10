@@ -153,6 +153,10 @@ var GameConditions = {
                     default: {
                         bResult = this.booleanConditionResult(tempcond, tempcheck, step2, step3, step4, objectBeingActedUpon, conditionAction);
                     }
+
+                    if(Settings.debugEnabled) {
+                        console.debug(tempcheck.CondType, step2, step3, step4, objectBeingActedUpon, bResult);
+                    }
                 }
             } catch (err) {
                 alert("Rags can not process the condition check correctly.  If you are the game author," + " please correct the error in this conditon:" + tempcond.conditionname + " check:" +

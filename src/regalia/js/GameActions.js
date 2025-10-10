@@ -47,6 +47,8 @@ var GameActions = {
             }
         }
 
+        if(Settings.debugEnabled) console.debug(act);
+
         var commandList = CommandLists.startNestedCommandList({obj: objectBeingActedUpon, act: act});
 
         if (act.InputType === "None") {
