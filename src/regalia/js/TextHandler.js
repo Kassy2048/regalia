@@ -863,7 +863,7 @@ function ReplaceStatic(text, tempindex, change, loopobject) {
             return TheGame.Player.dWeightLimit;
         },
         '[TURNS]', function () {
-            return TurnCount;
+            return TheGame.TurnCount;
         },
         '[CURRENTCARRY]', function () {
             var totalweight = 0;

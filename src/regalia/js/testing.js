@@ -421,6 +421,7 @@ $(function() {
         }
         var direction = $el.data('direction');
         var newRoom = GetDestinationRoomName(direction);
+        TheGame.TurnCount++;
         ResetLoopObjects();
         Globals.bCancelMove = false;
         ActionRecorder.locationChange(direction);
@@ -731,6 +732,7 @@ function retrieveExportData() {
 
 function SetupGameDataWithMap() {
     const gameData = SetupGameData();
+    if(gameData.TurnCount === undefined) gameData.TurnCount = 0;
     Finder.addMaps(gameData);
     return gameData;
 }

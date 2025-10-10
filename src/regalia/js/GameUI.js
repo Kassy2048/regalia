@@ -176,6 +176,7 @@ var GameUI = {
                     });
                     $("#selectionmenu").css("visibility", "hidden");
                     ResetLoopObjects();
+                    TheGame.TurnCount++;
                     GameActions.processAction(selectionchoice, false, obj);
                     GameUI.onInteractionResume();
                 });

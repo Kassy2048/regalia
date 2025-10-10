@@ -955,5 +955,6 @@ function GameCloneForDiff(game) {
         Timers: ArrayCloneForDiff(game.Timers),
         StatusBarItems: ArrayCloneForDiff(game.StatusBarItems),
         bgMusic: game.bgMusic,
+        TurnCount: game.TurnCount,
     };
 }
