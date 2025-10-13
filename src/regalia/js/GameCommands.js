@@ -1,7 +1,7 @@
 var GameCommands = {
     runSingleCommand: function (commandBeingProcessed, part2, part3, part4, cmdtxt) {
         if (Settings.debugEnabled) {
-            console.debug(commandBeingProcessed.cmdtype, part2, part3, part4, cmdtxt);
+            console.debug(commandBeingProcessed.cmdtype, part2, part3, part4, cmdtxt, commandBeingProcessed);
         }
 
         var objectBeingActedUpon = CommandLists.objectBeingActedUpon();
