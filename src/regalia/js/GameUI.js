@@ -561,7 +561,7 @@ var GameUI = {
 
             hsl = RGBToHSL(...rgb);
             // Invert the lightness
-            hsl[2] = 100 - hsl[2];
+            hsl[2] = 100 - hsl[2] * 0.65;
 
             // Cache the conversion from rgb
             this.darkColorMap[rgb] = hsl;
