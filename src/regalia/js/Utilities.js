@@ -184,12 +184,28 @@ function renderMainImageAndLayers() {
     ImageRecorder.sawImage(Globals.currentImage);
     var fileParts = Globals.currentImage.split('.');
     var fileExtension = fileParts[fileParts.length - 1].toLowerCase();
-    if (!supportedMediaFormats.has(fileExtension)) {
+    if (!supportedMediaFormats.has(fileExtension) && Globals.currentImage !== '') {
+        // Try to load the media as an image and show an error message if that fails
         $("#MainVideo").empty();
-        $("#MainVideo").append($('<div class="bad-media">' + Globals.currentImage + '<br/>Playing this file is not supported</div>'));
-        $("#MainImg").css("background-image", "");
+        const ImageName = Globals.currentImage;
+        const img = new Image();
+        img.addEventListener('load', () => {
+            if(ImageName === Globals.currentImage) {
+                $("#MainImg").css("background-image", imageUrl(Globals.currentImage));
+            }
+        });
+        img.addEventListener('error', () => {
+            if(ImageName === Globals.currentImage) {
+                $("#MainVideo").append($('<div class="bad-media">' + Globals.currentImage
+                        + '<br/>Playing this file is not supported</div>'));
+                $("#MainImg").css("background-image", "");
+            }
+        });
+        img.src = imagePath(Globals.currentImage);
     } else if (fileExtension === 'mp4' || fileExtension === 'webm') {
-        var $videoTag = $('<video autoplay controls width="100%"><source src="' + imagePath(Globals.currentImage) + '" type="video/' + fileExtension + '">Sorry, your browser doesn\'t support this video.</video>');
+        var $videoTag = $('<video autoplay controls width="100%"><source src="'
+                + imagePath(Globals.currentImage) + '" type="video/'
+                + fileExtension + '">Sorry, your browser doesn\'t support this video.</video>');
 
         $("#MainVideo").empty();
         $("#MainVideo").append($videoTag);
