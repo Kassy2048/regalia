@@ -747,7 +747,7 @@ var GameCommands = {
                 if (tempvar != null) {
                     var splits = part3.split(":");
                     var ValueToSet = "";
-                    if (splits.Length == 2) {
+                    if (splits.length == 2) {
                         var roomname = splits[0];
                         var propname = splits[1];
                         var temproom = null;
