@@ -25,10 +25,8 @@ jobs:
 
     - name: Update branch
       run: |
-        sha1sum node_modules/react/cjs/react.production.min.js
         sha1sum node_modules/react/umd/react.production.min.js
-        sha1sum node_modules/react-dom/cjs/react-dom.production.min.js
         sha1sum node_modules/react-dom/umd/react-dom.production.min.js
-        sha1sum node_modules/moment/min/moment.min.js
+        find node_modules/moment -name moment.min.js -exec sha1sum {} +
         sha1sum node_modules/deep-diff/releases/deep-diff-0.3.8.min.js
         find dist
