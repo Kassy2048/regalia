@@ -9,15 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-      with:
-        ref: df2dab45c1e899c40be83e7b075982212323a42c
+      #with:
+        #ref: df2dab45c1e899c40be83e7b075982212323a42c
     - name: Use Node.js ${{ matrix.node_version }}
       uses: actions/setup-node@v4
       with:
         node-version: 10.6
 
     - name: npm install and build
-      # npx babel src --out-dir dist --presets=es2015,react
       run: |
         npm install
         npx babel src --out-dir dist --presets=es2015 --plugins=transform-react-jsx
