@@ -24,8 +24,7 @@ jobs:
         cp -r src dist
         mv dist/regalia.html dist/index.html
         mv dist/Rags_32512.ico dist/regalia/
-        npx babel src/regalia/js/Cheat.js --out-dir dist/regalia/js/ --presets=@babel/preset-env,@babel/preset-react
-        npx babel src/regalia/js/components/CheatMenuComponents.js --out-dir dist/regalia/js/components/ --presets=@babel/preset-env,@babel/preset-react
+        npx babel src/regalia/js/Cheat.js src/regalia/js/components/CheatMenuComponents.js --out-dir dist --presets=@babel/preset-env,@babel/preset-react
 
     - name: Update branch
       run: |
