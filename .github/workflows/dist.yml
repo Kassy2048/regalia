@@ -15,4 +15,4 @@ jobs:
     - name: npm install and build
       run: |
         npm install
-        npm run build
+        npx babel src --out-dir dist --presets=@babel/preset-env,@babel/preset-react
