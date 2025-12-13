@@ -20,4 +20,4 @@ jobs:
       # npx babel src --out-dir dist --presets=es2015,react
       run: |
         npm install
-        npx babel src --out-dir dist
+        npx babel src --out-dir dist --presets=es2015
