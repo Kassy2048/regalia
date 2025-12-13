@@ -1,5 +1,7 @@
 name: update-html-dist-branch
 run-name: Update the html-dist branch when the master branch changes
+permissions:
+  contents: write
 on:
   push:
     branches:
