@@ -32,3 +32,6 @@ jobs:
     - name: Update branch
       run: |
         find dist -type f -exec sha1sum {} + | sort
+        mv dist /tmp/regalia-dist
+        ls -lA
+        
