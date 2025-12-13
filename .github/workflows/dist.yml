@@ -32,10 +32,13 @@ jobs:
     - name: Update branch
       run: |
         find dist -type f -exec sha1sum {} + | sort
-        mv dist /tmp/regalia-dist
-        git clean -dfx
-        ls -lA
         git fetch origin dist
         git checkout dist
-        ls -lA
-        
+        cd dist
+        mv ../.git ./
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        git status
+        echo git commit -m "Update from SHA1_HERE"
+        echo git push origin target-branch
