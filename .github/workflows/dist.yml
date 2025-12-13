@@ -22,8 +22,8 @@ jobs:
         cp -r src dist
         mv dist/regalia.html dist/index.html
         mv dist/Rags_32512.ico dist/regalia/
-        npx babel src/regalia/js/Cheat.js --out-dir dist/regalia/js/ --presets=@babel/preset-env,@babel/preset-react
-        npx babel src/regalia/js/components/CheatMenuComponents.js --out-dir dist/regalia/js/components/ --presets=@babel/preset-env,@babel/preset-react
+        npx babel src/regalia/js/Cheat.js --out-dir dist/regalia/js/ --presets=es2015 --plugins=transform-react-jsx
+        npx babel src/regalia/js/components/CheatMenuComponents.js --out-dir dist/regalia/js/components/ --presets=es2015 --plugins=transform-react-jsx
         cp node_modules/react/umd/react.production.min.js dist/regalia/vendor/
         cp node_modules/react-dom/umd/react-dom.production.min.js dist/regalia/vendor/
         cp node_modules/moment/min/moment.min.js dist/regalia/vendor/
