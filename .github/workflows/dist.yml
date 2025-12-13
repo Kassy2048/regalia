@@ -17,6 +17,7 @@ jobs:
         node-version: 10.6
 
     - name: npm install and build
+      # npx babel src --out-dir dist --presets=es2015,react
       run: |
         npm install
-        npx babel src --out-dir dist --presets=es2015,react
+        npx babel src --out-dir dist
