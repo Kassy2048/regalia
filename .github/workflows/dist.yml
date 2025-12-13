@@ -29,4 +29,5 @@ jobs:
         sha1sum node_modules/react-dom/umd/react-dom.production.min.js
         find node_modules/moment -name moment.min.js -exec sha1sum {} +
         sha1sum node_modules/deep-diff/releases/deep-diff-0.3.8.min.js
+        npm info moment
         find dist
