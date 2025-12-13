@@ -32,4 +32,4 @@ jobs:
         cp node_modules/react-dom/umd/react-dom.production.min.js dist/regalia/vendor/
         cp node_modules/moment/min/moment.min.js dist/regalia/vendor/
         cp node_modules/deep-diff/releases/deep-diff-0.3.8.min.js dist/regalia/vendor/
-        find dist
+        find dist | sort
