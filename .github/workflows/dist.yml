@@ -6,6 +6,9 @@ on:
   push:
     branches:
     - master
+    paths:
+    - 'src/**'
+    - .github/workflows/dist.yml
 jobs:
   build:
     runs-on: ubuntu-latest
