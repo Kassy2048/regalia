@@ -32,13 +32,20 @@ jobs:
     - name: Update branch
       run: |
         find dist -type f -exec sha1sum {} + | sort
+
+        commit_sha=$(git rev-parse HEAD)
         git fetch origin dist
         git checkout dist --
         cd dist
         mv ../.git ./
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git add .
         git status
-        echo git commit -m "Update from SHA1_HERE"
-        echo git push origin target-branch
+
+        if git diff --cached --quiet; then
+          echo "No changes to commit"
+        else
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          echo git commit -m "Automated update from $commit_sha"
+          echo git push origin dist
+        fi
