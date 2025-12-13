@@ -32,8 +32,8 @@ jobs:
         find dist -type f -exec sha1sum {} + | sort
 
         commit_sha=$(git rev-parse HEAD)
-        git fetch origin dist
-        git checkout dist --
+        git fetch origin html-dist
+        git checkout html-dist
         cd dist
         mv ../.git ./
         git add .
@@ -45,5 +45,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "Automated update from $commit_sha"
-          git push origin dist
+          git push origin html-dist
         fi
