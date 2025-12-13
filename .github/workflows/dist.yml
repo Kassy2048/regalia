@@ -17,4 +17,4 @@ jobs:
     - name: npm install and build
       run: |
         npm install
-        npx babel src --out-dir dist --presets=@babel/preset-env,@babel/preset-react
+        npx babel src --out-dir dist --presets=es2015,react
