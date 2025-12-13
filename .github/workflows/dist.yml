@@ -21,10 +21,11 @@ jobs:
         npm install
         npm uninstall babel-cli babel-preset-es2015 babel-plugin-transform-react-jsx
         npm install --save-dev @babel/cli @babel/core @babel/preset-env @babel/preset-react
-        npx babel src --out-dir dist --presets=@babel/preset-env,@babel/preset-react
-        cp src/regalia.html dist/index.html
-        cp src/Rags_32512.ico dist/regalia/
-        cp -r src/regalia/css dist/regalia/
+        cp -r src build
+        mv dist/regalia.html dist/index.html
+        mv dist/Rags_32512.ico dist/regalia/
+        npx babel src/regalia/js/Cheat.js --out-dir dist/regalia/js/ --presets=@babel/preset-env,@babel/preset-react
+        npx babel src/regalia/js/components/CheatMenuComponents.js --out-dir dist/regalia/js/components/ --presets=@babel/preset-env,@babel/preset-react
 
     - name: Update branch
       run: |
