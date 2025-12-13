@@ -25,6 +25,10 @@ jobs:
 
     - name: Update branch
       run: |
-        find node_modules
+        find node_modules/react
+        echo "---------------------------------------------"
+        find node_modules/moment
+        echo "---------------------------------------------"
+        find node_modules/deep-diff
         echo "---------------------------------------------"
         find dist
