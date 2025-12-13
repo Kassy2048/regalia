@@ -25,4 +25,6 @@ jobs:
 
     - name: Update branch
       run: |
+        find node_modules
+        echo "---------------------------------------------"
         find dist
