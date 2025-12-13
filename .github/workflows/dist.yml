@@ -25,12 +25,11 @@ jobs:
         mv dist/regalia.html dist/index.html
         mv dist/Rags_32512.ico dist/regalia/
         npx babel src/regalia/js/Cheat.js src/regalia/js/components/CheatMenuComponents.js --out-dir dist --presets=@babel/preset-env,@babel/preset-react
-
-    - name: Update branch
-      run: |
         cp node_modules/react/umd/react.production.min.js dist/regalia/vendor/
         cp node_modules/react-dom/umd/react-dom.production.min.js dist/regalia/vendor/
         cp node_modules/moment/min/moment.min.js dist/regalia/vendor/
         cp node_modules/deep-diff/releases/deep-diff-0.3.8.min.js dist/regalia/vendor/
+
+    - name: Update branch
+      run: |
         find dist -type f -exec sha1sum {} + | sort
-        cat dist/regalia/js/models/Check.js
