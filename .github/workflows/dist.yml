@@ -33,5 +33,9 @@ jobs:
       run: |
         find dist -type f -exec sha1sum {} + | sort
         mv dist /tmp/regalia-dist
+        git clean -dfx
+        ls -lA
+        git fetch origin dist
+        git checkout dist
         ls -lA
         
