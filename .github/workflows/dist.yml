@@ -19,4 +19,6 @@ jobs:
     - name: npm install and build
       run: |
         npm install
-        npx babel src --out-dir dist --presets=es2015 --plugins=transform-react-jsx
+        npm uninstall babel-cli babel-preset-es2015 babel-plugin-transform-react-jsx
+        npm install --save-dev @babel/cli @babel/core @babel/preset-env @babel/preset-react
+        npx babel src --out-dir dist --presets=@babel/preset-env,@babel/preset-react
