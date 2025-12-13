@@ -33,7 +33,7 @@ jobs:
       run: |
         find dist -type f -exec sha1sum {} + | sort
         git fetch origin dist
-        git checkout dist
+        git checkout dist --
         cd dist
         mv ../.git ./
         git config --global user.name "github-actions[bot]"
