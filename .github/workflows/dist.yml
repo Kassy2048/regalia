@@ -22,7 +22,9 @@ jobs:
         npm uninstall babel-cli babel-preset-es2015 babel-plugin-transform-react-jsx
         npm install --save-dev @babel/cli @babel/core @babel/preset-env @babel/preset-react
         npx babel src --out-dir dist --presets=@babel/preset-env,@babel/preset-react
-        cp -r src/*.html src/*.css dist/
+        cp src/regalia.html dist/index.html
+        cp src/Rags_32512.ico dist/regalia/
+        cp -r src/regalia/css dist/regalia/
 
     - name: Update branch
       run: |
@@ -30,6 +32,4 @@ jobs:
         cp node_modules/react-dom/umd/react-dom.production.min.js dist/regalia/vendor/
         cp node_modules/moment/min/moment.min.js dist/regalia/vendor/
         cp node_modules/deep-diff/releases/deep-diff-0.3.8.min.js dist/regalia/vendor/
-        mv dist/regalia.html dist/index.html
-        mv dist/Rags_32512.ico dist/regalia/
         find dist
