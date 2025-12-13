@@ -25,9 +25,10 @@ jobs:
 
     - name: Update branch
       run: |
-        sha1sum node_modules/react/umd/react.production.min.js
-        sha1sum node_modules/react-dom/umd/react-dom.production.min.js
-        find node_modules/moment -name moment.min.js -exec sha1sum {} +
-        sha1sum node_modules/deep-diff/releases/deep-diff-0.3.8.min.js
-        npm info moment
+        cp node_modules/react/umd/react.production.min.js dist/regalia/vendor/
+        cp node_modules/react-dom/umd/react-dom.production.min.js dist/regalia/vendor/
+        cp node_modules/moment/min/moment.min.js dist/regalia/vendor/
+        cp node_modules/deep-diff/releases/deep-diff-0.3.8.min.js dist/regalia/vendor/
+        mv dist/regalia.html dist/index.html
+        mv dist/Rags_32512.ico dist/regalia/
         find dist
