@@ -22,3 +22,7 @@ jobs:
         npm uninstall babel-cli babel-preset-es2015 babel-plugin-transform-react-jsx
         npm install --save-dev @babel/cli @babel/core @babel/preset-env @babel/preset-react
         npx babel src --out-dir dist --presets=@babel/preset-env,@babel/preset-react
+
+    - name: Update branch
+      run: |
+        find dist
