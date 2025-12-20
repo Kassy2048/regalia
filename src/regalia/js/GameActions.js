@@ -3,7 +3,7 @@ var GameActions = {
         Logger.logExecutingAction(act);
         var bPassed = true;
         if (act.bConditionFailOnFirst) {
-            for (var i = 0; i < act.Conditions.length; i++) {
+            for (var i = 0; bPassed && i < act.Conditions.length; i++) {
                 var tempcond = act.Conditions[i];
                 if (GameConditions.testCondition(tempcond, act, null)) {
                     if (tempcond.Checks.length == 1 && isLoopCheck(tempcond.Checks[0])) {
