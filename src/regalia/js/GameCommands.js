@@ -346,6 +346,7 @@ var GameCommands = {
                 AddTextToRTF(cmdtxt + "\r\n", "Black", "Regular");
                 GameUI.showMessage('EndGame', {type: 'warning', timeout: 5.0});
                 GameUI.hideGameElements();
+                CommandLists.reset();
                 break;
             }
             case "CT_MOVEITEMTOINV": {
