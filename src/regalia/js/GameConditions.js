@@ -151,7 +151,9 @@ var GameConditions = {
                         break;
                     }
                     default: {
-                        bResult = this.booleanConditionResult(tempcond, tempcheck, step2, step3, step4, objectBeingActedUpon, conditionAction);
+                        const result = this.booleanConditionResult(tempcond, tempcheck, step2, step3, step4, objectBeingActedUpon, conditionAction);
+                        // Ignore malformed conditions as RAGS does
+                        if(result !== undefined) bResult = result;
                     }
 
                     if(Settings.debugEnabled) {
@@ -396,7 +398,7 @@ var GameConditions = {
                         }
                     }
                 }
-                return false;
+                break;
             }
             case "CT_Character_CustomPropertyCheck": {
                 var splits = step2.split(":");
@@ -411,7 +413,7 @@ var GameConditions = {
                         }
                     }
                 }
-                return false;
+                break;
             }
             case "CT_Timer_CustomPropertyCheck": {
                 var splits = step2.split(":");
@@ -426,7 +428,7 @@ var GameConditions = {
                         }
                     }
                 }
-                return false;
+                break;
             }
             case "CT_Variable_CustomPropertyCheck": {
                 var splits = step2.split(":");
@@ -441,7 +443,7 @@ var GameConditions = {
                         }
                     }
                 }
-                return false;
+                break;
             }
             case "CT_Item_CustomPropertyCheck": {
                 var splits = step2.split(":");
@@ -463,7 +465,7 @@ var GameConditions = {
                         }
                     }
                 }
-                return false;
+                break;
             }
             case "CT_Player_CustomPropertyCheck": {
                 var property = step2;
@@ -471,7 +473,7 @@ var GameConditions = {
                 if (customProp) {
                     return TestCustomProperty(customProp.Value, step3, step4);
                 }
-                return false;
+                break;
             }
             case "CT_Variable_Comparison": {
                 return this.testVariable(step2, step3, step4);
@@ -600,7 +602,7 @@ var GameConditions = {
                 }
             }
         }
-        // Default to true if there was an early break or something.
-        return true;
+        // Return undefined in case of malformed condition
+        return undefined;
     },
 };
