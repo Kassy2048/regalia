@@ -170,7 +170,7 @@ var SavedGames = {
             // Let the HTML update
             await new Promise(r => setTimeout(r, 0));
             let percent = -1;
-            root = parseNrbf(data, async (pos, size, step) => {
+            root = await parseNrbf(data, async (pos, size, step) => {
                 if(step > 0) --step;
                 const new_percent = Math.floor(pos * 90 / size + step * 5);
                 if(new_percent != percent) {
