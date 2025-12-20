@@ -1,33 +1,13 @@
 var GameActions = {
     executeAction: function (act, runNext) {
         Logger.logExecutingAction(act);
-        var bPassed = true;
-        if (act.bConditionFailOnFirst) {
-            for (var i = 0; bPassed && i < act.Conditions.length; i++) {
-                var tempcond = act.Conditions[i];
-                if (GameConditions.testCondition(tempcond, act, null)) {
-                    if (tempcond.Checks.length == 1 && isLoopCheck(tempcond.Checks[0])) {
-                        // Do nothing?
-                    } else {
-                        GameCommands.addCommands(runNext, tempcond.PassCommands);
-                    }
-                } else {
-                    bPassed = false;
-                    GameCommands.addCommands(runNext, tempcond.FailCommands);
-                }
-            }
+
+        if(act.Conditions.length === 0) {
+            // No condition
+            GameCommands.addCommands(runNext, act.PassCommands);
         } else {
-            bPassed = (act.Conditions.length === 0);
-            for (var i = 0; i < act.Conditions.length; i++) {
-                var tempcond = act.Conditions[i];
-                var btestresult = GameConditions.testCondition(tempcond, act, null);
-                if (btestresult) {
-                    bPassed = btestresult;
-                    GameCommands.addCommands(runNext, tempcond.PassCommands);
-                } else {
-                    GameCommands.addCommands(runNext, tempcond.FailCommands);
-                }
-            }
+            const actionCondition = new ActionCondition(act);
+            GameCommands.addCommands(runNext, [actionCondition.getNext()]);
         }
         GameCommands.addCommands(runNext, bPassed ? act.PassCommands : act.FailCommands);
     },
@@ -246,3 +226,54 @@ var GameActions = {
         runAfterPause(done);
     }
 };
+
+function ActionCondition(Action) {
+    this.Action = Action;
+    this.Conditions = Action.Conditions;
+    this.bPassed = this.Conditions.length === 0;
+    this.AdditionalData = CommandLists.lastAdditionalData();
+    this.Index = 0;
+
+    this.getNext = function() {
+        // Clone the condition, setting the ActionCondition property
+        const originalCond = this.Conditions[this.Index];
+        const actionCond = new ragscondition();
+
+        actionCond.conditionname = originalCond.conditionname;
+        actionCond.PassCommands = originalCond.PassCommands;
+        actionCond.FailCommands = originalCond.FailCommands;
+        actionCond.Checks = originalCond.Checks;
+        actionCond.ActionCondition = this;
+
+        return actionCond;
+    };
+
+    this.executeCondition = function() {
+        const tempcond = this.Conditions[this.Index];
+        const bPassed = GameConditions.testCondition(tempcond, this.Action, null);
+        const commands = bPassed ? tempcond.PassCommands : tempcond.FailCommands;
+
+        this.Index++;
+
+        if(this.Action.bConditionFailOnFirst) {
+            if(!bPassed) {
+                return commands.concat(this.Action.FailCommands);
+            } else if(this.Index >= this.Conditions.length) {
+                return commands.concat(this.Action.PassCommands);
+            } else {
+                return commands.concat(this.getNext());
+            }
+        } else {
+            this.bPassed |= bPassed;
+            if(this.Index >= this.Conditions.length) {
+                if(this.bPassed) {
+                    return commands.concat(this.Action.PassCommands);
+                } else {
+                    return commands.concat(this.Action.FailCommands);
+                }
+            } else {
+                return commands.concat(this.getNext());
+            }
+        }
+    };
+}

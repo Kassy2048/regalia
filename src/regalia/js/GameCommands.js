@@ -1458,26 +1458,50 @@ var GameCommands = {
         var act = CommandLists.actionBeingTaken();
 
         var nextCommands;
-        if (GameConditions.testCondition(conditionBeingProcessed, act, loopObj)) {
-            if (conditionBeingProcessed.Checks.length === 1 && isLoopCheck(conditionBeingProcessed.Checks[0])) {
-                return;
-            } else {
-                return conditionBeingProcessed.PassCommands;
-            }
+        if(conditionBeingProcessed.ActionCondition !== null) {
+            // Condition from an action
+            return conditionBeingProcessed.ActionCondition.executeCondition();
         } else {
-            return conditionBeingProcessed.FailCommands;
+            if (GameConditions.testCondition(conditionBeingProcessed, act, loopObj)) {
+                if (conditionBeingProcessed.Checks.length === 1 && isLoopCheck(conditionBeingProcessed.Checks[0])) {
+                    return;
+                } else {
+                    return conditionBeingProcessed.PassCommands;
+                }
+            } else {
+                return conditionBeingProcessed.FailCommands;
+            }
         }
     },
 
+    runners: 0,
+
     runCommands: function () {
         var bResult = false;
+        const stackLevel = CommandLists.getStackLevel();
+        this.runners++;
         while (CommandLists.commandCount() > 0 && (GameController.shouldRunCommands() || Globals.runningLiveTimerCommands)) {
+            // Only process the commands of the same stack so that a command can
+            // execute some extra commands in a new stack and then resume its
+            // execution without having the next command being executed.
+            // That's required by action conditions whose commands need to
+            // be executed before testing the next condition in the list.
+            const cmdStackLevel = CommandLists.getStackLevel();
+            if (cmdStackLevel > stackLevel) {
+                this.runCommands();
+                continue;
+            } else if (cmdStackLevel < stackLevel && this.runners > 1) {
+                // There is already another invocation of runCommands() for this level
+                break;
+            }
+
             if (typeof CommandLists.nextCommand() === "function") {
                 var callback = CommandLists.shiftCommand();
                 callback();
                 continue;
             }
             if (!CommandLists.nextCommand()) {
+                this.runners--;
                 throw 'NO COMMAND?';
             }
 
@@ -1495,6 +1519,7 @@ var GameCommands = {
                 try {
                     var stop = this.runSingleCommand(commandBeingProcessed, part2, part3, part4, cmdtxt);
                     if (stop) {
+                        this.runners--;
                         return;
                     }
                 } catch (err) {
@@ -1512,6 +1537,7 @@ var GameCommands = {
                 }
             }
         }
+        this.runners--;
         GameUI.refreshInventory();
         GameUI.refreshRoomObjects();
         SetupStatusBars();

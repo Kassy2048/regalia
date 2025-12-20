@@ -658,6 +658,7 @@ function handleFileSelect(bQuick, CurID, rsvRoot) {
     CommandLists.reset();
     GameHistory.reset();
     Globals.movingDirection = "";
+    GameCommands.runners = 0;
 
     TheGame = SetupGameDataWithMap();
     GameUI.setGameTitle();

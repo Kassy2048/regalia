@@ -16,7 +16,8 @@ var CommandLists = {
 
     finishNestedCommandList: function (commandList) {
         commandList.autoShift = true;
-        GameCommands.runCommands();
+        this.unshiftEmptyStacks();
+        //GameCommands.runCommands();
     },
 
     nextCommand: function () {
@@ -39,6 +40,10 @@ var CommandLists = {
 
     getCurrentStack: function() {
         return this.stack[0];
+    },
+
+    getStackLevel: function() {
+        return this.stack.length;
     },
 
     setAdditionalData: function (additionalData) {

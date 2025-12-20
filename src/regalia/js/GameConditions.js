@@ -583,8 +583,12 @@ var GameConditions = {
             }
             case "CT_AdditionalDataCheck": {
                 var datatocheck = "";
-                if (CommandLists.lastAdditionalData())
+                if (tempcond.ActionCondition !== null) {
+                    // Restore the additional data for this action
+                    datatocheck = tempcond.ActionCondition.AdditionalData || "";
+                } else if (CommandLists.lastAdditionalData()) {
                     datatocheck = CommandLists.lastAdditionalData();
+                }
                 if (conditionAction.InputType == "Text") {
                     return step4.toLowerCase() == datatocheck.toLowerCase();
                 } else {
