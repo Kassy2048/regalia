@@ -67,6 +67,17 @@ const GameHistory = {
             }
         }
 
+        // Revert changes that happened after last push (because of timers)
+        if(this.oldGameData !== null) {
+            const gameData = GameCloneForDiff(TheGame);
+            const newChanges = DeepDiff.diff(gameData, this.oldGameData);
+            if(newChanges !== undefined) {
+                orderChanges(newChanges).forEach((change) => {
+                    DeepDiff.applyChange(TheGame, true, change);
+                });
+            }
+        }
+
         // Revert state changed
         if(state.gameChanges !== undefined) {
             // gameChanges can be undefined if only text changed
