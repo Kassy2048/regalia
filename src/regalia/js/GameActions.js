@@ -9,7 +9,6 @@ var GameActions = {
             const actionCondition = new ActionCondition(act);
             GameCommands.addCommands(runNext, [actionCondition.getNext()]);
         }
-        GameCommands.addCommands(runNext, bPassed ? act.PassCommands : act.FailCommands);
     },
 
     processAction: function(action, bTimer, objectBeingActedUpon) {
