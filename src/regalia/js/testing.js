@@ -697,6 +697,8 @@ function handleFileSelect(bQuick, CurID, rsvRoot) {
         GameUI.playBgMusic(null);
     }
 
+    GameHistory.pushState();
+
     if (bQuick) {
         GameUI.showMessage('Quick Loaded', {type: 'success', timeout: 3.0});
     } else {
