@@ -312,7 +312,7 @@ body {
 }
 
 #inputchoices .inputchoices,
-#cmdinputchoices .inputchoices
+#cmdinputchoices .inputchoices,
 #genderchoiceSelect .genderchoiceSelect {
     cursor: pointer;
     padding: 5px 10px;
