@@ -373,8 +373,9 @@ $(function() {
     };
     $("#save").click(createSaveOrLoadMenuHandler($(".save-menu"), $('.save-menu-content')));
     $("div.genderchoiceSelect").click(function() {
-        Globals.selectedObj = $(this).val();
-        if (Globals.selectedObj != null) {
+        const gender = this.getAttribute('value');
+        if (gender != null) {
+            TheGame.Player.PlayerGender = gender;
             GameController.stopAwaitingInput();
             $("#genderchoice").css("visibility", "hidden");
             StartGame();
