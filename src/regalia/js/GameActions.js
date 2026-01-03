@@ -26,7 +26,7 @@ var GameActions = {
             }
         }
 
-        if(Settings.debugEnabled) console.debug(act);
+        if(Settings.debugEnabled) console.debug(objectBeingActedUpon, act);
 
         var commandList = CommandLists.startNestedCommandList({obj: objectBeingActedUpon, act: act});
 
