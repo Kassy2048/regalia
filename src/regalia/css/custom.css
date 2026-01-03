@@ -442,7 +442,7 @@ body {
 }
 
 .dark-mode .compass-direction.active {
-    background-color: rgba(128, 255, 128, 0.6);
+    background-color: rgba(0, 80, 0, 0.6);
 }
 
 .compass-direction.active:hover {
