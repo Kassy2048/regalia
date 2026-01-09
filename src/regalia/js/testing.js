@@ -375,6 +375,8 @@ $(function() {
     $("div.genderchoiceSelect").click(function() {
         Globals.selectedObj = $(this).val();
         if (Globals.selectedObj != null) {
+            TheGame.Player.Gender = Globals.selectedObj;
+            TheGame.Player.PlayerGender = Globals.selectedObj;
             GameController.stopAwaitingInput();
             $("#genderchoice").css("visibility", "hidden");
             StartGame();

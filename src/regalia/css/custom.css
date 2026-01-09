@@ -311,7 +311,7 @@ body {
     padding: 10px;
 }
 
-#inputchoices .inputchoices, #cmdinputchoices .inputchoices {
+#inputchoices .inputchoices, #cmdinputchoices .inputchoices, .genderchoiceSelect {
     cursor: pointer;
     padding: 5px 10px;
     margin: 3px;
