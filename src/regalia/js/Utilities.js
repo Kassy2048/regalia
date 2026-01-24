@@ -537,17 +537,15 @@ function GetArrayIndex(varname, n) {
         if (endindex > -1) {
             var indexvalue = varname.substring(index + 1, endindex);
             try {
-                retval = indexvalue;
+                // parseInt() is less strict than System.Convert.ToInt32(),
+                // so make sure this is a number (and not a range like "0..20"
+                // which appears in some games)
+                if(indexvalue.match(/^\s*[-\+]?\s*\d+\s*$/)) {
+                    retval = parseInt(indexvalue);
+                }
             } catch (err) {
                 retval = -1;
             }
-        }
-    }
-
-    if (retval && retval !== -1) {
-        var rangeMatch = retval.match(/(\d+)\.\.(\d+)/);
-        if (rangeMatch) {
-            return -1;
         }
     }
 

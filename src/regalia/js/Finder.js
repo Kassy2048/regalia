@@ -20,10 +20,10 @@ var Finder = {
         });
     },
     variable: function(variableName) {
-        variableName = variableName.trim();
         if (variableName.indexOf("(") > -1) {
             variableName = variableName.substring(0, variableName.indexOf("("));
         }
+        variableName = variableName.trim();
 
         var lowercaseVariableName = variableName.toLowerCase();
         if(TheGame.Variables.NameMap !== undefined) {
