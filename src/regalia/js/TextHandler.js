@@ -857,7 +857,13 @@ function ReplaceStatic(text, tempindex, change, loopobject) {
             return TheGame.Player.Name;
         },
         '[INPUTDATA]', function () {
-            return CommandLists.lastAdditionalData();
+            const data = CommandLists.lastAdditionalData();
+            if(data instanceof ragsobject) {
+                return objecttostring(data);
+            } else if(data instanceof character) {
+                return CharToString(data);
+            }
+            return data;
         },
         '[MAXCARRY]', function () {
             return TheGame.Player.dWeightLimit;
