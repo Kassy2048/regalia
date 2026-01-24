@@ -1423,7 +1423,7 @@ var GameCommands = {
                             addChildObjects(obj);
                         }
                     });
-                } else if (acttype == "ObjectOrCharacter") {
+                } else if (acttype == "Characters And Objects") {
                     GameUI.addObjectOptions();
                     GameUI.addCharacterOptions();
                 }
