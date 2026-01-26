@@ -63,7 +63,7 @@ var GameTimers = {
             }
         }
 
-        var tempact = Finder.action(timer.Actions, "<<On Each Turn>>");
+        let tempact = Finder.action(timer.Actions, "<<On Each Turn>>");
         if (tempact != null) {
             if (timer.LiveTimer) {
                 Globals.runningLiveTimerCommands = true;
@@ -74,41 +74,49 @@ var GameTimers = {
                 GameCommands.runCommands();
                 return;
             } else {
-                GameActions.processAction(tempact, false);
+                GameActions.processAction(tempact, false, null, afterTimerAction);
             }
         }
-
         UpdateStatusBars();
-        runNextAfterPause(function () {
+
+        if (tempact == null) afterTimerAction();
+
+        function afterTimerAction() {
             if (timer._wasReset) {
                 return callback();
             }
             if (!timer.Active) {
                 return;
             }
-            tempact = Finder.action(timer.Actions, "<<On Turn " + timer.TurnNumber.toString() + ">>");
+
+            let tempact = Finder.action(timer.Actions, "<<On Turn " + timer.TurnNumber.toString() + ">>");
             if (tempact != null) {
-                GameActions.processAction(tempact, false);
+                GameActions.processAction(tempact, false, null, afterTimerAction2);
             }
             UpdateStatusBars();
 
-            runNextAfterPause(function () {
+            if (tempact == null) afterTimerAction2();
+
+            function afterTimerAction2() {
                 if (timer._wasReset) {
                     return callback();
                 }
                 if (!timer.Active) {
                     return;
                 }
+
+                let tempact = null;
                 if (timer.TurnNumber == timer.Length) {
                     tempact = Finder.action(timer.Actions, "<<On Last Turn>>");
                     if (tempact != null) {
-                        GameActions.processAction(tempact, false);
+                        GameActions.processAction(tempact, false, null, callback);
                     }
                 }
                 UpdateStatusBars();
-                callback();
-            });
-        });
+
+                if (tempact == null) callback();
+            }
+        }
     },
 
     tickLiveTimers: function (skipRefresh) {

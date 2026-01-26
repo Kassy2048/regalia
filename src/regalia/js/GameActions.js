@@ -11,7 +11,7 @@ var GameActions = {
         }
     },
 
-    processAction: function(action, bTimer, objectBeingActedUpon) {
+    processAction: function(action, bTimer, objectBeingActedUpon, callback) {
         var act = null;
         Globals.bMasterTimer = bTimer;
 
@@ -53,7 +53,8 @@ var GameActions = {
             runAfterPause(function () {
                 CommandLists.finishNestedCommandList(commandList);
                 SetBorders();
-            });
+                if(callback !== undefined) callback();
+            }, commandList);
         }
 
         function addPortalObjectChoices() {

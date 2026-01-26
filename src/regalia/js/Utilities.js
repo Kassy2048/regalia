@@ -299,17 +299,9 @@ function isLoopCheck(check) {
     return loopCondTypes.indexOf(check.CondType) > -1;
 }
 
-function runNextAfterPause(runNextPhase) {
+function runAfterPause(runNextPhase, commandList) {
     if (!GameController.shouldRunCommands()) {
-        CommandLists.addToFront(runNextPhase);
-    } else {
-        runNextPhase();
-    }
-}
-
-function runAfterPause(runNextPhase) {
-    if (!GameController.shouldRunCommands()) {
-        CommandLists.addToEnd(runNextPhase);
+        CommandLists.addToEnd(runNextPhase, commandList);
     } else {
         runNextPhase();
     }

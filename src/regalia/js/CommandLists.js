@@ -30,12 +30,14 @@ var CommandLists = {
         return this.stack[0].commands.shift();
     },
 
-    addToFront: function (command) {
+    addToFront: function (command, commandList) {
+        if(commandList == undefined) commandList = this.stack[0];
         this.stack[0].commands.unshift(command);
     },
 
-    addToEnd: function (command) {
-        this.stack[0].commands.push(command);
+    addToEnd: function (command, commandList) {
+        if(commandList == undefined) commandList = this.stack[0];
+        commandList.commands.push(command);
     },
 
     getCurrentStack: function() {
