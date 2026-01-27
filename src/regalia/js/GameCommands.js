@@ -609,7 +609,7 @@ var GameCommands = {
                     GameTimers.runSingleTimer(temptimer, false);
                     runAfterPause(function () {
                         CommandLists.finishNestedCommandList(commandList);
-                    });
+                    }, commandList);
                 }
                 break;
             }
@@ -1036,7 +1036,7 @@ var GameCommands = {
                 var varindex = GetArrayIndex(part2, 0);
                 var varindex2a = GetArrayIndex(part2, 1);
                 if (tempvar != null) {
-                    if (tempvar.vartype == "VT_DATETIMEARRAY") {
+                        if (tempvar.vartype == "VT_DATETIMEARRAY") {
                     } else if (tempvar.vartype == "VT_NUMBER") {
                         AddTextToRTF(tempvar.dNumType.toString() + "\r\n", "Black", "Regular");
                     } else if (tempvar.vartype == "VT_STRINGARRAY") {

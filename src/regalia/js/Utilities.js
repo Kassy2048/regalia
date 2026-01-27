@@ -364,9 +364,9 @@ function ChangeRoom(currentRoom, bRunTimerEvents, bRunEvents, bQuiet) {
                     if ($("#RoomThumbImg").css("visibility") != "hidden")
                         SetExits();
                     SetBorders();
-                });
+                }, commandList);
             }
-        });
+        }, commandList);
     }
 }
 
