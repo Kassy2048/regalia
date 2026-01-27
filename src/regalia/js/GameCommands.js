@@ -1036,9 +1036,54 @@ var GameCommands = {
                 var varindex = GetArrayIndex(part2, 0);
                 var varindex2a = GetArrayIndex(part2, 1);
                 if (tempvar != null) {
+                    if (tempvar.vartype == "VT_DATETIME" || tempvar.vartype == "VT_DATETIMEARRAY") {
+                        let dtDateTime;
+
                         if (tempvar.vartype == "VT_DATETIMEARRAY") {
-                    } else if (tempvar.vartype == "VT_NUMBER") {
-                        AddTextToRTF(tempvar.dNumType.toString() + "\r\n", "Black", "Regular");
+                            if (varindex != -1) {
+                                if (varindex2a != -1) {
+                                    dtDateTime = tempvar.VarArray[varindex][varindex2a];
+                                } else {
+                                    dtDateTime = tempvar.VarArray[varindex];
+                                }
+                            } else {
+                                break;
+                            }
+                        } else {
+                            dtDateTime = tempvar.dtDateTime;
+                        }
+
+                        const dateMoment = DateTimes.stringDateToMoment(dtDateTime)
+
+                        if(part3 == "Display Date & Time") {
+                            AddTextToRTF(dateMoment.format('dddd, MMMM, DD YYYY hh:mm:ss A') + "\r\n", "Black", "Regular");
+                        } else if(part3 == "Display Date Only") {
+                            AddTextToRTF(dateMoment.format('dddd, MMMM, DD YYYY') + "\r\n", "Black", "Regular");
+                        } else if(part3 == "Display Time Only") {
+                            AddTextToRTF(dateMoment.format('hh:mm:ss A') + "\r\n", "Black", "Regular");
+                        } else if(part3 == "Display Weekday Only") {
+                            AddTextToRTF(dateMoment.format('dddd') + "\r\n", "Black", "Regular");
+                        }
+
+                    } else if (tempvar.vartype == "VT_NUMBER" || tempvar.vartype == "VT_NUMBERARRAY") {
+                        let dNumType;
+
+                        if (tempvar.vartype == "VT_NUMBERARRAY") {
+                            if (varindex != -1) {
+                                if (varindex2a != -1) {
+                                    dNumType = tempvar.VarArray[varindex][varindex2a];
+                                } else {
+                                    dNumType = tempvar.VarArray[varindex];
+                                }
+                            } else {
+                                break;
+                            }
+                        } else {
+                            dNumType = tempvar.dNumType;
+                        }
+
+                        AddTextToRTF(dNumType.toString() + "\r\n", "Black", "Regular");
+
                     } else if (tempvar.vartype == "VT_STRINGARRAY") {
                         if (varindex != -1) {
                             if (varindex2a != -1)

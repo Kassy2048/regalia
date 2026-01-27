@@ -181,7 +181,58 @@ var GameConditions = {
             var varindex2 = GetArrayIndex(step2, 1);
             var replacedstring = PerformTextReplacements(step4, null);
             if (tempvar.vartype == "VT_DATETIMEARRAY" || tempvar.vartype == "VT_DATETIME") {
-                // Do Nothing
+                let dtDateTime;
+
+                if (tempvar.vartype == "VT_DATETIMEARRAY") {
+                    if (varindex != -1) {
+                        if (varindex2 != -1) {
+                            dtDateTime = tempvar.VarArray[varindex][varindex2];
+                        } else {
+                            dtDateTime = tempvar.VarArray[varindex];
+                        }
+                    } else {
+                        return false;
+                    }
+                } else {
+                    dtDateTime = tempvar.dtDateTime;
+                }
+
+                const dateVar = DateTimes.stringDateToMoment(dtDateTime);
+
+                if (step3 == "Equals") {
+                    bResult = dateVar.isSame(DateTimes.stringDateToMoment(step4));
+                } else if (step3 == "Not Equals") {
+                    bResult = !dateVar.isSame(DateTimes.stringDateToMoment(step4));
+                } else if (step3 == "Greater Than") {
+                    bResult = dateVar.isAfter(DateTimes.stringDateToMoment(step4));
+                } else if (step3 == "Greater Than or Equals") {
+                    bResult = dateVar.isSameOrAfter(DateTimes.stringDateToMoment(step4));
+                } else if (step3 == "Less Than") {
+                    bResult = dateVar.isBefore(DateTimes.stringDateToMoment(step4));
+                } else if (step3 == "Less Than or Equals") {
+                    bResult = dateVar.isSameOrBefore(DateTimes.stringDateToMoment(step4));
+                } else if (step3 == "DayOfWeek Is") {
+                    bResult = dateVar.format('dddd').toLowerCase() == step4.toLowerCase();
+                } else if (step3 == "Hour Equals") {
+                    bResult = dateVar.hours() == step4;
+                } else if (step3 == "Hour Is Greater Than") {
+                    bResult = dateVar.hours() > step4;
+                } else if (step3 == "Hour Is Less Than") {
+                    bResult = dateVar.hours() < step4;
+                } else if (step3 == "Minute Equals") {
+                    bResult = dateVar.minutes() == step4;
+                } else if (step3 == "Minute Is Greater Than") {
+                    bResult = dateVar.minutes() > step4;
+                } else if (step3 == "Minute Is Less Than") {
+                    bResult = dateVar.minutes() < step4;
+                } else if (step3 == "Seconds Equals") {
+                    bResult = dateVar.seconds() == step4;
+                } else if (step3 == "Seconds Is Greater Than") {
+                    bResult = dateVar.seconds() > step4;
+                } else if (step3 == "Seconds Is Less Than") {
+                    bResult = dateVar.seconds() < step4;
+                }
+
             } else if (tempvar.vartype == "VT_NUMBERARRAY" || tempvar.vartype == "VT_NUMBER") {
                 var numberToCompare = tempvar.dNumType;
                 if (varindex != -1) {
@@ -206,6 +257,7 @@ var GameConditions = {
                 } else if (step3 == "Less Than or Equals") {
                     bResult = numberToCompare <= parseFloat(replacedstring);
                 }
+
             } else if (tempvar.vartype == "VT_STRINGARRAY" || tempvar.vartype == "VT_STRING") {
                 var stringToCompare = tempvar.sString;
                 if (varindex != -1) {
