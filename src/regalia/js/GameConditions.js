@@ -3,6 +3,10 @@ var GameConditions = {
         var bResult = true;
         var counter = 0;
 
+        if (Settings.debugEnabled) {
+            console.debug(tempcond);
+        }
+
         async function performLoop(list) {
             const globalsIndex = Globals.store();
 

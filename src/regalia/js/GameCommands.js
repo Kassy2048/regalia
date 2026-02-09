@@ -1535,10 +1535,6 @@ var GameCommands = {
                     alert("Rags can not process the command correctly.  If you are the game author," + " please correct the error in this command:" + commandBeingProcessed.cmdtype);
                 }
             } else {
-                if (Settings.debugEnabled) {
-                    console.debug(commandOrCondition);
-                }
-
                 const nextCommands = await this.processConditionAsync(commandOrCondition, loopObj);
                 if (nextCommands) {
                     await this.runCommandsAsync(nextCommands)
