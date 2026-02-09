@@ -88,6 +88,8 @@ const GameHistory = {
 
         // Clear end game if set
         Globals.endGame = false;
+        // Reset lastScrollHeight
+        GameUI.lastScrollHeight = $('#MainText')[0].scrollHeight;
 
         await RoomChangeAsync(false, false, true);
         // Restore current media

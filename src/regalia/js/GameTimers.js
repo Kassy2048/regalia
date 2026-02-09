@@ -138,7 +138,6 @@ var GameTimers = {
             // Put the game back in pause
             await GameController.pauseAsync(true);
         } else if(didRun) {
-            // FIXME Do we really need that?
             GameUI.onInteractionResume();
         }
     },

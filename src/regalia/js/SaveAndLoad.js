@@ -158,6 +158,9 @@ var SavedGames = {
             $("#MainText").html(mainText);
             GameUI.setDarkMode(Settings.darkMode);
         }
+
+        // Reset lastScrollHeight
+        GameUI.lastScrollHeight = $('#MainText')[0].scrollHeight;
     },
 
     importRSV: async function(buffer) {
