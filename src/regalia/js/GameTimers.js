@@ -27,10 +27,10 @@ var GameTimers = {
 
         Globals.bRunningTimers = true;
         for(const timer of this.activeStaticTimers()) {
-                    if (timer != null) {
-                        Logger.logExecutingTimer(timer);
-                        await GameTimers.runSingleTimerAsync(timer, true);
-                    }
+            if (timer != null) {
+                Logger.logExecutingTimer(timer);
+                await GameTimers.runSingleTimerAsync(timer, true);
+            }
         }
         Globals.bRunningTimers = false;
         GameUI.refreshPanelItems();

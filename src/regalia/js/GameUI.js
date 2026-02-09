@@ -81,17 +81,15 @@ var GameUI = {
         $div.click(async function() {
             Globals.selectedObj = value;
             if (Globals.selectedObj != null) {
-                await GameController.executeAndRunTimersAsync(async function () {
-                    $("#MainText").append('</br><b>' + escapeHtmlSpecialCharacters(text) + "</b>");
-                    $("#MainText").animate({
-                        scrollTop: $("#MainText")[0].scrollHeight
-                    });
-                    $("#inputmenu").css("visibility", "hidden");
-                    ActionRecorder.choseInputAction(text);
-                    Globals.additionalData = Globals.selectedObj;
-                    // Give control back to GameActions.processActionAsync()
-                    await GameController.stopAwaitingInputAsync();
+                $("#MainText").append('</br><b>' + escapeHtmlSpecialCharacters(text) + "</b>");
+                $("#MainText").animate({
+                    scrollTop: $("#MainText")[0].scrollHeight
                 });
+                $("#inputmenu").css("visibility", "hidden");
+                ActionRecorder.choseInputAction(text);
+                Globals.additionalData = Globals.selectedObj;
+                // Give control back to GameActions.processActionAsync()
+                await GameController.stopAwaitingInputAsync();
             }
         });
 
@@ -108,14 +106,12 @@ var GameUI = {
         $div.click(async function () {
             Globals.selectedObj = value;
             if (Globals.selectedObj != null) {
-                await GameController.executeAndRunTimersAsync(async function () {
-                    $("#cmdinputmenu").hide();
-                    $("#cmdinputmenu").css("visibility", "hidden");
-                    ActionRecorder.choseInputAction(text);
-                    SetCommandInput(Globals.variableGettingSet, Globals.selectedObj);
-                    // Give control back to GameCommands.runSingleCommandAsync()
-                    await GameController.stopAwaitingInputAsync();
-                });
+                $("#cmdinputmenu").hide();
+                $("#cmdinputmenu").css("visibility", "hidden");
+                ActionRecorder.choseInputAction(text);
+                SetCommandInput(Globals.variableGettingSet, Globals.selectedObj);
+                // Give control back to GameCommands.runSingleCommandAsync()
+                await GameController.stopAwaitingInputAsync();
             }
         });
 
