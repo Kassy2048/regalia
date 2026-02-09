@@ -3,7 +3,6 @@ var OriginalGame = null;
 
 class GlobalsStore {
     bRunningTimers              = false;
-    bCancelMove                 = false;
     curActions                  = undefined;
     loopObject                  = null;
     movingDirection             = "";  // static?
@@ -16,6 +15,12 @@ class GlobalsStore {
     objectBeingActedUpon        = null;
 
     // Static properties (they keep their value on restore)
+    _staticProps                = [
+        'bCancelMove',
+        'currentImage',
+        'endGame',
+    ];
+    bCancelMove                 = false;
     currentImage                = "";
     endGame                     = false;
 
@@ -110,8 +115,9 @@ class GlobalsStack {
 
         // Restore static properties
         const lastEntry = this.last;
-        lastEntry.currentImage = oldEntry.currentImage;
-        lastEntry.endGame = oldEntry.endGame;
+        lastEntry._staticProps.forEach(name => {
+            lastEntry[name] = oldEntry[name];
+        });
 
         return lastEntry;
     }
