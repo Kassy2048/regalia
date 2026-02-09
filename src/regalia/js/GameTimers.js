@@ -120,7 +120,7 @@ var GameTimers = {
 
                 } else if(GameController.gameAwaitingInput) {
                     // Defer timer execution until input has been given
-                    GameController.queueLiveTime(timer);
+                    GameController.queueLiveTimer(timer);
 
                 } else {
                     didRun |= await GameTimers.runTimerAsync(timer, true);
