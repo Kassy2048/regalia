@@ -26,6 +26,7 @@ var GameController = {
         // resumes normally
         Globals.runningLiveTimerCommands = false;
 
+        GameUI.onInteractionResume();
         GameUI.disableSaveAndLoad();
         GameUI.hideGameElements();
 
