@@ -103,7 +103,7 @@ var GameActions = {
                 GameUI.addObjectOptions(act);
                 addPortalObjectChoices();
             } else if (act.InputType == "Inventory") {
-                Interactables.inventoryObjects().forEach(function (obj) {
+                Interactables.allVisibleInventoryObjects().forEach((obj) => {
                     GameUI.addInputChoice(act, objectToString(obj), obj);
                 });
             } else if (act.InputType == "ObjectOrCharacter") {

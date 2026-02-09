@@ -9,6 +9,22 @@ var Interactables = {
             return obj.bVisible;
         });
     },
+    /** Same as visibleInventoryObjects(), but also return nested objects */
+    allVisibleInventoryObjects: function () {
+        let results = [];
+        this.inventoryObjects().forEach((obj) => {
+            if(!obj.bVisible) return;
+            results.push(obj);
+
+            if(obj.bContainer) {
+                if(!obj.bOpenable || obj.bOpen) {
+                    results.push(...this.nestedObjects(obj));
+                }
+            }
+
+        });
+        return results;
+    },
     roomObjects: function () {
         return TheGame.Objects.filter(function (obj) {
             return obj.locationtype == "LT_ROOM" && obj.locationname == TheGame.Player.CurrentRoom;
@@ -20,14 +36,40 @@ var Interactables = {
         });
     },
     roomAndInventoryObjects: function () {
-        return TheGame.Objects.filter(function (obj) {
-            return (obj.locationtype == "LT_PLAYER") || (obj.locationtype == "LT_ROOM" && obj.locationname == TheGame.Player.CurrentRoom);
+        let results = [];
+        TheGame.Objects.forEach((obj) => {
+            if(!obj.bVisible) return;
+            if((obj.locationtype == "LT_ROOM" && obj.locationname == TheGame.Player.CurrentRoom) ||
+                    (obj.locationtype == "LT_PLAYER")) {
+                results.push(obj);
+
+                if(obj.bContainer) {
+                    if(!obj.bOpenable || obj.bOpen) {
+                        results.push(...this.nestedObjects(obj));
+                    }
+                }
+            }
         });
+        return results;
     },
     characters: function () {
         return TheGame.Characters.filter(function (obj) {
             return obj.CurrentRoom == TheGame.Player.CurrentRoom;
         });
+    },
+    nestedObjects: function(outerObject) {
+        let objects = [];
+        TheGame.Objects.forEach(function(innerObject) {
+            if(!objectContainsObject(outerObject, innerObject)) return;
+            // objectContainsObject() only passes for visible objects
+
+            objects.push(innerObject);
+
+            if(innerObject.bOpenable && innerObject.bOpen) {
+                objects.extend(...this.nestedObjects(innerObject));
+            }
+        });
+        return objects;
     }
 };
 
