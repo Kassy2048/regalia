@@ -77,6 +77,8 @@ $(async function() {
         }
     });
     $("#PlayerImg").click(function(e) {
+        if(e.target.dataset.disabled) return;
+
         Globals.theObj = TheGame.Player;
         GameUI.displayActions(TheGame.Player, e);
     });

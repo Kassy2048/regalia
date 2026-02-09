@@ -28,7 +28,7 @@ var GameUI = {
 
     showGameElements: function () {
         $("#RoomThumbImg").css("visibility", "visible");
-        $("#PlayerImg").css("visibility", "visible");
+        $("#PlayerImg").attr("data-disabled", null);
         $("#RoomObjectsPanel").css("visibility", "visible");
         $("#VisibleCharactersPanel").css("visibility", "visible");
         $("#InventoryPanel").css("visibility", "visible");
@@ -37,7 +37,7 @@ var GameUI = {
     },
 
     hideGameElements: function () {
-        $("#PlayerImg").css("visibility", "hidden");
+        $("#PlayerImg").attr("data-disabled", "true");
         $("#RoomThumbImg").css("visibility", "hidden");
         $("#RoomObjectsPanel").css("visibility", "hidden");
         $("#VisibleCharactersPanel").css("visibility", "hidden");
