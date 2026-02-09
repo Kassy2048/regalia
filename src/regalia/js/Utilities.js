@@ -386,16 +386,19 @@ async function movePlayerToRoomAsync(roomName) {
 
 function AddTextToRTF(text, clr, fontst) {
     var origtext = "";
+    text = text.replace(/\r\n/g, '\n');
     while (origtext != text) {
         origtext = text;
         text = PerformTextReplacements(text, null);
     }
+    text = text.replace(/\r\n/g, '\n');
 
     if (TheGame.RagsVersion < 3.0) { // RAGS 3.0 uses HTML tags
         text = escapeHtmlSpecialCharacters(text);
 
-        // unescape the <br> or <br/> tags that just got escaped
-        text = text.replace(/&lt;\s*[/]?\s*br\s*[/]?\s*&gt;/g, '<br>')
+        // Unescape the <br> or <br/> tags that just got escaped
+        // Also replace new line characters with <br> tags
+        text = text.replace(/(&lt;\s*[/]?\s*br\s*[/]?\s*&gt;|\n)/g, '<br>');
     } else {
         // TODO Remove leading "<br/>"?
     }
