@@ -71,25 +71,22 @@ var GameUI = {
         $("#cmdinputmenu").toggleClass('cancellable', act.EnhInputData && act.EnhInputData.bAllowCancel);
     },
 
+    /** Add input choice for an action */
     addInputChoice: function (act, text, value) {
         var $div = $("<div>", {
             class: "inputchoices",
             text: text
         });
 
-        $div.click(function() {
+        $div.click(async function() {
             Globals.selectedObj = value;
             if (Globals.selectedObj != null) {
-                GameController.executeAndRunTimers(function () {
-                    CommandLists.setAdditionalData(Globals.selectedObj);
-                    GameController.stopAwaitingInput();
+                await GameController.executeAndRunTimersAsync(async function () {
                     $("#inputmenu").css("visibility", "hidden");
-                    if (getObjectClass(act) == "action" || "actionparent" in act) {
-                        ActionRecorder.choseInputAction(text);
-                        GameActions.executeAction(act, true);
-                        GameCommands.runCommands();
-                        GameUI.onInteractionResume();
-                    }
+                    ActionRecorder.choseInputAction(text);
+                    Globals.additionalData = Globals.selectedObj;
+                    // Give control back to GameActions.processActionAsync()
+                    await GameController.stopAwaitingInputAsync();
                 });
             }
         });
@@ -97,23 +94,23 @@ var GameUI = {
         $("#inputchoices").append($div);
     },
 
+    /** Add input choice for a command (CT_SETVARIABLEBYINPUT or CT_SETVARIABLE_NUMERIC_BYINPUT) */
     addCmdInputChoice: function (text, value) {
         var $div = $("<div>", {
             class: "inputchoices",
             text: text
         });
 
-        $div.click(function () {
+        $div.click(async function () {
             Globals.selectedObj = value;
             if (Globals.selectedObj != null) {
-                GameController.executeAndRunTimers(function () {
+                await GameController.executeAndRunTimersAsync(async function () {
                     $("#cmdinputmenu").hide();
-                    GameController.stopAwaitingInput();
                     $("#cmdinputmenu").css("visibility", "hidden");
                     ActionRecorder.choseInputAction(text);
                     SetCommandInput(Globals.variableGettingSet, Globals.selectedObj);
-                    GameCommands.runCommands();
-                    GameUI.onInteractionResume();
+                    // Give control back to GameCommands.runSingleCommandAsync()
+                    await GameController.stopAwaitingInputAsync();
                 });
             }
         });
@@ -151,12 +148,14 @@ var GameUI = {
         this.setCmdInputMenuTitle(tempcommand, title);
     },
 
+    /** Show the text input UI for a command */
     showTextMenuChoice: function (title) {
         $("#textMenuTitle").text(title);
         $("#textchoice").css("visibility", "visible");
         $("#textchoice input").focus();
     },
 
+    /** Add an action to the actions menu for an object */
     addActionChoice: function (obj, action, text) {
         var $div = $("<div>", {
             class: "ActionChoices",
@@ -164,20 +163,21 @@ var GameUI = {
             value: action.name
         });
 
-        $div.click(function (e) {
+        $div.click(async function (e) {
             var selectionchoice = this.getAttribute('value');
             var selectiontext = $(this).text();
             if (selectionchoice != null) {
-                GameController.executeAndRunTimers(function () {
+                await GameController.executeAndRunTimersAsync(async function () {
                     ActionRecorder.actedOnObject(obj, selectiontext);
                     $("#MainText").append('</br><b>' + selectionchoice + "</b>");
                     $("#MainText").animate({
                         scrollTop: $("#MainText")[0].scrollHeight
                     });
                     $("#selectionmenu").css("visibility", "hidden");
-                    ResetLoopObjects();
+                    ResetLoopObjects();  // TODEL?
                     TheGame.TurnCount++;
-                    GameActions.processAction(selectionchoice, false, obj);
+                    await GameActions.processActionAsync(selectionchoice, false, obj);
+                    RestoreLoopObjects();  // TODEL?
                     GameUI.onInteractionResume();
                 });
             }
@@ -187,6 +187,7 @@ var GameUI = {
         return $div;
     },
 
+    /** Show the actions menu for the clicked object */
     displayActions: function (obj, clickEvent) {
         var actions = obj.Actions;
         if (GetActionCount(actions) === 0) {
@@ -395,12 +396,12 @@ var GameUI = {
                 $timerRow.append('<td>' + (timer.TimerSeconds - (timer.curtickcount / 1000)) + 's</td>');
                 $timerRow.append('<td><b>Click to Skip</b></td>');
                 $timerRow.data('timer-name', timer.Name);
-                $timerRow.click(function () {
+                $timerRow.click(async function () {
                     var timerName = $(this).data('timer-name');
                     var timer = Finder.timer(timerName);
                     var secondsRemaining = (timer.TimerSeconds - (timer.curtickcount / 1000));
                     for (var i = 0; i < secondsRemaining; i++) {
-                        GameTimers.tickLiveTimers(true);
+                        await GameTimers.tickLiveTimersAsync(true);
                     }
                     GameUI.refreshPanelItems();
                     GameUI.displayLiveTimers();

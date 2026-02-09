@@ -52,7 +52,7 @@ const GameHistory = {
         this._saveOldInfo(gameData);
     },
 
-    popState: function() {
+    popStateAsync: async function() {
         if(!this.canGoBack()) return false;
 
         const state = this.states.pop();
@@ -86,7 +86,10 @@ const GameHistory = {
             });
         }
 
-        RoomChange(false, false, true);
+        // Clear end game if set
+        Globals.endGame = false;
+
+        await RoomChangeAsync(false, false, true);
         // Restore current media
         if(state.currentImage !== undefined) {
             // This must be done after the call to RoomChange() because it changes the image

@@ -1,29 +1,19 @@
 var GameConditions = {
-    testCondition: function (tempcond, conditionAction, loopObj) {
+    testConditionAsync: async function (tempcond, conditionAction, loopObj) {
         var bResult = true;
         var counter = 0;
 
-        function loopArgsCommand() {
-            const cmd = new command();
-            cmd.cmdtype = "CT_REGALIA_LOOPARGS";
-            // Using a copy so that changes to Globals.loopArgs won't change the command values
-            cmd.CustomChoices.push(Object.assign({}, Globals.loopArgs));
-            return cmd;
-        }
+        async function performLoop(list) {
+            Globals.store();
 
-        function performLoopIteration() {
-            if (Globals.loopArgs.idx < Globals.loopArgs.array.length) {
-                Globals.loopArgs.object = Globals.loopArgs.array[Globals.loopArgs.idx];
-                Globals.loopArgs.idx++;
-
-                GameCommands.insertToMaster([loopArgsCommand(), tempcond]);
-                GameCommands.insertToMaster(tempcond.PassCommands);
-            } else {
-                Logger.logEvaluatedCondition(tempcond, bResult);
-                RestoreLoopObject();
+            for(const obj of list) {
+                Globals.loopObject = obj;
+                const doBreak = await GameCommands.runCommandsAsync(tempcond.PassCommands);
+                if(doBreak || Globals.endGame) break;
             }
 
-            Globals.loopArgsValid = false;
+            Globals.restore();
+            Logger.logEvaluatedCondition(tempcond, bResult);
         }
 
         for (var i = 0; i < tempcond.Checks.length; i++) {
@@ -43,111 +33,67 @@ var GameConditions = {
                 var step2 = PerformTextReplacements(tempcheck.ConditionStep2, loopObj);
                 var step3 = PerformTextReplacements(tempcheck.ConditionStep3, loopObj);
                 var step4 = PerformTextReplacements(tempcheck.ConditionStep4, loopObj);
-                var objectBeingActedUpon = CommandLists.objectBeingActedUpon() || Globals.theObj;
+                const objectBeingActedUpon = Globals.objectBeingActedUpon || Globals.theObj;
 
                 switch (tempcheck.CondType) {
                     case "CT_Loop_While": {
-                        if (this.testVariable(step2, step3, step4)) {
-                            GameCommands.insertToMaster([loopArgsCommand(), tempcond]);
-                            GameCommands.insertToMaster(tempcond.PassCommands);
-                        } else {
-                            Logger.logEvaluatedCondition(tempcond, bResult);
-                            RestoreLoopObject();
+                        while(this.testVariable(step2, step3, step4)) {
+                            const doBreak = await GameCommands.runCommandsAsync(tempcond.PassCommands);
+                            if(doBreak || Globals.endGame) break;
                         }
-                        Globals.loopArgsValid = false;
+
+                        Logger.logEvaluatedCondition(tempcond, bResult);
                         break;
                     }
                     case "CT_Loop_Rooms": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Rooms;
-                        }
-                        performLoopIteration();
+                        await performLoop(TheGame.Rooms);
                         break;
                     }
                     case "CT_Loop_Exits": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-
-                            var temproom = Finder.room(step2);
-                            if (temproom != null) {
-                                Globals.loopArgs.array = temproom.Exits;
-                            }
+                        const temproom = Finder.room(step2);
+                        if (temproom != null) {
+                            await performLoop(temproom.Exits);
                         }
-                        performLoopIteration();
                         break;
                     }
                     case "CT_Loop_Characters": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Characters;
-                        }
-                        performLoopIteration();
+                        await performLoop(TheGame.Characters);
                         break;
                     }
                     case "CT_Loop_Item_Group": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = Finder.objectGroup(step2);
-                        }
-                        performLoopIteration();
+                        await performLoop(Finder.objectGroup(step2));
                         break;
                     }
                     case "CT_Loop_Item_Char_Inventory": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Objects.filter(function (item) {
-                                return item.locationtype === "LT_CHARACTER" && item.locationname === step2;
-                            });
-                        }
-                        performLoopIteration();
+                        const items = TheGame.Objects.filter(function (item) {
+                            return item.locationtype === "LT_CHARACTER" && item.locationname === step2;
+                        });
+                        await performLoop(items);
                         break;
                     }
                     case "CT_Loop_Item_Container": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Objects.filter(function (item) {
-                                return item.locationtype === "LT_IN_OBJECT" && item.locationname === step2;
-                            });
-                        }
-                        performLoopIteration();
+                        const items = TheGame.Objects.filter(function (item) {
+                            return item.locationtype === "LT_IN_OBJECT" && item.locationname === step2;
+                        });
+                        await performLoop(items);
                         break;
                     }
                     case "CT_Loop_Item_Inventory": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Objects.filter(function (item) {
-                                return item.locationtype === "LT_PLAYER";
-                            });
-                        }
-                        performLoopIteration();
+                        const items = TheGame.Objects.filter(function (item) {
+                            return item.locationtype === "LT_PLAYER";
+                        });
+                        await performLoop(items);
                         break;
                     }
                     case "CT_Loop_Item_Room": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Objects.filter(function (item) {
-                                return item.locationtype === "LT_ROOM" && item.locationname === step2;
-                            });
-                        }
-                        performLoopIteration();
+                        const items = TheGame.Objects.filter(function (item) {
+                            return item.locationtype === "LT_ROOM" && item.locationname === step2;
+                        });
+                        await performLoop(items);
                         break;
                     }
                     case "CT_Loop_Items": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Objects;
-                        }
-                        performLoopIteration();
+                        await performLoop(TheGame.Objects);
                         break;
                     }
                     default: {
@@ -161,6 +107,7 @@ var GameConditions = {
                     }
                 }
             } catch (err) {
+                console.warn(err);
                 alert("Rags can not process the condition check correctly.  If you are the game author," + " please correct the error in this conditon:" + tempcond.conditionname + " check:" +
                     tempcheck.CondType + " - " + tempcheck.ConditionStep2 + " - " +
                     tempcheck.ConditionStep3 + " - " + tempcheck.ConditionStep4);
@@ -636,13 +583,9 @@ var GameConditions = {
                 break;
             }
             case "CT_AdditionalDataCheck": {
-                var datatocheck = "";
-                if (tempcond.ActionCondition !== null) {
-                    // Restore the additional data for this action
-                    datatocheck = tempcond.ActionCondition.AdditionalData || "";
-                } else if (CommandLists.lastAdditionalData()) {
-                    datatocheck = CommandLists.lastAdditionalData();
-                }
+                let datatocheck = Globals.additionalData;
+                if(datatocheck === null) datatocheck = '';
+
                 if (conditionAction.InputType == "Text") {
                     return step4.toLowerCase() == datatocheck.toLowerCase();
                 } else {

@@ -857,7 +857,7 @@ function ReplaceStatic(text, tempindex, change, loopobject) {
             return TheGame.Player.Name;
         },
         '[INPUTDATA]', function () {
-            const data = CommandLists.lastAdditionalData();
+            const data = Globals.additionalData;
             if(data instanceof ragsobject) {
                 return objecttostring(data);
             } else if(data instanceof character) {

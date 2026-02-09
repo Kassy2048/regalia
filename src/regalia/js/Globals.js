@@ -1,38 +1,128 @@
 var TheGame = null;
 var OriginalGame = null;
 
-var Globals = {
-    bRunningTimers: false,
-    bMasterTimer: false,
-    bCancelMove: false,
-    curActions: undefined,
-    currentImage: "",
-    loopArgs: {
-        object: null,
-        idx: 0,
-        array: null,
-        prevObject: null
-    },
-    loopArgsValid: false,
-    inputDataObject: null,
-    movingDirection: "",
-    runningLiveTimerCommands: false,
-    theObj: null,
-    selectedObj: null,
-    variableGettingSet: null
-};
+class GlobalsStore {
+    bRunningTimers              = false;
+    bCancelMove                 = false;
+    curActions                  = undefined;
+    loopObject                  = null;
+    movingDirection             = "";  // static?
+    runningLiveTimerCommands    = false;
+    theObj                      = null;
+    selectedObj                 = null;
+    variableGettingSet          = null;
+    additionalData              = null;
+    actionBeingTaken            = null;
+    objectBeingActedUpon        = null;
 
-function ResetLoopObjects(backup) {
-    Globals.loopArgs = {
-        array: null,
-        idx: 0,
-        object: null,
-        prevObject: backup ? Globals.loopArgs.object : null
-    };
-    Globals.loopArgsValid = false;
+    // Static properties (they keep their value on restore)
+    currentImage                = "";
+    endGame                     = false;
+
+    constructor(other) {
+        if(other !== undefined) {
+            // Copy the properties value from the other instance
+            for(const name of Object.keys(this)) {
+                this[name] = other[name];
+            }
+        }
+    }
 }
 
-function RestoreLoopObject() {
-    Globals.loopArgs.object = Globals.loopArgs.prevObject;
-    Globals.loopArgs.prevObject = null;
+class GlobalsStack {
+    entries = [new GlobalsStore()];
+
+    constructor() {
+        // Return a proxy version to be able to use a generic getter/setter function
+        return new Proxy(this, {
+            get(target, prop, receiver) {
+                // console.debug('GET', prop);
+                if(prop in target) {
+                    return target[prop];
+                } else {
+                    // Return the related property of the last entry
+                    return target.last[prop];
+                }
+            },
+            set(target, prop, value, receiver) {
+                // console.debug('SET', prop, value);
+                if(prop in target) {
+                    // Unexpected
+                    console.warn('SET', prop, value);
+                    return target[prop] = value;
+                } else {
+                    // Set the related property in the last entry
+                    target.last[prop] = value;
+                }
+            }
+        });
+    }
+
+    /** Last entry in the stack */
+    get last() {
+        return this.entries[this.entries.length - 1];
+    }
+
+    /** Size of the stack */
+    get length() {
+        return this.entries.length;
+    }
+
+    /** Add a new entry in the stack, copying the values from the last entry */
+    store(changes) {
+        if(changes === undefined) changes = {};
+
+        // console.debug('STORE', noCopy, this.entries.length);
+        this.entries.push(new GlobalsStore(this.last));
+
+        // Apply the required changes (if any)
+        const lastEntry = this.last;
+        for(const prop in changes) {
+            if(prop in lastEntry) {
+                lastEntry[prop] = changes[prop];
+            } else {
+                console.warn(`${prop} is not a valid global property`);
+            }
+        }
+
+        return lastEntry;
+    }
+
+    /** Remove the current entry from the stack */
+    restore() {
+        // console.debug('RE-STORE', this.entries.length);
+        const oldEntry = this.entries.pop();
+
+        if(this.entries.length == 0) {
+            throw new Error('Globals stack is empty');
+        }
+
+        // Restore static properties
+        const lastEntry = this.last;
+        lastEntry.currentImage = oldEntry.currentImage;
+        lastEntry.endGame = oldEntry.endGame;
+
+        return lastEntry;
+    }
+
+    reset() {
+        this.entries.splice(0, this.entries.length, new GlobalsStore());
+    }
+}
+
+var Globals = new GlobalsStack();
+
+function ResetLoopObjects() {  // FIXME Not needed anymore?
+    // Debug check to see if this method should be removed
+    if(!(Globals.length == 1 && Globals.loopObject === null)) {
+        console.warn(`Found ${Globals.length} globals (loopObject=${Globals.loopObject})`);
+    }
+
+    Globals.store({
+        loopObject: null,
+    });
+}
+
+function RestoreLoopObjects() {
+    Globals.restore();
 }

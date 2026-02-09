@@ -1,6 +1,8 @@
 var GameController = {
     gamePaused: false,
     gameAwaitingInput: false,
+    inputPromises: [],
+    liveTimersToRun: [],
 
     title: function () {
         if (TheGame.Title) {
@@ -12,7 +14,7 @@ var GameController = {
         return decodeURIComponent(penultimateUrlPart);
     },
 
-    startAwaitingInput: function () {
+    startAwaitingInputAsync: async function () {
         this.gameAwaitingInput = true;
 
         // Somewhat of a hack: normally if commands executed as the result of a live timer
@@ -26,47 +28,93 @@ var GameController = {
 
         GameUI.disableSaveAndLoad();
         GameUI.hideGameElements();
+
+        await this.userActionAsync();
     },
 
-    stopAwaitingInput: function () {
+    stopAwaitingInputAsync: async function (resume) {
+        if (resume === undefined) resume = true;
+
         this.gameAwaitingInput = false;
         GameUI.enableSaveAndLoad();
         GameUI.showGameElements();
+
+        // Execute pending live timers if any
+        const liveTimersToRun = this.liveTimersToRun;
+        this.liveTimersToRun = [];
+        for(const timer of liveTimersToRun) {
+            await GameTimers.runTimerAsync(timer, true);
+        }
+
+        if(resume) return this.resumeExecution();
     },
 
-    executeAndRunTimers: function (fn) {
+    /** Queue a pending live timer to be executed after the current user input */
+    queueLiveTimer: function(timer) {
+        if(!this.gameAwaitingInput) {
+            console.warn('queueLiveTimer() should only be called while waiting for input');
+        }
+
+        this.liveTimersToRun.push(timer);
+    },
+
+    executeAndRunTimersAsync: async function (fn) {
         var wasRunningTimers = Globals.bRunningTimers;
 
-        fn();
+        await fn();
 
-        runAfterPause(function () {
-            if (CommandLists.commandCount() == 0 && GameController.shouldRunCommands() && !wasRunningTimers) {
-                GameTimers.runTimerEvents();
-                UpdateStatusBars();
-            }
-        });
+        if (!wasRunningTimers) {  // TOCHECK
+            await GameTimers.runTimerEventsAsync();
+            UpdateStatusBars();
+        }
     },
 
-    pause: function () {
+    pauseAsync: async function (noWait) {
         this.gamePaused = true;
         GameUI.disableSaveAndLoad();
         GameUI.hideGameElements();
         GameUI.onInteractionResume();
+
+        if(noWait) return;
+        await this.userActionAsync();
     },
 
-    continue: function () {
+    continue: function (noResume) {
         this.gamePaused = false;
         GameUI.enableSaveAndLoad();
         GameUI.showGameElements();
+
+        if(noResume) return false;
+        return this.resumeExecution();
     },
 
-    shouldRunCommands: function () {
+    shouldRunCommands: function () {  // TODO Rename
         return !(this.gamePaused || this.gameAwaitingInput);
+    },
+
+    userActionAsync: async function() {
+        const inputPromise = new SimplePromise();
+        this.inputPromises.push(inputPromise);
+        return inputPromise;
+    },
+
+    resumeExecution: function() {
+        // Notify the end of the wait
+        const inputPromise = this.inputPromises.pop();
+        if(inputPromise !== undefined) {
+            inputPromise.resolve();
+            return true;
+        }
+
+        // Return false if there was no waiter
+        return false;
     },
 
     reset: function() {
         this.gamePaused = false;
         this.gameAwaitingInput = false;
+        this.inputPromises = [];
+        this.liveTimersToRun = [];
         GameUI.enableSaveAndLoad();
     },
 };

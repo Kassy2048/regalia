@@ -299,18 +299,9 @@ function isLoopCheck(check) {
     return loopCondTypes.indexOf(check.CondType) > -1;
 }
 
-function runAfterPause(runNextPhase, commandList) {
-    if (!GameController.shouldRunCommands()) {
-        CommandLists.addToEnd(runNextPhase, commandList);
-    } else {
-        runNextPhase();
-    }
-}
-
-function ChangeRoom(currentRoom, bRunTimerEvents, bRunEvents, bQuiet) {
+async function ChangeRoomAsync(currentRoom, bRunTimerEvents, bRunEvents, bQuiet) {
     if(bQuiet === undefined) bQuiet = false;
 
-    var commandList = CommandLists.startNestedCommandList();
     var desiredRoomId = currentRoom.UniqueID;
     if (currentRoom == null)
         return;
@@ -323,56 +314,42 @@ function ChangeRoom(currentRoom, bRunTimerEvents, bRunEvents, bQuiet) {
     }
     if (bRunEvents && !currentRoom.bEnterFirstTime) {
         currentRoom.bEnterFirstTime = true;
-        GameActions.runEvents("<<On Player Enter First Time>>", phase2);
-    } else {
-        phase2();
+        await GameActions.runEventsAsync("<<On Player Enter First Time>>");
     }
 
-    function phase2 () {
-        runAfterPause(function () {
-            // Handle situations where one of the "Enter First Time" events triggers a new ChangeRoom
-            if (TheGame.Player.CurrentRoom !== desiredRoomId) {
-                return;
-            }
-            if (bRunEvents) {
-                GameActions.runEvents("<<On Player Enter>>", phase3);
-            } else {
-                phase3();
-            }
-
-            function phase3 () {
-                runAfterPause(function () {
-                    CommandLists.finishNestedCommandList(commandList);
-
-                    // Handle situations where one of the "Enter" events triggers a new ChangeRoom
-                    if (TheGame.Player.CurrentRoom !== desiredRoomId) {
-                        return;
-                    }
-                    $("#MainText").animate({
-                        scrollTop: $("#MainText")[0].scrollHeight
-                    });
-                    if(!bQuiet) {
-                        AddTextToRTF(currentRoom.Description, "Black", "Regular");
-                        $("#MainText").animate({
-                            scrollTop: $("#MainText")[0].scrollHeight
-                        }, 0);
-                    }
-                    ActionRecorder.roomEntered(roomDisplayName(currentRoom));
-                    if (bRunTimerEvents)
-                        GameTimers.runTimerEvents();
-                    GameUI.refreshPanelItems();
-                    if ($("#RoomThumbImg").css("visibility") != "hidden")
-                        SetExits();
-                    SetBorders();
-                }, commandList);
-            }
-        }, commandList);
+    // Handle situations where one of the "Enter First Time" events triggers a new ChangeRoom
+    if (TheGame.Player.CurrentRoom !== desiredRoomId) {
+        return;
     }
+    if (bRunEvents) {
+        await GameActions.runEventsAsync("<<On Player Enter>>");
+    }
+
+    // Handle situations where one of the "Enter" events triggers a new ChangeRoom
+    if (TheGame.Player.CurrentRoom !== desiredRoomId) {
+        return;
+    }
+    $("#MainText").animate({
+        scrollTop: $("#MainText")[0].scrollHeight
+    });
+    if(!bQuiet) {
+        AddTextToRTF(currentRoom.Description, "Black", "Regular");
+        $("#MainText").animate({
+            scrollTop: $("#MainText")[0].scrollHeight
+        }, 0);
+    }
+    ActionRecorder.roomEntered(roomDisplayName(currentRoom));
+    if (bRunTimerEvents)
+        await GameTimers.runTimerEventsAsync();
+    GameUI.refreshPanelItems();
+    if ($("#RoomThumbImg").css("visibility") != "hidden")
+        SetExits();
+    SetBorders();
 }
 
-function RoomChange(bRunTimerEvents, bRunEvents, bQuiet) {
+async function RoomChangeAsync(bRunTimerEvents, bRunEvents, bQuiet) {
     var currentroom = Finder.room(TheGame.Player.CurrentRoom);
-    ChangeRoom(currentroom, bRunTimerEvents, bRunEvents, bQuiet);
+    await ChangeRoomAsync(currentroom, bRunTimerEvents, bRunEvents, bQuiet);
 }
 
 function SetExits() {
@@ -399,11 +376,11 @@ function RefreshPictureBoxes() {
     SetRoomThumb(Finder.room(TheGame.Player.CurrentRoom).RoomPic);
 }
 
-function movePlayerToRoom(roomName) {
+async function movePlayerToRoomAsync(roomName) {
     Globals.movingDirection = "";
     TheGame.Player.CurrentRoom = roomName;
     if (TheGame.Player.CurrentRoom) {
-        RoomChange(false, true);
+        await RoomChangeAsync(false, true);
     }
 }
 
@@ -600,10 +577,10 @@ function GetCustomChoiceAction(type, name, actionname) {
     return tempact;
 }
 
-function PauseGame() {
-    GameController.pause();
+async function PauseGameAsync() {
     $("#Continue").css('background-color', "rgb(255, 255, 255)");
     $("#Continue").css('visibility', "visible");
+    await GameController.pauseAsync();
 }
 
 function TestCustomProperty(PropVal, step3, step4) {
@@ -968,4 +945,22 @@ function GameCloneForDiff(game) {
         bgMusic: game.bgMusic,
         TurnCount: game.TurnCount,
     };
+}
+
+class SimplePromise extends Promise {
+    constructor(executor) {
+        if(executor !== undefined) {
+            // Internal use by Promise on completion
+            // <https://stackoverflow.com/a/48159603>
+            super(executor);
+        } else {
+            let _resolve, _reject;
+            super((resolve, reject) => {
+                _resolve = resolve;
+                _reject = reject;
+            });
+            this.resolve = _resolve;
+            this.reject = _reject;
+        }
+    }
 }

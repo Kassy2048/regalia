@@ -1,10 +1,10 @@
 var GameCommands = {
-    runSingleCommand: function (commandBeingProcessed, part2, part3, part4, cmdtxt) {
+    runSingleCommandAsync: async function (commandBeingProcessed, part2, part3, part4, cmdtxt) {
         if (Settings.debugEnabled) {
             console.debug(commandBeingProcessed.cmdtype, part2, part3, part4, cmdtxt, commandBeingProcessed);
         }
 
-        var objectBeingActedUpon = CommandLists.objectBeingActedUpon();
+        const objectBeingActedUpon = Globals.objectBeingActedUpon;
         switch (commandBeingProcessed.cmdtype) {
             case "CT_LAYEREDIMAGE_ADD": {
                 function uniqueArray(array) {
@@ -124,7 +124,6 @@ var GameCommands = {
                 break;
             }
             case "CT_LOOP_BREAK": {
-                this.exitLoop();
                 return true;
             }
             case "CT_EXPORTVARIABLE": {
@@ -220,8 +219,8 @@ var GameCommands = {
             }
             case "CT_PAUSEGAME": {
                 AddTextToRTF("--------------------------------\r\n", "Black", "Bold");
-                PauseGame();
-                return true;
+                await PauseGameAsync();
+                break;
             }
             case "CT_SETPLAYERNAME": {
                 TheGame.Player.Name = PerformTextReplacements(part4, null);
@@ -346,8 +345,8 @@ var GameCommands = {
                 AddTextToRTF(cmdtxt + "\r\n", "Black", "Regular");
                 GameUI.showMessage('EndGame', {type: 'warning', timeout: 5.0});
                 GameUI.hideGameElements();
-                CommandLists.reset();
-                break;
+                Globals.endGame = true;
+                return true;
             }
             case "CT_MOVEITEMTOINV": {
                 var Tempobj = null;
@@ -604,12 +603,8 @@ var GameCommands = {
             case "CT_EXECUTETIMER": {
                 var temptimer = Finder.timer(part2);
                 if (temptimer != null) {
-                    var commandList = CommandLists.startNestedCommandList();
                     temptimer.TurnNumber = 0;
-                    GameTimers.runSingleTimer(temptimer, false);
-                    runAfterPause(function () {
-                        CommandLists.finishNestedCommandList(commandList);
-                    }, commandList);
+                    await GameTimers.runSingleTimerAsync(temptimer, false);
                 }
                 break;
             }
@@ -1330,13 +1325,13 @@ var GameCommands = {
                 if (tempchar.CurrentRoom == TheGame.Player.CurrentRoom) {
                     var tempact = Finder.action(tempchar.Actions, "<<On Character Leave>>");
                     if (tempact != null)
-                        GameActions.processAction(tempact, true);
+                        await GameActions.processActionAsync(tempact, true);
                 }
                 if (part3 == CurrentRoomGuid) {
                     tempchar.CurrentRoom = TheGame.Player.CurrentRoom;
                     var tempact = Finder.action(tempchar.Actions, "<<On Character Enter>>");
                     if (tempact != null)
-                        GameActions.processAction(tempact, true);
+                        await GameActions.processActionAsync(tempact, true);
                 } else if (part3 == VoidRoomGuid || part3 === '<Void>') {
                     Finder.character(part2).CurrentRoom = VoidRoomGuid;
                 } else {
@@ -1348,21 +1343,21 @@ var GameCommands = {
                     if (Finder.room(part3) == Finder.room(TheGame.Player.CurrentRoom)) {
                         var tempact = Finder.action(tempchar.Actions, "<<On Character Enter>>");
                         if (tempact != null)
-                            GameActions.processAction(tempact, true);
+                            await GameActions.processActionAsync(tempact, true);
                     }
                 }
                 GameUI.refreshCharacters();
                 break;
             }
             case "CT_MOVEPLAYER": {
-                movePlayerToRoom(part2);
+                await movePlayerToRoomAsync(part2);
                 break;
             }
             case "CT_MOVETOCHAR": {
                 var tempchar = Finder.character(part2);
                 if (tempchar != null) {
                     if (tempchar.CurrentRoom != VoidRoomGuid && tempchar.CurrentRoom != CurrentRoomGuid) {
-                        movePlayerToRoom(tempchar.CurrentRoom);
+                        await movePlayerToRoomAsync(tempchar.CurrentRoom);
                     }
                 }
                 break;
@@ -1371,7 +1366,7 @@ var GameCommands = {
                 var tempobj = Finder.object(part2);
                 if (tempobj != null) {
                     if (tempobj.locationtype == "LT_ROOM") {
-                        movePlayerToRoom(tempobj.locationname);
+                        await movePlayerToRoomAsync(tempobj.locationname);
                     }
                 }
                 break;
@@ -1384,7 +1379,7 @@ var GameCommands = {
                         tempchar.CurrentRoom = Finder.room(tempobj.locationname).UniqueID;
                     }
                     if (TheGame.Player.CurrentRoom == tempobj.locationname)
-                        RoomChange(false, false);
+                        await RoomChangeAsync(false, false);
                 }
                 break;
             }
@@ -1417,78 +1412,69 @@ var GameCommands = {
                 } else if (acttype == "Text") {
                     GameUI.showTextMenuChoice(part4);
                 }
-                GameController.startAwaitingInput();
-                Globals.variableGettingSet = commandBeingProcessed;
-                return true;
+
+                Globals.store({
+                    variableGettingSet: commandBeingProcessed,
+                });
+                await GameController.startAwaitingInputAsync();
+                Globals.restore();
+                break;
             }
             case "CT_SETVARIABLEBYINPUT": {
-                var acttype = part2;
-                Globals.variableGettingSet = commandBeingProcessed;
+                const acttype = part2;
+                Globals.store({
+                    variableGettingSet: commandBeingProcessed,
+                });
+
                 if (acttype == "Custom") {
                     GameUI.setCmdInputForCustomChoices(part4, commandBeingProcessed);
-                    GameController.startAwaitingInput();
-                    return true;
-                }
-
-                if (acttype == "Text") {
+                } else  if (acttype == "Text") {
                     GameUI.showTextMenuChoice(part4);
-                    GameController.startAwaitingInput();
-                    return true;
-                }
+                } else {
+                    GameUI.clearCmdInputChoices();
 
-                GameUI.clearCmdInputChoices();
+                    if (acttype == "Character" || acttype == "Characters") {
+                        GameUI.addCharacterOptions();
+                    } else if (acttype == "Object" || acttype == "Objects") {
+                        GameUI.addObjectOptions();
+                    } else if (acttype == "Inventory") {
+                        function addChildObjects(parentObject) {
+                            if (!parentObject.bContainer) {
+                                return;
+                            }
 
-                if (acttype == "Character" || acttype == "Characters") {
-                    GameUI.addCharacterOptions();
-                } else if (acttype == "Object" || acttype == "Objects") {
-                    GameUI.addObjectOptions();
-                } else if (acttype == "Inventory") {
-                    function addChildObjects(parentObject) {
-                        if (!parentObject.bContainer) {
-                            return;
+                            TheGame.Objects.forEach(function (innerObject) {
+                                if (objectContainsObject(parentObject, innerObject)) {
+                                    GameUI.addCmdInputChoice(
+                                        objecttostring(innerObject),
+                                        innerObject
+                                    );
+                                    addChildObjects(innerObject);
+                                }
+                            });
                         }
 
-                        TheGame.Objects.forEach(function (innerObject) {
-                            if (objectContainsObject(parentObject, innerObject)) {
+                        TheGame.Objects.forEach(function (obj) {
+                            if (obj.locationtype == "LT_PLAYER") {
                                 GameUI.addCmdInputChoice(
-                                    objecttostring(innerObject),
-                                    innerObject
+                                    objecttostring(obj),
+                                    obj
                                 );
-                                addChildObjects(innerObject);
+                                addChildObjects(obj);
                             }
                         });
+                    } else if (acttype == "Characters And Objects") {
+                        GameUI.addObjectOptions();
+                        GameUI.addCharacterOptions();
                     }
-
-                    TheGame.Objects.forEach(function (obj) {
-                        if (obj.locationtype == "LT_PLAYER") {
-                            GameUI.addCmdInputChoice(
-                                objecttostring(obj),
-                                obj
-                            );
-                            addChildObjects(obj);
-                        }
-                    });
-                } else if (acttype == "Characters And Objects") {
-                    GameUI.addObjectOptions();
-                    GameUI.addCharacterOptions();
+                    GameUI.setCmdInputMenuTitle(Globals.actionBeingTaken, part4);
                 }
-                GameUI.setCmdInputMenuTitle(CommandLists.actionBeingTaken(), part4);
-                GameController.startAwaitingInput();
+
+                await GameController.startAwaitingInputAsync();
+                Globals.restore();
                 break;
             }
             case "CT_COMMENT": {
-                break;
-            }
-
-            /* Internal commands (arguments are in CustomChoices) */
-
-            /** This command is put just before a loop condition when this is not
-             * the first iteration in order to set the loop arguments.
-             */
-            case "CT_REGALIA_LOOPARGS": {
-                Globals.loopArgs = commandBeingProcessed.CustomChoices[0];
-                Globals.loopArgsValid = true;
-                // loopArgsValid will be unset by the loop condition
                 break;
             }
 
@@ -1498,16 +1484,12 @@ var GameCommands = {
         }
     },
 
-    processCondition: function (wrappedCondition, loopObj) {
-        var conditionBeingProcessed = wrappedCondition.payload;
-        var act = CommandLists.actionBeingTaken();
+    processConditionAsync: async function (wrappedCondition, loopObj) {
+        var conditionBeingProcessed = wrappedCondition;
+        const act = Globals.actionBeingTaken;
 
         var nextCommands;
-        if(conditionBeingProcessed.ActionCondition !== null) {
-            // Condition from an action
-            return conditionBeingProcessed.ActionCondition.executeCondition();
-        } else {
-            if (GameConditions.testCondition(conditionBeingProcessed, act, loopObj)) {
+            if (await GameConditions.testConditionAsync(conditionBeingProcessed, act, loopObj)) {
                 if (conditionBeingProcessed.Checks.length === 1 && isLoopCheck(conditionBeingProcessed.Checks[0])) {
                     return;
                 } else {
@@ -1516,133 +1498,56 @@ var GameCommands = {
             } else {
                 return conditionBeingProcessed.FailCommands;
             }
-        }
     },
 
-    runners: 0,
+    runCommandsAsync: async function (commands) {
+        let bResult = false;
+        for(const commandOrCondition of commands) {
+            if(Globals.endGame) return true;
 
-    runCommands: function () {
-        var bResult = false;
-        const stackLevel = CommandLists.getStackLevel();
-        this.runners++;
-        while (CommandLists.commandCount() > 0 && (GameController.shouldRunCommands() || Globals.runningLiveTimerCommands)) {
-            // Only process the commands of the same stack so that a command can
-            // execute some extra commands in a new stack and then resume its
-            // execution without having the next command being executed.
-            // That's required by action conditions whose commands need to
-            // be executed before testing the next condition in the list.
-            const cmdStackLevel = CommandLists.getStackLevel();
-            if (cmdStackLevel > stackLevel) {
-                this.runCommands();
-                continue;
-            } else if (cmdStackLevel < stackLevel && this.runners > 1) {
-                // There is already another invocation of runCommands() for this level
-                break;
-            }
-
-            if (typeof CommandLists.nextCommand() === "function") {
-                var callback = CommandLists.shiftCommand();
-                callback();
+            if (typeof commandOrCondition === "function") {
+                // This is a callback
+                // FIXME Do we still need that?
+                console.warn('Callback in command list', commandOrCondition);
+                commandOrCondition();
                 continue;
             }
-            if (!CommandLists.nextCommand()) {
-                this.runners--;
-                throw 'NO COMMAND?';
-            }
 
-            var loopObj = Globals.loopArgs.object;
-            var commandOrCondition = CommandLists.shiftCommand();
-            var curtype = getObjectClass(commandOrCondition.payload);
-            if (curtype == "command" || "CommandName" in commandOrCondition.payload) {
-                var commandBeingProcessed = commandOrCondition.payload;
+            const loopObj = Globals.loopObject;
+            const curtype = getObjectClass(commandOrCondition);
+            if (curtype == "command" || "CommandName" in commandOrCondition) {
+                const commandBeingProcessed = commandOrCondition;
 
-                var part2 = PerformTextReplacements(commandBeingProcessed.CommandPart2, loopObj);
-                var part3 = PerformTextReplacements(commandBeingProcessed.CommandPart3, loopObj);
-                var part4 = PerformTextReplacements(commandBeingProcessed.CommandPart4, loopObj);
-                var cmdtxt = PerformTextReplacements(commandBeingProcessed.CommandText, loopObj);
+                const part2 = PerformTextReplacements(commandBeingProcessed.CommandPart2, loopObj);
+                const part3 = PerformTextReplacements(commandBeingProcessed.CommandPart3, loopObj);
+                const part4 = PerformTextReplacements(commandBeingProcessed.CommandPart4, loopObj);
+                const cmdtxt = PerformTextReplacements(commandBeingProcessed.CommandText, loopObj);
                 Logger.logExecutingCommand(commandBeingProcessed, part2, part3 ,part4);
                 try {
-                    var stop = this.runSingleCommand(commandBeingProcessed, part2, part3, part4, cmdtxt);
+                    const stop = await this.runSingleCommandAsync(commandBeingProcessed, part2, part3, part4, cmdtxt);
                     if (stop) {
-                        this.runners--;
-                        return;
+                        // Loop break or end game
+                        return true;
                     }
                 } catch (err) {
+                    console.warn(err);
                     alert(err.message);
                     alert("Rags can not process the command correctly.  If you are the game author," + " please correct the error in this command:" + commandBeingProcessed.cmdtype);
                 }
             } else {
                 if (Settings.debugEnabled) {
-                    console.debug(commandOrCondition.payload);
+                    console.debug(commandOrCondition);
                 }
 
-                var nextCommands = this.processCondition(commandOrCondition, loopObj);
+                const nextCommands = await this.processConditionAsync(commandOrCondition, loopObj);
                 if (nextCommands) {
-                    this.insertToMaster(nextCommands);
+                    await this.runCommandsAsync(nextCommands)
                 }
             }
         }
-        this.runners--;
         GameUI.refreshInventory();
         GameUI.refreshRoomObjects();
         SetupStatusBars();
         return bResult;
     },
-
-    exitLoop: function() {
-        // Find the loop to exit from in the current stack
-        const currentStack = CommandLists.getCurrentStack();
-        let needLoopCond = false;
-        for (const [i, commandOrCondition] of currentStack.commands.entries()) {
-            const payload = commandOrCondition.payload;
-            if (payload instanceof command) {
-                if (payload.cmdtype === 'CT_REGALIA_LOOPARGS') {
-                    // If a loop condition is following, this is the loop we have to exit from
-                    needLoopCond = true;
-                    continue;
-                }
-            } else if (needLoopCond && payload instanceof ragscondition) {
-                if (payload.Checks.length == 1 && isLoopCheck(payload.Checks[0])) {
-                    // Remove all the commands up to the current one (included)
-                    currentStack.commands.splice(0, i + 1);
-                    RestoreLoopObject();
-                    return true;
-                }
-            }
-
-            if (needLoopCond) {
-                console.warn("BUG: no loop condition found after CT_REGALIA_LOOPARGS",
-                        Array.from(currentStack));
-                break;
-            }
-        }
-
-        // No loop to exit from found
-        console.log("BUG: no loop to break from found", Array.from(currentStack));
-        return false;
-    },
-
-    addToMaster: function (commands) {
-        for (var i = 0; i < commands.length; i++) {
-            CommandLists.addToEnd({
-                payload: commands[i]
-            });
-        }
-    },
-
-    insertToMaster: function (commands) {
-        for (var i = commands.length - 1; i >= 0; i--) {
-            CommandLists.addToFront({
-                payload: commands[i]
-            });
-        }
-    },
-    addCommands: function (insertFirst, commands) {
-        if (insertFirst) {
-            this.insertToMaster(commands);
-        } else {
-            this.addToMaster(commands);
-            this.runCommands();
-        }
-    }
 };

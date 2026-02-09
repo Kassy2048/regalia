@@ -15,43 +15,33 @@ var GameTimers = {
             return timer.Active && !timer.LiveTimer;
         });
     },
-    runSingleTimer: function (timer, checkActive) {
-        this.runTimer(timer, checkActive, function () {
-            if (timer._wasReset) {
-                GameTimers.runSingleTimer(timer, checkActive);
-            }
-        });
+    runSingleTimerAsync: async function (timer, checkActive) {
+        do {
+            await this.runTimerAsync(timer, checkActive);
+        } while(timer._wasReset);
     },
-    runTimerEvents: function () {
+    runTimerEventsAsync: async function () {
         if (Globals.bRunningTimers) {
             return;
         }
 
         Globals.bRunningTimers = true;
-        this.activeStaticTimers().forEach(function (timer) {
-            runAfterPause(function (timer) {
-                return function () {
+        for(const timer of this.activeStaticTimers()) {
                     if (timer != null) {
                         Logger.logExecutingTimer(timer);
-                        GameTimers.runSingleTimer(timer, true);
+                        await GameTimers.runSingleTimerAsync(timer, true);
                     }
-                };
-            }(timer));
-        });
-        runAfterPause(function () {
-            Globals.bRunningTimers = false;
-            GameUI.refreshPanelItems();
-        });
-    },
-    runTimer: function (timer, checkActive, callback) {
-        if (!callback) {
-            callback = function () { };
         }
-
+        Globals.bRunningTimers = false;
+        GameUI.refreshPanelItems();
+    },
+    runTimerAsync: async function (timer, checkActive) {
+        let didRun = false;
         timer._wasReset = false;
+
         if (checkActive) {
             if (!timer.Active) {
-                return;
+                return false;
             }
 
             timer.TurnNumber++;
@@ -59,7 +49,7 @@ var GameTimers = {
                 if (!timer.Restart)
                     timer.Active = false;
                 timer.TurnNumber = 0;
-                return;
+                return false;
             }
         }
 
@@ -67,80 +57,100 @@ var GameTimers = {
         if (tempact != null) {
             if (timer.LiveTimer) {
                 Globals.runningLiveTimerCommands = true;
-                CommandLists.addToFront(function () {
-                    Globals.runningLiveTimerCommands = false;
-                });
-                GameActions.processAction(tempact, true);
-                GameCommands.runCommands();
-                return;
+                await GameActions.processActionAsync(tempact, true);
+                Globals.runningLiveTimerCommands = false;
+                return true;
             } else {
-                GameActions.processAction(tempact, false, null, afterTimerAction);
+                await GameActions.processActionAsync(tempact, false);
+                didRun = true;
             }
         }
         UpdateStatusBars();
 
-        if (tempact == null) afterTimerAction();
+        if (timer._wasReset) {
+            return didRun;
+        }
+        if (!timer.Active) {
+            return didRun;
+        }
 
-        function afterTimerAction() {
-            if (timer._wasReset) {
-                return callback();
-            }
-            if (!timer.Active) {
-                return;
-            }
+        tempact = Finder.action(timer.Actions, "<<On Turn " + timer.TurnNumber.toString() + ">>");
+        if (tempact != null) {
+            await GameActions.processActionAsync(tempact, false);
+            didRun = true;
+        }
+        UpdateStatusBars();
 
-            let tempact = Finder.action(timer.Actions, "<<On Turn " + timer.TurnNumber.toString() + ">>");
+        if (timer._wasReset) {
+            return didRun;
+        }
+        if (!timer.Active) {
+            return didRun;
+        }
+
+        if (timer.TurnNumber == timer.Length) {
+            tempact = Finder.action(timer.Actions, "<<On Last Turn>>");
             if (tempact != null) {
-                GameActions.processAction(tempact, false, null, afterTimerAction2);
-            }
-            UpdateStatusBars();
-
-            if (tempact == null) afterTimerAction2();
-
-            function afterTimerAction2() {
-                if (timer._wasReset) {
-                    return callback();
-                }
-                if (!timer.Active) {
-                    return;
-                }
-
-                let tempact = null;
-                if (timer.TurnNumber == timer.Length) {
-                    tempact = Finder.action(timer.Actions, "<<On Last Turn>>");
-                    if (tempact != null) {
-                        GameActions.processAction(tempact, false, null, callback);
-                    }
-                }
-                UpdateStatusBars();
-
-                if (tempact == null) callback();
+                await GameActions.processActionAsync(tempact, false);
+                didRun = true;
             }
         }
+        UpdateStatusBars();
+        return didRun;
     },
 
-    tickLiveTimers: function (skipRefresh) {
-        if (!TheGame) {
+    tickLiveTimersAsync: async function (skipRefresh) {
+        if(!TheGame || Globals.endGame) {
             return;
         }
 
-        this.activeLiveTimers().forEach(function(timer) {
+        // XXX Live timers are designed to run in parallel (each timer runs in its own thread
+        //     in RAGS). That's not really something we can do in Web and that's a bad practice
+        //     anyway as multiple threads could change the game state without locking in RAGS.
+
+        let resumePause = false;
+        let didRun = false;
+        for(const timer of this.activeLiveTimers()) {
+            if(Globals.endGame) return;
+
             timer.curtickcount += 1000;
             if (timer.curtickcount >= timer.TimerSeconds * 1000) {
                 timer.curtickcount = 0;
-                GameTimers.runTimer(timer, true);
+
+                if(GameController.gamePaused) {
+                    // Cancel the pause, run the timer(s) and resume the pause
+                    resumePause = true;
+                    GameController.continue(true);
+                    await GameTimers.runTimerAsync(timer, true);
+
+                } else if(GameController.gameAwaitingInput) {
+                    // Defer timer execution until input has been given
+                    GameController.queueLiveTime(timer);
+
+                } else {
+                    didRun |= await GameTimers.runTimerAsync(timer, true);
+                }
+
                 if (!skipRefresh) {
                     GameUI.refreshPanelItems();
                 }
             }
-        });
+        }
+
+        if(resumePause) {
+            // Put the game back in pause
+            await GameController.pauseAsync(true);
+        } else if(didRun) {
+            // FIXME Do we really need that?
+            GameUI.onInteractionResume();
+        }
     },
 
-    scheduleLiveTimers: function (oneSecond) {
-        GameTimers.tickLiveTimers();
+    scheduleLiveTimersAsync: async function (oneSecond) {
+        await GameTimers.tickLiveTimersAsync();
         GameUI.displayLiveTimers();
-        setTimeout(function () {
-            GameTimers.scheduleLiveTimers(oneSecond);
+        setTimeout(async function () {
+            await GameTimers.scheduleLiveTimersAsync(oneSecond);
         }, oneSecond);
     }
 };
