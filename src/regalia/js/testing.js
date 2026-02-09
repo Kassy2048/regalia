@@ -41,6 +41,9 @@ $(async function() {
         switch (e.originalEvent.code) {
             case "Space":
                 {
+                    // Do not steal the keystrokes from text inputs
+                    if (typeof e.target.setSelectionRange === 'function') break;
+                    
                     if (GameController.gamePaused) {
                         e.preventDefault();
                         $("#Continue").click();
