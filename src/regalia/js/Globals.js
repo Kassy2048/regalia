@@ -8,7 +8,6 @@ class GlobalsStore {
     movingDirection             = "";  // static?
     runningLiveTimerCommands    = false;
     theObj                      = null;
-    selectedObj                 = null;
     variableGettingSet          = null;
     additionalData              = null;
     actionBeingTaken            = null;

@@ -79,15 +79,15 @@ var GameUI = {
         });
 
         $div.click(async function() {
-            Globals.selectedObj = value;
-            if (Globals.selectedObj != null) {
+            const selectedObj = value;
+            if (selectedObj != null) {
                 $("#MainText").append('</br><b>' + escapeHtmlSpecialCharacters(text) + "</b>");
                 $("#MainText").animate({
                     scrollTop: $("#MainText")[0].scrollHeight
                 });
                 $("#inputmenu").css("visibility", "hidden");
                 ActionRecorder.choseInputAction(text);
-                Globals.additionalData = Globals.selectedObj;
+                Globals.additionalData = selectedObj;
                 // Give control back to GameActions.processActionAsync()
                 await GameController.stopAwaitingInputAsync();
             }
@@ -104,12 +104,12 @@ var GameUI = {
         });
 
         $div.click(async function () {
-            Globals.selectedObj = value;
-            if (Globals.selectedObj != null) {
+            const selectedObj = value;
+            if (selectedObj != null) {
                 $("#cmdinputmenu").hide();
                 $("#cmdinputmenu").css("visibility", "hidden");
                 ActionRecorder.choseInputAction(text);
-                SetCommandInput(Globals.variableGettingSet, Globals.selectedObj);
+                SetCommandInput(Globals.variableGettingSet, selectedObj);
                 // Give control back to GameCommands.runSingleCommandAsync()
                 await GameController.stopAwaitingInputAsync();
             }
@@ -381,11 +381,10 @@ var GameUI = {
         $div.toggleClass('no-actions', GetActionCount(actions) === 0);
 
         $div.click(function(clickEvent) {
-            // TODO: this is the main place that stashes Globals.selectedObj, try to get rid of it
-            Globals.selectedObj = objFinderFunction(this.getAttribute('value'));
-            if (Globals.selectedObj != null) {
-                Globals.theObj = Globals.selectedObj;
-                GameUI.displayActions(Globals.selectedObj, clickEvent);
+            const selectedObj = objFinderFunction(this.getAttribute('value'));
+            if (selectedObj != null) {
+                Globals.theObj = selectedObj;
+                GameUI.displayActions(selectedObj, clickEvent);
             }
         });
         return $div;

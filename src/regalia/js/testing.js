@@ -99,12 +99,12 @@ $(async function() {
      * or CT_SETVARIABLE_NUMERIC_BYINPUT)
      */
     async function setTextInputChoiceAsync () {
-        Globals.selectedObj = $("#textinput").val();
-        if (Globals.selectedObj != null) {
+        const selectedObj = $("#textinput").val();
+        if (selectedObj != null) {
             $("#textinput").val('');
             $("#textchoice").css("visibility", "hidden");
-            ActionRecorder.filledInTextInput(Globals.selectedObj);
-            SetCommandInput(Globals.variableGettingSet, Globals.selectedObj);
+            ActionRecorder.filledInTextInput(selectedObj);
+            SetCommandInput(Globals.variableGettingSet, selectedObj);
             // Give control back to GameCommands.runSingleCommandAsync()
             await GameController.stopAwaitingInputAsync();
         }
@@ -386,16 +386,16 @@ $(async function() {
 
     /** Callback for text input related to an action  */
     async function setTextActionChoiceAsync() {
-        Globals.selectedObj = $("#textactioninput").val();
-        if (Globals.selectedObj != null) {
-            $("#MainText").append('</br><b>' + escapeHtmlSpecialCharacters(Globals.selectedObj) + "</b>");
+        const selectedObj = $("#textactioninput").val();
+        if (selectedObj != null) {
+            $("#MainText").append('</br><b>' + escapeHtmlSpecialCharacters(selectedObj) + "</b>");
             $("#MainText").animate({
                 scrollTop: $("#MainText")[0].scrollHeight
             });
             $("#textactioninput").val('');
             $("#textactionchoice").css("visibility", "hidden");
-            ActionRecorder.filledInTextInput(Globals.selectedObj);
-            Globals.additionalData = Globals.selectedObj;
+            ActionRecorder.filledInTextInput(selectedObj);
+            Globals.additionalData = selectedObj;
             // Give control back to GameActions.processActionAsync()
             await GameController.stopAwaitingInputAsync();
         }
