@@ -406,6 +406,7 @@ $(async function() {
 
     $("#CancelInput").click(async function () {
         $("#inputmenu").css("visibility", "hidden");
+        Globals.additionalData = null;
         await GameController.stopAwaitingInputAsync();
     });
     $("#cmdCancelInput").click(async function(e) {

@@ -50,6 +50,7 @@ var GameActions = {
             actionBeingTaken: act,
         });
 
+        let canceled = false;
         if (act.InputType === "None") {
             // No input to wait for
 
@@ -57,7 +58,9 @@ var GameActions = {
             $("#textactionMenuTitle").text(act.CustomChoiceTitle);
             $("#textactionchoice").css("visibility", "visible");
             $("#textactionchoice input").focus();
+
             await GameController.startAwaitingInputAsync(objectBeingActedUpon != undefined);
+            canceled = Globals.additionalData === null;
 
         } else {
             GameUI.clearInputChoices();
@@ -109,9 +112,12 @@ var GameActions = {
 
             GameUI.setInputMenuTitle(act);
             await GameController.startAwaitingInputAsync(objectBeingActedUpon != undefined);
+            canceled = Globals.additionalData === null;
         }
 
-        await this.executeActionAsync(act, bTimer);
+        if(!canceled) {
+            await this.executeActionAsync(act, bTimer);
+        }
 
         SetBorders();
 
