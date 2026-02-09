@@ -578,8 +578,7 @@ function GetCustomChoiceAction(type, name, actionname) {
 }
 
 async function PauseGameAsync() {
-    $("#Continue").css('background-color', "rgb(255, 255, 255)");
-    $("#Continue").css('visibility', "visible");
+    $("#Continue").prop("disabled", false);
     await GameController.pauseAsync();
 }
 

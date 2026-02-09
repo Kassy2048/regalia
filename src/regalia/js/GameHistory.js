@@ -104,8 +104,7 @@ const GameHistory = {
         $("#selectionmenu").css("visibility", "hidden");
         $("#genderchoice").css("visibility", "hidden");
         $("#cmdinputmenu").css("visibility", "hidden");
-        $("#Continue").css("background-color", "rgb(128, 128, 128)");
-        $("#Continue").css('visibility', "hidden");
+        $("#Continue").prop("disabled", true);
         GameUI.showGameElements();
 
         this._saveOldInfo();

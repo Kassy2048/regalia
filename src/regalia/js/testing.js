@@ -69,12 +69,9 @@ $(async function() {
     });
     $("#Continue").click(async function(e) {
         ActionRecorder.clickedContinue();
-        var bgcolor = $("#Continue").css('background-color');
-        if (bgcolor == "rgb(128, 128, 128)") {
-            // FIXME Don't rely on CSS to know if the button is disabled
-        } else {
-            $("#Continue").css("background-color", "rgb(128, 128, 128)");
-            $("#Continue").css('visibility', "hidden");
+        const btn = $("#Continue");
+        if (!btn.prop("disabled")) {
+            btn.prop("disabled", true);
             // Give control back to GameCommands.runSingleCommandAsync()
             GameController.continue();
         }
@@ -675,8 +672,7 @@ async function handleFileSelectAsync(bQuick, CurID, rsvRoot) {
     $("#selectionmenu").css("visibility", "hidden");
     $("#genderchoice").css("visibility", "hidden");
     $("#cmdinputmenu").css("visibility", "hidden");
-    $("#Continue").css("background-color", "rgb(128, 128, 128)");
-    $("#Continue").css('visibility', "hidden");
+    $("#Continue").prop("disabled", true);
     $("#back").prop('disabled', true)
             .prop('title', GameHistory.noGoBackReason());
     GameUI.showGameElements();
