@@ -14,7 +14,7 @@ var GameController = {
         return decodeURIComponent(penultimateUrlPart);
     },
 
-    startAwaitingInputAsync: async function () {
+    startAwaitingInputAsync: async function (noLine) {
         this.gameAwaitingInput = true;
 
         // Somewhat of a hack: normally if commands executed as the result of a live timer
@@ -26,7 +26,7 @@ var GameController = {
         // resumes normally
         Globals.runningLiveTimerCommands = false;
 
-        GameUI.onInteractionResume();
+        GameUI.onInteractionResume(noLine);
         GameUI.disableSaveAndLoad();
         GameUI.hideGameElements();
 

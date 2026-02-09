@@ -388,6 +388,10 @@ $(async function() {
     async function setTextActionChoiceAsync() {
         Globals.selectedObj = $("#textactioninput").val();
         if (Globals.selectedObj != null) {
+            $("#MainText").append('</br><b>' + escapeHtmlSpecialCharacters(Globals.selectedObj) + "</b>");
+            $("#MainText").animate({
+                scrollTop: $("#MainText")[0].scrollHeight
+            });
             $("#textactioninput").val('');
             $("#textactionchoice").css("visibility", "hidden");
             ActionRecorder.filledInTextInput(Globals.selectedObj);

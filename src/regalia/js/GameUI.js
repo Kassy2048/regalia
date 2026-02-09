@@ -82,6 +82,10 @@ var GameUI = {
             Globals.selectedObj = value;
             if (Globals.selectedObj != null) {
                 await GameController.executeAndRunTimersAsync(async function () {
+                    $("#MainText").append('</br><b>' + escapeHtmlSpecialCharacters(text) + "</b>");
+                    $("#MainText").animate({
+                        scrollTop: $("#MainText")[0].scrollHeight
+                    });
                     $("#inputmenu").css("visibility", "hidden");
                     ActionRecorder.choseInputAction(text);
                     Globals.additionalData = Globals.selectedObj;
@@ -169,7 +173,20 @@ var GameUI = {
             if (selectionchoice != null) {
                 await GameController.executeAndRunTimersAsync(async function () {
                     ActionRecorder.actedOnObject(obj, selectiontext);
-                    $("#MainText").append('</br><b>' + selectionchoice + "</b>");
+                    let logLine;
+                    if(obj instanceof ragsobject) {
+                        logLine = objectToString(obj) + ' - ';
+                    } else if(obj instanceof character) {
+                        logLine = CharToString(obj) + ' - ';
+                    } else if(obj instanceof room) {
+                        logLine = 'Room: ' + roomDisplayName(obj) + ' - ';
+                    } else if(obj instanceof player) {
+                        logLine = 'Player - ';
+                    } else {
+                        logLine = '';
+                    }
+                    logLine += selectiontext;
+                    $("#MainText").append('</br><b>' + escapeHtmlSpecialCharacters(logLine) + "</b>");
                     $("#MainText").animate({
                         scrollTop: $("#MainText")[0].scrollHeight
                     });
@@ -411,11 +428,11 @@ var GameUI = {
         }
     },
 
-    onInteractionResume: function() {
+    onInteractionResume: function(noLine) {
         const MainText = $("#MainText");
         const scrollHeight = MainText[0].scrollHeight;
         if(this.lastScrollHeight != scrollHeight) {
-            MainText.append('<hr>');
+            if(!!!noLine) MainText.append('<hr>');
             if(this.lastScrollHeight !== undefined) {
                 MainText.animate({
                     scrollTop: this.lastScrollHeight

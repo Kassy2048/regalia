@@ -90,18 +90,12 @@ function SetupObjectData(GameData) {
     return TheObject;
 }
 
+/** Return the object name to use in UI lists */
 function objecttostring(curobject) {
     var retval = "";
     if (curobject.locationtype == "LT_IN_OBJECT" || curobject.locationtype == "LT_CHARACTER")
         retval += "  ";
-    if (curobject.sdesc.trim().length > 0) {
-        if (TheGame != null)
-            retval += PerformTextReplacements(curobject.sdesc, null);
-        else
-            retval += curobject.name;
-    } else {
-        retval += curobject.name;
-    }
+    retval += objectToString(curobject);
     if (curobject.bOpenable && !curobject.bOpen)
         retval += " (closed)";
     if ((curobject.bOpenable) && (curobject.bOpen))
@@ -109,4 +103,16 @@ function objecttostring(curobject) {
     if (curobject.bWorn)
         retval += " (worn)";
     return retval;
+}
+
+/** Simpler function than objecttostring() */
+function objectToString(curobject) {
+    if (curobject.sdesc.trim().length > 0) {
+        if (TheGame != null)
+            return PerformTextReplacements(curobject.sdesc, null);
+        else
+            return curobject.name;
+    } else {
+        return curobject.name;
+    }
 }

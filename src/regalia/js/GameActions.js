@@ -57,7 +57,7 @@ var GameActions = {
             $("#textactionMenuTitle").text(act.CustomChoiceTitle);
             $("#textactionchoice").css("visibility", "visible");
             $("#textactionchoice input").focus();
-            await GameController.startAwaitingInputAsync();
+            await GameController.startAwaitingInputAsync(objectBeingActedUpon != undefined);
 
         } else {
             GameUI.clearInputChoices();
@@ -108,7 +108,7 @@ var GameActions = {
             }
 
             GameUI.setInputMenuTitle(act);
-            await GameController.startAwaitingInputAsync();
+            await GameController.startAwaitingInputAsync(objectBeingActedUpon != undefined);
         }
 
         await this.executeActionAsync(act, bTimer);
