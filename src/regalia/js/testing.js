@@ -419,7 +419,7 @@ $(async function() {
     await GameTimers.scheduleLiveTimersAsync(window.location.href.match(/speedy_timers/) ? 50 : 1000);
 
     $(".compass-direction").click(async function(e) {
-        var $el = $(e.target);
+        var $el = $(e.currentTarget);
         if (!$el.hasClass('active')) {
             return;
         }
