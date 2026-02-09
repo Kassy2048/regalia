@@ -192,7 +192,7 @@ var SavedGames = {
             console.log(`Extracting data...`);
             $('.import-menu-status').html('Extracting RSV file...');
             // Let the HTML update
-            await new Promise(r => setTimeout(r, 0));
+            await waitAsync();
             let percent = -1;
             root = await parseNrbf(data, async (pos, size, step) => {
                 if(step > 0) --step;
@@ -201,7 +201,7 @@ var SavedGames = {
                     percent = new_percent;
                     $('.import-menu-status').text(`Extracting RSV file (${percent}%)`);
                     // Let the HTML update
-                    await new Promise(r => setTimeout(r, 0));
+                    await waitAsync();
                 }
             });
         } finally {

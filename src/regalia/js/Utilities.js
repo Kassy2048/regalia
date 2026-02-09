@@ -1008,3 +1008,13 @@ class SimplePromise extends Promise {
         }
     }
 }
+
+/** Wait the requested amount of milliseconds. When no argument is given,
+ * this function waits for the DOM to be updated.
+ */
+async function waitAsync(ms) {
+    if(ms === undefined) ms = 0;
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}

@@ -330,13 +330,13 @@ $(async function() {
                     try {
                         $('.import-menu-status').html('Loading RSV file...');
                         // Let the HTML update
-                        await new Promise(r => setTimeout(r, 0));
+                        await waitAsync();
 
                         const root = await SavedGames.importRSV(e.target.result);
 
                         $('.import-menu-status').text('Importing save data...');
                         // Let the HTML update
-                        await new Promise(r => setTimeout(r, 0));
+                        await waitAsync();
 
                         $('.import-menu').addClass('hidden');
                         hideSaveAndLoadMenus();
