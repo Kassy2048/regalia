@@ -95,7 +95,14 @@ function objecttostring(curobject) {
     var retval = "";
     if (curobject.locationtype == "LT_IN_OBJECT" || curobject.locationtype == "LT_CHARACTER")
         retval += "  ";
-    retval += objectToString(curobject);
+    if (curobject.sdesc.trim().length > 0) {
+        if (TheGame != null)
+            retval += PerformTextReplacements(curobject.sdesc, null);
+        else
+            retval += curobject.name;
+    } else {
+        retval += curobject.name;
+    }
     if (curobject.bOpenable && !curobject.bOpen)
         retval += " (closed)";
     if ((curobject.bOpenable) && (curobject.bOpen))
@@ -107,12 +114,17 @@ function objecttostring(curobject) {
 
 /** Simpler function than objecttostring() */
 function objectToString(curobject) {
-    if (curobject.sdesc.trim().length > 0) {
-        if (TheGame != null)
-            return PerformTextReplacements(curobject.sdesc, null);
-        else
-            return curobject.name;
-    } else {
-        return curobject.name;
+    // Same as GameObject.GetDisplayStringNameOnly()
+    let result = '';
+    if(curobject.preposition.length > 0) {
+        result += curobject.preposition + ' ';
     }
+
+    if(curobject.sdesc.trim().length > 0) {
+        result += curobject.sdesc;
+    } else {
+        result += curobject.name;
+    }
+
+    return result;
 }

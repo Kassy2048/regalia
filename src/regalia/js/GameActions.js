@@ -79,7 +79,7 @@ var GameActions = {
                         if (roomExit.PortalObjectName != "<None>") {
                             var tempobj = Finder.object(roomExit.PortalObjectName);
                             if (tempobj && tempobj.bVisible) {
-                                GameUI.addInputChoice(act, objecttostring(tempobj), tempobj);
+                                GameUI.addInputChoice(act, objectToString(tempobj), tempobj);
 
                                 if (tempobj.bContainer) {
                                     if (!tempobj.bOpenable || tempobj.bOpen) {
@@ -104,7 +104,7 @@ var GameActions = {
                 addPortalObjectChoices();
             } else if (act.InputType == "Inventory") {
                 Interactables.inventoryObjects().forEach(function (obj) {
-                    GameUI.addInputChoice(act, objecttostring(obj), obj);
+                    GameUI.addInputChoice(act, objectToString(obj), obj);
                 });
             } else if (act.InputType == "ObjectOrCharacter") {
                 addPortalObjectChoices();

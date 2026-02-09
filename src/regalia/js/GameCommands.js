@@ -1446,7 +1446,7 @@ var GameCommands = {
                             TheGame.Objects.forEach(function (innerObject) {
                                 if (objectContainsObject(parentObject, innerObject)) {
                                     GameUI.addCmdInputChoice(
-                                        objecttostring(innerObject),
+                                        objectToString(innerObject),
                                         innerObject
                                     );
                                     addChildObjects(innerObject);
@@ -1457,7 +1457,7 @@ var GameCommands = {
                         TheGame.Objects.forEach(function (obj) {
                             if (obj.locationtype == "LT_PLAYER") {
                                 GameUI.addCmdInputChoice(
-                                    objecttostring(obj),
+                                    objectToString(obj),
                                     obj
                                 );
                                 addChildObjects(obj);

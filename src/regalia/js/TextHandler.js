@@ -859,7 +859,7 @@ function ReplaceStatic(text, tempindex, change, loopobject) {
         '[INPUTDATA]', function () {
             const data = Globals.additionalData;
             if(data instanceof ragsobject) {
-                return objecttostring(data);
+                return objecttostring(data);  // not objectToString() on purpose
             } else if(data instanceof character) {
                 return CharToString(data);
             }

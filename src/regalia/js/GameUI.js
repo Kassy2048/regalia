@@ -132,9 +132,9 @@ var GameUI = {
     addObjectOptions: function (act) {
         Interactables.roomAndInventoryObjects().forEach(function (obj) {
             if (act) {
-                GameUI.addInputChoice(act, objecttostring(obj), obj);
+                GameUI.addInputChoice(act, objectToString(obj), obj);
             } else {
-                GameUI.addCmdInputChoice(objecttostring(obj), obj);
+                GameUI.addCmdInputChoice(objectToString(obj), obj);
             }
         });
     },
@@ -397,7 +397,6 @@ var GameUI = {
     },
 
     displayLiveTimers: function () {
-        // FIXME The HTML is erased every 500 ms so that makes clicking on the Skip link challenging...
         var activeLiveTimers = GameTimers.activeLiveTimers();
         $('.live-timer-display').toggle(activeLiveTimers.length > 0);
         if (activeLiveTimers.length > 0) {
