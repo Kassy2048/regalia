@@ -398,30 +398,73 @@ var GameUI = {
     },
 
     displayLiveTimers: function () {
+        // FIXME The HTML is erased every 500 ms so that makes clicking on the Skip link challenging...
         var activeLiveTimers = GameTimers.activeLiveTimers();
         $('.live-timer-display').toggle(activeLiveTimers.length > 0);
         if (activeLiveTimers.length > 0) {
-            var $container = $('.live-timer-display-rows');
-            $container.empty();
-            activeLiveTimers.forEach(function (timer) {
-                var $timerRow = $('<tr>');
-                $timerRow.append('<td>' + timer.Name + '</td>');
-                $timerRow.append('<td>' + (timer.TimerSeconds - (timer.curtickcount / 1000)) + 's</td>');
-                $timerRow.append('<td><b>Click to Skip</b></td>');
-                $timerRow.data('timer-name', timer.Name);
-                $timerRow.click(async function () {
-                    var timerName = $(this).data('timer-name');
-                    var timer = Finder.timer(timerName);
-                    var secondsRemaining = (timer.TimerSeconds - (timer.curtickcount / 1000));
-                    for (var i = 0; i < secondsRemaining; i++) {
-                        await GameTimers.tickLiveTimersAsync(true);
-                    }
-                    GameUI.refreshPanelItems();
-                    GameUI.displayLiveTimers();
-                });
-                $container.append($timerRow);
+            const $container = $('.live-timer-display-rows');
+            // List all existing timer notifications
+            const timerRows = {};
+            $container.find('tr').each(function() {
+                const name = $(this).data('timer-name');
+                if(name === undefined) {
+                    // Unexpected, delete the element
+                    this.remove();
+                } else if(name in timerRows) {
+                    // Unexpected dupe, delete the element
+                    this.remove();
+                } else {
+                    timerRows[name] = this;
+                }
             });
+
+            activeLiveTimers.forEach(function(timer) {
+                const row = timerRows[timer.Name];
+                if(row !== undefined) {
+                    // Update the timer UI
+                    const timeCell = row.querySelector('td:nth-of-type(2)');
+                    timeCell.innerHTML = (timer.TimerSeconds - (timer.curtickcount / 1000)) + 's';
+
+                    // Only keep the timers that should be removed in timerRows
+                    delete timerRows[timer.Name];
+                } else {
+                    // Create a new timer UI
+                    var $timerRow = $('<tr>');
+                    $timerRow.append('<td>' + timer.Name + '</td>');
+                    $timerRow.append('<td>' + (timer.TimerSeconds - (timer.curtickcount / 1000)) + 's</td>');
+                    $timerRow.append('<td><b>Click to Skip</b></td>');
+                    $timerRow.data('timer-name', timer.Name);
+                    $timerRow.click(async function () {
+                        var timerName = $(this).data('timer-name');
+                        var timer = Finder.timer(timerName);
+                        var secondsRemaining = (timer.TimerSeconds - (timer.curtickcount / 1000));
+                        for (var i = 0; i < secondsRemaining; i++) {
+                            await GameTimers.tickLiveTimersAsync(true);
+                        }
+                        GameUI.refreshPanelItems();
+                        GameUI.displayLiveTimers();
+                    });
+                    $container.append($timerRow);
+                }
+            });
+
+            // Remove expired/disabled timers
+            Object.values(timerRows).forEach(row => row.remove());
         }
+    },
+
+    removeLiveTimer: function (name) {
+        let timerCount = 0;
+        $('.live-timer-display-rows tr').each(function() {
+            const name = $(this).data('timer-name');
+            if(name === name) {
+                // Delete the element
+                this.remove();
+            } else {
+                ++timerCount;
+            }
+        });
+        $('.live-timer-display').toggle(timerCount > 0);
     },
 
     onInteractionResume: function(noLine) {

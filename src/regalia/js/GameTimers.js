@@ -111,6 +111,8 @@ var GameTimers = {
             timer.curtickcount += 1000;
             if (timer.curtickcount >= timer.TimerSeconds * 1000) {
                 timer.curtickcount = 0;
+                // Remove the timer from the UI so that it is not shown as stuck to 1s
+                GameUI.removeLiveTimer(timer.Name);
 
                 if(GameController.gamePaused) {
                     // Cancel the pause, run the timer(s) and resume the pause
