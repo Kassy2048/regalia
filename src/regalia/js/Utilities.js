@@ -57,6 +57,22 @@ var Interactables = {
             return obj.CurrentRoom == TheGame.Player.CurrentRoom;
         });
     },
+    /** Return the list of objects stored by the given character */
+    characterObjects: function(character) {
+        let objects = [];
+
+        TheGame.Objects.forEach(function(innerObject) {
+            if(!characterHasObject(character, innerObject)) return;
+
+            objects.push(innerObject);
+
+            if(innerObject.bOpenable && innerObject.bOpen) {
+                objects.extend(...this.nestedObjects(innerObject));
+            }
+        });
+
+        return objects;
+    },
     nestedObjects: function(outerObject) {
         let objects = [];
         TheGame.Objects.forEach(function(innerObject) {

@@ -109,7 +109,7 @@ var GameActions = {
             } else if (act.InputType == "ObjectOrCharacter") {
                 addPortalObjectChoices();
                 GameUI.addObjectOptions(act);
-                GameUI.addCharacterOptions(act);
+                GameUI.addCharacterOptions(act, true);
             }
 
             GameUI.setInputMenuTitle(act);

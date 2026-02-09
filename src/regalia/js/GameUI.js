@@ -119,12 +119,20 @@ var GameUI = {
         $("#cmdinputmenu").show();
     },
 
-    addCharacterOptions: function (act) {
+    addCharacterOptions: function(act, withObjects) {
+        if(act === undefined) act = false;
+        if(withObjects === undefined) withObjects = false;
+
         Interactables.characters().forEach(function (character) {
             if (act) {
                 GameUI.addInputChoice(act, CharToString(character), character.Charname);
             } else {
                 GameUI.addCmdInputChoice(CharToString(character), character.Charname);
+            }
+
+            if(withObjects) {
+                // Also add objects in the character inventory if shown
+                this.addCharacterObjectOptions(act, character);
             }
         });
     },
@@ -137,6 +145,23 @@ var GameUI = {
                 GameUI.addCmdInputChoice(objectToString(obj), obj);
             }
         });
+
+        // Also add objects in characters inventory if shown
+        Interactables.characters().forEach(function(character) {
+            this.addCharacterObjectOptions(act, character);
+        });
+    },
+
+    addCharacterObjectOptions: function(act, character) {
+        if(character.bAllowInventoryInteraction) {
+            Interactables.characterObjects(character).forEach(obj => {
+                if (act) {
+                    GameUI.addInputChoice(act, objectToString(obj), obj);
+                } else {
+                    GameUI.addCmdInputChoice(objectToString(obj), obj);
+                }
+            });
+        }
     },
 
     setCmdInputForCustomChoices: function (title, tempcommand) {

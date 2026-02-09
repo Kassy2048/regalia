@@ -1465,7 +1465,7 @@ var GameCommands = {
                         });
                     } else if (acttype == "Characters And Objects") {
                         GameUI.addObjectOptions();
-                        GameUI.addCharacterOptions();
+                        GameUI.addCharacterOptions(false, true);
                     }
                     GameUI.setCmdInputMenuTitle(Globals.actionBeingTaken, part4);
                 }
