@@ -132,7 +132,7 @@ var GameUI = {
 
             if(withObjects) {
                 // Also add objects in the character inventory if shown
-                this.addCharacterObjectOptions(act, character);
+                GameUI.addCharacterObjectOptions(act, character);
             }
         });
     },
@@ -148,7 +148,7 @@ var GameUI = {
 
         // Also add objects in characters inventory if shown
         Interactables.characters().forEach(function(character) {
-            this.addCharacterObjectOptions(act, character);
+            GameUI.addCharacterObjectOptions(act, character);
         });
     },
 
