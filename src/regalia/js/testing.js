@@ -422,7 +422,7 @@ $(async function() {
         var direction = $el.data('direction');
         var newRoom = GetDestinationRoomName(direction, true);
         TheGame.TurnCount++;
-        ResetLoopObjects();  // TODEL?
+        const globalsIndex = ResetLoopObjects();  // TODEL?
         Globals.bCancelMove = false;
         ActionRecorder.locationChange(direction);
         var curroom = Finder.room(TheGame.Player.CurrentRoom);
@@ -439,7 +439,7 @@ $(async function() {
         if (!Globals.bCancelMove) {
             await ChangeRoomAsync(Finder.room(newRoom), true, true);
         }
-        RestoreLoopObjects();  // TODEL?
+        RestoreLoopObjects(globalsIndex);  // TODEL?
         GameUI.onInteractionResume();
     });
     $(".compass-direction").hover(function(e) {

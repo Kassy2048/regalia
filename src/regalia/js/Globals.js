@@ -19,10 +19,17 @@ class GlobalsStore {
     currentImage                = "";
     endGame                     = false;
 
+    // Unique index for debugging
+    static _nextIndex           = 0;
+    _index                      = -1;
+
     constructor(other) {
+        this._index = GlobalsStore._nextIndex++;
+
         if(other !== undefined) {
             // Copy the properties value from the other instance
             for(const name of Object.keys(this)) {
+                if(name.startsWith('_')) continue;
                 this[name] = other[name];
             }
         }
@@ -85,13 +92,17 @@ class GlobalsStack {
             }
         }
 
-        return lastEntry;
+        return lastEntry._index;
     }
 
     /** Remove the current entry from the stack */
-    restore() {
+    restore(index) {
         // console.debug('RE-STORE', this.entries.length);
         const oldEntry = this.entries.pop();
+
+        if(index !== undefined && oldEntry._index !== index) {
+            console.warn(`Unexpected Globals entry poped (expected ${index}, found ${oldEntry._index})`);
+        }
 
         if(this.entries.length == 0) {
             throw new Error('Globals stack is empty');
@@ -118,11 +129,11 @@ function ResetLoopObjects() {  // FIXME Not needed anymore?
         console.warn(`Found ${Globals.length} globals (loopObject=${Globals.loopObject})`);
     }
 
-    Globals.store({
+    return Globals.store({
         loopObject: null,
     });
 }
 
-function RestoreLoopObjects() {
-    Globals.restore();
+function RestoreLoopObjects(index) {
+    Globals.restore(index);
 }

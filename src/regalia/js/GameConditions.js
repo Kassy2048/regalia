@@ -4,7 +4,7 @@ var GameConditions = {
         var counter = 0;
 
         async function performLoop(list) {
-            Globals.store();
+            const globalsIndex = Globals.store();
 
             for(const obj of list) {
                 Globals.loopObject = obj;
@@ -12,7 +12,7 @@ var GameConditions = {
                 if(doBreak || Globals.endGame) break;
             }
 
-            Globals.restore();
+            Globals.restore(globalsIndex);
             Logger.logEvaluatedCondition(tempcond, bResult);
         }
 

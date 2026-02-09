@@ -45,7 +45,7 @@ var GameActions = {
 
         if(Settings.debugEnabled) console.debug(objectBeingActedUpon, act);
 
-        Globals.store({
+        const globalsIndex = Globals.store({
             objectBeingActedUpon: objectBeingActedUpon,
             actionBeingTaken: act,
         });
@@ -115,7 +115,7 @@ var GameActions = {
 
         SetBorders();
 
-        Globals.restore();
+        Globals.restore(globalsIndex);
     },
 
     runEventsAsync: async function (EventType) {

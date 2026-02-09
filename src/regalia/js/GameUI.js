@@ -174,10 +174,10 @@ var GameUI = {
                         scrollTop: $("#MainText")[0].scrollHeight
                     });
                     $("#selectionmenu").css("visibility", "hidden");
-                    ResetLoopObjects();  // TODEL?
+                    const globalsIndex = ResetLoopObjects();  // TODEL?
                     TheGame.TurnCount++;
                     await GameActions.processActionAsync(selectionchoice, false, obj);
-                    RestoreLoopObjects();  // TODEL?
+                    RestoreLoopObjects(globalsIndex);  // TODEL?
                     GameUI.onInteractionResume();
                 });
             }
@@ -425,6 +425,9 @@ var GameUI = {
         }
 
         if(GameController.shouldRunCommands()) {
+            if(Globals.length != 1) {
+                console.warn('Saving history state while the globals stack is not empty!', Globals.length);
+            }
             GameHistory.pushState();
             $('#back').prop('disabled', !GameHistory.canGoBack())
                     .prop('title', GameHistory.noGoBackReason());

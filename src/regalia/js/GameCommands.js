@@ -1413,16 +1413,16 @@ var GameCommands = {
                     GameUI.showTextMenuChoice(part4);
                 }
 
-                Globals.store({
+                const globalsIndex = Globals.store({
                     variableGettingSet: commandBeingProcessed,
                 });
                 await GameController.startAwaitingInputAsync();
-                Globals.restore();
+                Globals.restore(globalsIndex);
                 break;
             }
             case "CT_SETVARIABLEBYINPUT": {
                 const acttype = part2;
-                Globals.store({
+                const globalsIndex = Globals.store({
                     variableGettingSet: commandBeingProcessed,
                 });
 
@@ -1471,7 +1471,7 @@ var GameCommands = {
                 }
 
                 await GameController.startAwaitingInputAsync();
-                Globals.restore();
+                Globals.restore(globalsIndex);
                 break;
             }
             case "CT_COMMENT": {
