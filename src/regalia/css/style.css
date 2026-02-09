@@ -198,6 +198,28 @@ table {
     text-align: left;
 }
 
+.savegames-table th {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Reserve space for the sort indication */
+.savegames-table th:before {
+    content: '⇩';
+    margin-right: 3px;
+    visibility: hidden;
+}
+
+.savegames-table th.sort-asc:before {
+    content: '⇩';
+    visibility: visible;
+}
+
+.savegames-table th.sort-desc:before {
+    content: '⇧';
+    visibility: visible;
+}
+
 .savegames-table td {
     vertical-align: middle;
     border: 1px solid grey;

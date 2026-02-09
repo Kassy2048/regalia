@@ -62,3 +62,6 @@ Settings.addBoolSetting('debugEnabled', false);
 
 Settings.addBoolSetting('darkMode', window.matchMedia &&
         window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+Settings.addIntSetting('saveSortField', 0);
+Settings.addBoolSetting('saveSortAsc', false);

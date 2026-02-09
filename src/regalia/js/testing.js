@@ -171,6 +171,11 @@ $(async function() {
         });
     }
 
+    function saveHeaderToFieldIndex(th) {
+        const field = th.dataset.field;
+        return field === undefined ? -1 : parseInt(field);
+    }
+
     function addSavesToTable($tbody) {
         function updateSaveName(saveName) {
             saveName.style.height = "auto";
@@ -178,7 +183,15 @@ $(async function() {
             if(height > 0) saveName.style.height = height + "px";
         }
 
-        var savedGames = SavedGames.getSortedSaves();
+        // Update the sort indication
+        document.querySelectorAll('.savegames-table th').forEach((th) => {
+            th.classList.remove('sort-desc', 'sort-asc');
+            if(saveHeaderToFieldIndex(th) === Settings.saveSortField) {
+                th.classList.add(Settings.saveSortAsc ? 'sort-asc' : 'sort-desc');
+            }
+        });
+
+        const savedGames = SavedGames.getSortedSaves(Settings.saveSortField, Settings.saveSortAsc);
         savedGames.forEach(function (savedGame) {
             var $tr = $('<tr></tr>');
             $tr.append('<td><button class="btn load-save">Load</button></td>');
@@ -242,6 +255,21 @@ $(async function() {
         // Set visibility of things that care about there being saves
         $tbody.closest('table').toggle(savedGames.length > 0);
     }
+
+    $('.savegames-table th').on('click', function() {
+        const fieldIndex = saveHeaderToFieldIndex(this);
+        if(fieldIndex == -1) return;
+
+        // Re-sort the saves table
+        if(fieldIndex === Settings.saveSortField) {
+            Settings.saveSortAsc = !Settings.saveSortAsc;
+        } else {
+            Settings.saveSortField = fieldIndex;
+            Settings.saveSortAsc = true;
+        }
+
+        createSaveOrLoadMenuHandler();
+    });
 
     $("#new_savegame").on('click', function () {
         hideSaveAndLoadMenus();
@@ -326,54 +354,53 @@ $(async function() {
             }
         });
     });
-    
-    var createSaveOrLoadMenuHandler = function ($backdrop, $menu) {
-        return function (e) {
-            $menu.off('click');
 
-            var $menuChoices = $menu.find('.save-load-table-body');
-            $menuChoices.off('click');
-            $menuChoices.empty();
+    function createSaveOrLoadMenuHandler() {
+        const $backdrop = $(".save-menu");
+        const $menu = $('.save-menu-content');
 
-            $menu.find('table').hide();
-            addSavesToTable($menuChoices);
+        $menu.off('click');
 
-            $menu.on('click', function (e) {
-                e.stopPropagation();
-            });
-            $menuChoices.on('click', 'button.destroy-save', function (e) {
-                var saveId = $(e.currentTarget).data('save-id');
-                handleDestroySave(saveId);
-            });
-            $menuChoices.on('click', 'button.load-save', async function (e) {
-                hideSaveAndLoadMenus();
-                var saveId = $(e.currentTarget).data('save-id');
-                await handleFileSelectAsync(false, saveId);
-            });
-            $menuChoices.on('click', 'button.overwrite-save', function (e) {
-                hideSaveAndLoadMenus();
-                var saveId = $(e.currentTarget).data('save-id');
-                var saveName = $(e.currentTarget).data('save-name');
-                handleFileSave(false, false, saveId, saveName);
-            });
+        var $menuChoices = $menu.find('.save-load-table-body');
+        $menuChoices.off('click');
+        $menuChoices.empty();
 
-            // setElementTopleftToCursor($menu, e);
+        $menu.find('table').hide();
+        addSavesToTable($menuChoices);
+
+        $menu.on('click', function (e) {
+            e.stopPropagation();
+        });
+        $menuChoices.on('click', 'button.destroy-save', function (e) {
+            var saveId = $(e.currentTarget).data('save-id');
+            handleDestroySave(saveId);
+        });
+        $menuChoices.on('click', 'button.load-save', async function (e) {
             hideSaveAndLoadMenus();
-            $backdrop.removeClass("hidden");
+            var saveId = $(e.currentTarget).data('save-id');
+            await handleFileSelectAsync(false, saveId);
+        });
+        $menuChoices.on('click', 'button.overwrite-save', function (e) {
+            hideSaveAndLoadMenus();
+            var saveId = $(e.currentTarget).data('save-id');
+            var saveName = $(e.currentTarget).data('save-name');
+            handleFileSave(false, false, saveId, saveName);
+        });
 
-            $backdrop.off('click.saveloadmenubackground');
-            setTimeout(function () {
-                $backdrop.on('click.saveloadmenubackground', function() {
-                    $backdrop.off('click.saveloadmenubackground');
-                    hideSaveAndLoadMenus();
-                });
+        $backdrop.removeClass("hidden");
+
+        $backdrop.off('click.saveloadmenubackground');
+        setTimeout(function () {
+            $backdrop.on('click.saveloadmenubackground', function() {
+                $backdrop.off('click.saveloadmenubackground');
+                hideSaveAndLoadMenus();
             });
+        });
 
-            $menu.find('button.overwrite-save, #new_savegame')
-                    .prop('disabled', GameUI.saveDisabled);
-        };
-    };
-    $("#save").click(createSaveOrLoadMenuHandler($(".save-menu"), $('.save-menu-content')));
+        $menu.find('button.overwrite-save, #new_savegame')
+                .prop('disabled', GameUI.saveDisabled);
+    }
+    $("#save").click(createSaveOrLoadMenuHandler);
     $("div.genderchoiceSelect").click(async function() {
         const gender = this.getAttribute('value');
         if (gender != null) {

@@ -17,10 +17,31 @@ var SavedGames = {
             return {};
         }
     },
-    getSortedSaves: function () {
-        var parsedIndex = this.getIndex();
+    getSortedSaves: function (field, ascending) {
+        if(field === undefined) field = 0;
+        ascending = !!ascending;
+
+        const parsedIndex = this.getIndex();
         return Object.keys(parsedIndex).sort(function (a, b) {
-            return parseInt(b, 10) - parseInt(a, 10);
+            let diff;
+            switch(field) {
+                default:
+                case 0:  // By index
+                    diff = parseInt(a, 10) - parseInt(b, 10);
+                    break;
+                case 1:  // By name
+                    const nameA = parsedIndex[a].name.toLocaleLowerCase();
+                    const nameB = parsedIndex[b].name.toLocaleLowerCase();
+                    diff = nameA.localeCompare(nameB);
+                    break;
+                case 2:  // By date
+                    const dateA = new Date(parsedIndex[a].date);
+                    const dateB = new Date(parsedIndex[b].date);
+                    diff = dateA - dateB;
+                    break;
+            }
+
+            return ascending ? diff : -diff;
         }).map(function (id) {
             return parsedIndex[id];
         });
