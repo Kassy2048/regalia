@@ -413,6 +413,11 @@ $(async function() {
         $("#cmdinputmenu").css("visibility", "hidden");
         await GameController.stopAwaitingInputAsync();
     });
+    $("#textactioncancel").click(async function () {
+        $("#textactionchoice").css("visibility", "hidden");
+        Globals.additionalData = null;
+        await GameController.stopAwaitingInputAsync();
+    });
     $("#selectionmenu").focusout(function() {
         $("#selectionmenu").css("visibility", "hidden");
     });

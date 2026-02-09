@@ -55,6 +55,8 @@ var GameActions = {
             // No input to wait for
 
         } else if (act.InputType == "Text") {
+            const cancellable = act.EnhInputData && act.EnhInputData.bAllowCancel;
+            $("#textactionchoice").toggleClass('cancellable', cancellable);
             $("#textactionMenuTitle").text(act.CustomChoiceTitle);
             $("#textactionchoice").css("visibility", "visible");
             $("#textactionchoice input").focus();

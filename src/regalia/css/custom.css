@@ -267,6 +267,10 @@ body {
     display: none;
 }
 
+#textactionchoice:not(.cancellable) #textactioncancel {
+    display: none;
+}
+
 #cmdinputmenu {
     /* Show scrollbars if needed */
     max-height: 100%;
