@@ -165,7 +165,7 @@ var GameUI = {
         });
 
         $div.click(function (e) {
-            var selectionchoice = $(this).val();
+            var selectionchoice = this.getAttribute('value');
             var selectiontext = $(this).text();
             if (selectionchoice != null) {
                 GameController.executeAndRunTimers(function () {
@@ -368,7 +368,7 @@ var GameUI = {
 
         $div.click(function(clickEvent) {
             // TODO: this is the main place that stashes Globals.selectedObj, try to get rid of it
-            Globals.selectedObj = objFinderFunction($(this).val());
+            Globals.selectedObj = objFinderFunction(this.getAttribute('value'));
             if (Globals.selectedObj != null) {
                 Globals.theObj = Globals.selectedObj;
                 GameUI.displayActions(Globals.selectedObj, clickEvent);
