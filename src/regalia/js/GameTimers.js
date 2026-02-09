@@ -1,18 +1,11 @@
 var GameTimers = {
     activeLiveTimers: function () {
+        // Do not use this function to execute timers
         if (!TheGame) {
             return [];
         }
         return TheGame.Timers.filter(function (timer) {
            return timer.Active && timer.LiveTimer;
-        });
-    },
-    activeStaticTimers: function () {
-        if (!TheGame) {
-            return [];
-        }
-        return TheGame.Timers.filter(function (timer) {
-            return timer.Active && !timer.LiveTimer;
         });
     },
     runSingleTimerAsync: async function (timer, checkActive) {
@@ -21,13 +14,13 @@ var GameTimers = {
         } while(timer._wasReset);
     },
     runTimerEventsAsync: async function () {
-        if (Globals.bRunningTimers) {
+        if (Globals.bRunningTimers || !TheGame) {
             return;
         }
 
         Globals.bRunningTimers = true;
-        for(const timer of this.activeStaticTimers()) {
-            if (timer != null) {
+        for(const timer of TheGame.Timers) {
+            if (timer != null && timer.Active && !timer.LiveTimer) {
                 Logger.logExecutingTimer(timer);
                 await GameTimers.runSingleTimerAsync(timer, true);
             }
@@ -110,8 +103,10 @@ var GameTimers = {
 
         let resumePause = false;
         let didRun = false;
-        for(const timer of this.activeLiveTimers()) {
+        for(const timer of TheGame.Timers) {
             if(Globals.endGame) return;
+
+            if(!(timer.Active && timer.LiveTimer)) continue;
 
             timer.curtickcount += 1000;
             if (timer.curtickcount >= timer.TimerSeconds * 1000) {
