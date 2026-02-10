@@ -353,6 +353,8 @@ body {
 
 .RoomObjects, .VisibleCharacters {
     padding: 2px;
+    white-space: nowrap;
+    overflow: visible;
 }
 
 .no-actions {
