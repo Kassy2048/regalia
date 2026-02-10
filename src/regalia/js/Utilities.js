@@ -916,9 +916,6 @@ function SetCommandInput(tempcommand, value) {
             case "CT_SETVARIABLEBYINPUT":
                 {
                     var acttype = part2;
-                    var tempvar = Finder.variable(part3);
-                    var varindex = GetArrayIndex(part3, 0);
-                    var varindex3a = GetArrayIndex(part3, 1);
                     var valueToSave;
                     if (value.constructor.name === "ragsobject") {
                         valueToSave = value.name;
