@@ -113,10 +113,16 @@ function objecttostring(curobject) {
 }
 
 /** Simpler function than objecttostring() */
-function objectToString(curobject) {
-    // Same as GameObject.GetDisplayStringNameOnly()
+function objectToString(curobject, withPreposition) {
+    if(withPreposition === undefined) withPreposition = false;
+
+    // Same as GameObject.GetDisplayName() (and GetDisplayStringNameOnly())
     let result = '';
-    if(curobject.preposition.length > 0) {
+    // In RAGS, the preposition is only shown in:
+    //  * The message that lists all the objects and characters in the room ("You can see...")
+    //  * The message that lists all the objects wore/carried by a character ("X is wearing/carrying:...")
+    //  * In messages from CT_ITEM_LAYERED_REMOVE/CT_ITEM_LAYERED_WEAR
+    if(withPreposition && curobject.preposition.length > 0) {
         result += curobject.preposition + ' ';
     }
 

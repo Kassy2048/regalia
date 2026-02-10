@@ -252,17 +252,20 @@ var GameCommands = {
                                 for (var k = 0; k < checkobj.LayeredZoneLevels.length; k++) {
                                     var str2 = checkobj.LayeredZoneLevels[k];
                                     var checkZoneLevel = str2.split(":");
-                                    if (tempobj.UniqueIdentifier != checkobj.UniqueIdentifier && checkZoneLevel[0] == Zonelevel[0] && parseInt(checkZoneLevel[1]) >= parseInt(Zonelevel[1])) {
+                                    if (tempobj.UniqueIdentifier != checkobj.UniqueIdentifier && checkZoneLevel[0] == Zonelevel[0]
+                                            && parseInt(checkZoneLevel[1]) >= parseInt(Zonelevel[1])) {
                                         bOkayToWear = false;
-                                        if (resultstring.indexOf(tempobj.name) == -1) {
+                                        if (resultstring.indexOf(objectToString(tempobj, true)) == -1) {
                                             if (resultstring == "") {
                                                 if (curtype != "LT_CHARACTER") {
-                                                    resultstring += "You cannot remove " + tempobj.name + ".  You need to remove " + checkobj.name;
+                                                    resultstring += "You cannot remove " + objectToString(tempobj, true)
+                                                            + ".  You need to remove " + objectToString(checkobj, true);
                                                 } else {
-                                                    resultstring += locname + " cannot remove " + tempobj.name + ".  " + locname + " will need to remove " + checkobj.name;
+                                                    resultstring += locname + " cannot remove " + objectToString(tempobj, true)
+                                                            + ".  " + locname + " will need to remove " + objectToString(checkobj, true);
                                                 }
                                             } else
-                                                resultstring += " and " + checkobj.name;
+                                                resultstring += " and " + objectToString(checkobj, true);
                                         }
                                     }
                                 }
@@ -274,9 +277,9 @@ var GameCommands = {
                         AddTextToRTF(resultstring + "\r\n", "Black", "Regular");
                     } else {
                         if (curtype != "LT_CHARACTER") {
-                            AddTextToRTF("You take off " + tempobj.name + ".\r\n", "Black", "Regular");
+                            AddTextToRTF("You take off " + objectToString(tempobj, true) + ".\r\n", "Black", "Regular");
                         } else {
-                            AddTextToRTF(locname += " takes off " + tempobj.name + ".\r\n", "Black", "Regular");
+                            AddTextToRTF(locname += " takes off " + objectToString(tempobj, true) + ".\r\n", "Black", "Regular");
                         }
                         tempobj.bWorn = false;
                     }
@@ -305,15 +308,17 @@ var GameCommands = {
                                                 continue;
                                         }
                                         bOkayToWear = false;
-                                        if (resultstring.indexOf(tempobj.name) == -1) {
+                                        if (resultstring.indexOf(objectToString(tempobj, true)) == -1) {
                                             if (resultstring == "") {
                                                 if (curtype != "LT_CHARACTER") {
-                                                    resultstring += "You cannot wear " + tempobj.name + ".  You will need to remove " + checkobj.name;
+                                                    resultstring += "You cannot wear " + objectToString(tempobj, true)
+                                                            + ".  You will need to remove " + objectToString(checkobj, true);
                                                 } else {
-                                                    resultstring += locname += " cannot wear " + tempobj.name + ".  " + locname + " will need to remove " + tempobj.name;
+                                                    resultstring += locname += " cannot wear " + objectToString(tempobj, true)
+                                                            + ".  " + locname + " will need to remove " + objectToString(checkobj, true);
                                                 }
                                             } else
-                                                resultstring += " and " + checkobj.name;
+                                                resultstring += " and " + objectToString(checkobj, true);
                                         }
                                     }
                                 }
@@ -325,9 +330,9 @@ var GameCommands = {
                         AddTextToRTF(resultstring + "\r\n", "Black", "Regular");
                     } else {
                         if (curtype != "LT_CHARACTER") {
-                            AddTextToRTF("You put on " + tempobj.name + ".\r\n", "Black", "Regular");
+                            AddTextToRTF("You put on " + objectToString(tempobj, true) + ".\r\n", "Black", "Regular");
                         } else {
-                            AddTextToRTF(locname + " puts on " + tempobj.name + ".\r\n", "Black", "Regular");
+                            AddTextToRTF(locname + " puts on " + objectToString(tempobj, true) + ".\r\n", "Black", "Regular");
                         }
                         tempobj.bWorn = true;
                     }
