@@ -893,8 +893,6 @@ function CheckNumericLimits(tempvar, thevalue) {
 function SetCommandInput(tempcommand, value) {
     var part2 = PerformTextReplacements(tempcommand.CommandPart2, null);
     var part3 = PerformTextReplacements(tempcommand.CommandPart3, null);
-    var part4 = PerformTextReplacements(tempcommand.CommandPart4, null);
-    var cmdtxt = PerformTextReplacements(tempcommand.CommandText, null);
     var tempvar = Finder.variable(part3);
     var varindex = GetArrayIndex(part3, 0);
     var varindex3a = GetArrayIndex(part3, 1);
