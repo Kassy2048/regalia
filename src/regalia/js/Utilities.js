@@ -716,6 +716,8 @@ function SetArrayData(tempvar, resultval) {
 }
 
 function SetVariable(tempvar, bArraySet, bJavascript, varindex, varindex1a, replacedstring, cmdtxt, part3) {
+    varArrayCheck(tempvar, varindex, 'SetVariable');
+
     if (tempvar.vartype == "VT_DATETIMEARRAY" || tempvar.vartype == "VT_DATETIME") {
         let dtDateTime = tempvar.dtDateTime;
         if (varindex != -1) {
@@ -896,6 +898,7 @@ function SetCommandInput(tempcommand, value) {
     var tempvar = Finder.variable(part3);
     var varindex = GetArrayIndex(part3, 0);
     var varindex3a = GetArrayIndex(part3, 1);
+    varArrayCheck(tempvar, varindex, 'SetCommandInput');
     if (tempvar != null) {
         switch (tempcommand.cmdtype) {
             case "CT_SETVARIABLE_NUMERIC_BYINPUT":
@@ -1018,6 +1021,34 @@ function GameCloneForDiff(game) {
         bgMusic: game.bgMusic,
         TurnCount: game.TurnCount,
     };
+}
+
+function varArrayCheck(variable, index1, prefix) {
+    if(variable == undefined) return false;
+
+    let msg = '';
+    const isArray = variable.vartype.endsWith('ARRAY');
+    if(index1 == -1) {
+        if(isArray) {
+            if(prefix !== undefined && prefix.length > 0) {
+                msg = '[' + prefix + '] ';
+            }
+            msg += `Variable "${variable.varname}" is ${variable.vartype} but used as ${variable.vartype.slice(0, -5)}`;
+        }
+    } else {
+        if(!isArray) {
+            if(prefix !== undefined && prefix.length > 0) {
+                msg = prefix + ': ';
+            }
+            msg += `Variable "${variable.varname}" is ${variable.vartype} but used as ${variable.vartype + 'ARRAY'}`;
+        }
+    }
+
+    if(msg.length > 0) {
+        console.debug(msg);
+        return false;
+    }
+    return true;
 }
 
 class SimplePromise extends Promise {

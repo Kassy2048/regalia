@@ -141,6 +141,7 @@ var GameCommands = {
                 if (tempvar != null) {
                     var index = GetArrayIndex(part2, 0);
                     var index1a = GetArrayIndex(part2, 1);
+                    varArrayCheck(tempvar, index, 'CT_VARIABLE_SET_RANDOMLY');
                     if (index == -1) {
                         tempvar.dNumType = randomValue;
                     } else {
@@ -669,6 +670,7 @@ var GameCommands = {
                     }
                     var varindex = GetArrayIndex(part2, 0);
                     var varindex1a = GetArrayIndex(part2, 1);
+                    varArrayCheck(tempvar, varindex, 'CT_VARIABLE_SET_WITH_ROOMPROPERTYVALUE');
                     var replacedstring = PerformTextReplacements(part4, null);
                     if (tempvar.vartype == "VT_STRINGARRAY" || tempvar.vartype == "VT_STRING") {
                         if (varindex == -1)
@@ -1009,6 +1011,7 @@ var GameCommands = {
                 var modifyingvar = Finder.variable(part4);
                 var varindex = GetArrayIndex(part4, 0);
                 var varindex4a = GetArrayIndex(part4, 1);
+                varArrayCheck(modifyingvar, varindex, 'CT_VARIABLE_SET_WITH_VARIABLE');
                 var modifyval = "";
                 if (varindex == -1) {
                     modifyval = modifyingvar.dNumType;
@@ -1030,6 +1033,7 @@ var GameCommands = {
                 var tempvar = Finder.variable(part2);
                 var varindex = GetArrayIndex(part2, 0);
                 var varindex2a = GetArrayIndex(part2, 1);
+                varArrayCheck(tempvar, varindex, 'CT_DISPLAYVARIABLE');
                 if (tempvar != null) {
                     if (tempvar.vartype == "VT_DATETIME" || tempvar.vartype == "VT_DATETIMEARRAY") {
                         let dtDateTime;

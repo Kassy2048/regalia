@@ -130,22 +130,20 @@ var GameConditions = {
         if (tempvar != null) {
             var varindex = GetArrayIndex(step2, 0);
             var varindex2 = GetArrayIndex(step2, 1);
+            varArrayCheck(tempvar, varindex, 'testVariable');
             var replacedstring = PerformTextReplacements(step4, null);
             if (tempvar.vartype == "VT_DATETIMEARRAY" || tempvar.vartype == "VT_DATETIME") {
-                let dtDateTime;
+                let dtDateTime = tempvar.dtDateTime;
 
-                if (tempvar.vartype == "VT_DATETIMEARRAY") {
-                    if (varindex != -1) {
-                        if (varindex2 != -1) {
-                            dtDateTime = tempvar.VarArray[varindex][varindex2];
-                        } else {
-                            dtDateTime = tempvar.VarArray[varindex];
-                        }
+                if (varindex != -1) {
+                    if (varindex2 != -1) {
+                        dtDateTime = tempvar.VarArray[varindex][varindex2];
                     } else {
-                        return false;
+                        dtDateTime = tempvar.VarArray[varindex];
                     }
-                } else {
-                    dtDateTime = tempvar.dtDateTime;
+                } else if (tempvar.vartype == "VT_DATETIMEARRAY") {
+                    // RAGS uses dtDateTime if varindex is -1, even if the type is VT_DATETIMEARRAY.
+                    // Some (buggy) games depend on that behavior to work correctly.
                 }
 
                 const dateVar = DateTimes.stringDateToMoment(dtDateTime);
@@ -193,7 +191,8 @@ var GameConditions = {
                         numberToCompare = tempvar.VarArray[varindex];
                     }
                 } else if (tempvar.vartype == "VT_NUMBERARRAY") {
-                    return false;
+                    // RAGS uses dNumType if varindex is -1, even if the type is VT_NUMBERARRAY.
+                    // Some (buggy) games depend on that behavior to work correctly.
                 }
                 if (step3 == "Equals") {
                     bResult = parseFloat(replacedstring) == numberToCompare;
@@ -218,7 +217,8 @@ var GameConditions = {
                         stringToCompare = tempvar.VarArray[varindex].toString();
                     }
                 } else if (tempvar.vartype == "VT_STRINGARRAY") {
-                    return false;
+                    // RAGS uses sString if varindex is -1, even if the type is VT_STRINGARRAY.
+                    // Some (buggy) games depend on that behavior to work correctly.
                 }
                 if (step3 == "Equals") {
                     bResult = (replacedstring && replacedstring.toLowerCase()) == (stringToCompare && stringToCompare.toLowerCase());
@@ -232,15 +232,6 @@ var GameConditions = {
                     bResult = stringToCompare < replacedstring;
                 }
             }
-        }
-        if ((tempvar === undefined) && (step3 === "Contains")) {
-            // HACK - preserve bug compatibility with desktop RAGS client
-            // It seems like a "varname Contains val" query passes
-            // if varname does not exist. Not sure how many other
-            // situations this applies to. This is needed to get past
-            // the opening quiz questions in Evil, Inc. where the
-            // variable names have been typoed.
-            return true;
         }
         return bResult;
     },
@@ -486,8 +477,10 @@ var GameConditions = {
                 var checkvar = Finder.variable(step4);
                 var varindex1 = GetArrayIndex(step2, 0);
                 var varindex1a = GetArrayIndex(step2, 1);
+                varArrayCheck(tempvar, varindex1, 'CT_Variable_To_Variable_Comparison');
                 var varindex2 = GetArrayIndex(step4, 0);
                 var varindex2a = GetArrayIndex(step4, 1);
+                varArrayCheck(checkvar, varindex2, 'CT_Variable_To_Variable_Comparison');
                 var compareval = "";
                 if (checkvar.vartype == "VT_NUMBERARRAY" || checkvar.vartype == "VT_NUMBER") {
                     if (varindex2 == -1)
