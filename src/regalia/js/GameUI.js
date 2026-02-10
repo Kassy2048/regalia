@@ -1,5 +1,6 @@
 var GameUI = {
     saveDisabled: false,
+    INDENT_STR: '  ',  // U+00A0 x2
 
     setGameTitle: function () {
         var title = GameController.title();
@@ -238,7 +239,7 @@ var GameUI = {
             var action = actions[i];
             if (actionShouldBeVisible(action)) {
                 this.addActionChoice(obj, action, nameForAction(action));
-                this.addChildActions(obj, actions, "--", action.name);
+                this.addChildActions(obj, actions, GameUI.INDENT_STR, action.name);
             }
         }
 
@@ -278,7 +279,7 @@ var GameUI = {
             var action = actions[i];
             if (action.name.substring(0, 2) != "<<" && action.bActive && action.actionparent == ActionName) {
                 this.addActionChoice(obj, action, Indent + nameForAction(action));
-                this.addChildActions(obj, actions, "--" + Indent, action.name);
+                this.addChildActions(obj, actions, Indent + GameUI.INDENT_STR, action.name);
             }
         }
     },
@@ -292,7 +293,7 @@ var GameUI = {
                 thelistbox.append(
                     GameUI.panelLink(
                         itemclass,
-                        '--' + objecttostring(innerObject),
+                        GameUI.INDENT_STR + objecttostring(innerObject),
                         innerObject.UniqueIdentifier,
                         innerObject.Actions,
                         Finder.object
