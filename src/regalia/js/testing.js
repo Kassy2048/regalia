@@ -805,6 +805,8 @@ async function StartGameAsync() {
             GameUI.playBgMusic(null);
         }
     });
+
+    GameHistory.pushState();
 }
 
 function GetImageMimeType(lastthree) {
