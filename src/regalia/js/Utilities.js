@@ -717,7 +717,15 @@ function SetArrayData(tempvar, resultval) {
 
 function SetVariable(tempvar, bArraySet, bJavascript, varindex, varindex1a, replacedstring, cmdtxt, part3) {
     if (tempvar.vartype == "VT_DATETIMEARRAY" || tempvar.vartype == "VT_DATETIME") {
-        var dateMoment = DateTimes.stringDateToMoment(tempvar.dtDateTime);
+        let dtDateTime = tempvar.dtDateTime;
+        if (varindex != -1) {
+            if (varindex1a != -1)
+                dtDateTime = tempvar.VarArray[varindex][varindex1a];
+            else
+                dtDateTime = tempvar.VarArray[varindex];
+        }
+
+        const dateMoment = DateTimes.stringDateToMoment(dtDateTime);
         if (part3 == "Add Days") {
             dateMoment.add(replacedstring, "day");
         } else if (part3 == "Add Hours") {
@@ -745,7 +753,15 @@ function SetVariable(tempvar, bArraySet, bJavascript, varindex, varindex1a, repl
         } else if (part3 == "Equals") {
             dateMoment = DateTimes.stringDateToMoment(replacedstring);
         }
-        tempvar.dtDateTime = dateMoment.format(DateTimes.defaultDateFormat);
+
+        if (varindex != -1) {
+            if (varindex1a != -1)
+                tempvar.VarArray[varindex][varindex1a] = dateMoment.format(DateTimes.defaultDateFormat);
+            else
+                tempvar.VarArray[varindex] = dateMoment.format(DateTimes.defaultDateFormat);
+        } else {
+            tempvar.dtDateTime = dateMoment.format(DateTimes.defaultDateFormat);
+        }
     } else if (tempvar.vartype == "VT_NUMBERARRAY" || tempvar.vartype == "VT_NUMBER") {
         if (part3 == "Equals") {
             if (bArraySet) {
