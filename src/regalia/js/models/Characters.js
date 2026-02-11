@@ -1,4 +1,4 @@
-﻿
+
 function character() {
     this.Charname = "";
     this.CharnameOverride = "";

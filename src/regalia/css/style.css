@@ -1,4 +1,4 @@
-﻿body {
+body {
     --main-bg-color: white;
     --main-text-color: black;
     --popup-bg-color: #b5b5b5;
@@ -205,18 +205,18 @@ table {
 
 /* Reserve space for the sort indication */
 .savegames-table th:before {
-    content: '⇩';
+    content: '⇩';  /* DOWNWARDS WHITE ARROW */
     margin-right: 3px;
     visibility: hidden;
 }
 
 .savegames-table th.sort-asc:before {
-    content: '⇩';
+    content: '⇩';  /* DOWNWARDS WHITE ARROW */
     visibility: visible;
 }
 
 .savegames-table th.sort-desc:before {
-    content: '⇧';
+    content: '⇧';  /* UPWARDS WHITE ARROW */
     visibility: visible;
 }
 

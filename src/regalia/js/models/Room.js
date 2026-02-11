@@ -1,4 +1,4 @@
-﻿function room() {
+function room() {
     this.Description = "";
     this.SDesc = "";
     this.Name = "";

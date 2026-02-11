@@ -1,4 +1,4 @@
-﻿
+
 function player() {
     this.Gender = "Male";
     this.Name = "";

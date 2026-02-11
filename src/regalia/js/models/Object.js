@@ -1,4 +1,4 @@
-﻿function ragsobject() {
+function ragsobject() {
     this.locationtype = "LT_NULL";
     this.UniqueIdentifier = "";
     this.locationname = "";

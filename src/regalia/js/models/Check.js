@@ -1,4 +1,4 @@
-﻿
+
 function check() {
     this.CondType = "CT_Uninitialized";
     this.CkType = "CT_Uninitialized";

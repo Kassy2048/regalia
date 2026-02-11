@@ -1,6 +1,6 @@
 var GameUI = {
     saveDisabled: false,
-    INDENT_STR: '  ',  // U+00A0 x2
+    INDENT_STR: '\u00a0\u00a0',  // NO-BREAK SPACE
 
     setGameTitle: function () {
         var title = GameController.title();

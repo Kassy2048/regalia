@@ -1,4 +1,4 @@
-﻿
+
 function PerformTextReplacements(text, loopobject, newvalue) {
     var bChangedSomething = true;
     while (bChangedSomething) {

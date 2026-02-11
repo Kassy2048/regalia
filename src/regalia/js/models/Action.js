@@ -1,4 +1,4 @@
-﻿
+
 function action() {
     this.name = "default";
     this.bActive = true;

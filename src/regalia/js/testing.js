@@ -1,4 +1,4 @@
-﻿function roomDisplayName(room) {
+function roomDisplayName(room) {
     return room.SDesc || room.Name;
 }
 
