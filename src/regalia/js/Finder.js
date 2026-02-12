@@ -144,6 +144,12 @@ var Finder = {
         const group = TheGame.Images.GroupMap[groupName];
         return group === undefined ? [] : group;
     },
+    actionOwner: function(action) {
+        if(action._owner === undefined) {
+            console.warn('Found action with no owner', action);
+        }
+        return action._owner;
+    },
     /** Add NameMap, UidMap and GroupMap to game arrays to speed up the searches. */
     addMaps: function(gameData) {
         function buildMap(list, keyFunc, map) {
@@ -244,5 +250,21 @@ var Finder = {
         // GroupMap: Objects, Images
         gameData.Objects.GroupMap = buildGroupMap(gameData.Objects, 'GroupName');
         gameData.Images.GroupMap = buildGroupMap(gameData.Images, 'GroupName');
+
+        // Action owners (not a map but handy to initialize now)
+        const lists = [
+            TheGame.Rooms,
+            TheGame.Characters,
+            TheGame.Objects,
+            TheGame.Timers,
+            [TheGame.Player]
+        ];
+        for(const list of lists) {
+            for(const owner of list) {
+                for(const act of owner.Actions) {
+                    act._owner = owner;
+                }
+            }
+        }
     }
 };

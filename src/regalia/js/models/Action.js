@@ -13,6 +13,9 @@ function action() {
     this.EnhInputData = new enhinputdata();
     this.CustomChoiceTitle = "";
 
+    // Which room/object/character/timer/player owns that action
+    this._owner = undefined;
+
     this.cloneForDiff = function() {
         // Only clone the properties that can change
         return {

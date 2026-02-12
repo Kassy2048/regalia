@@ -43,7 +43,7 @@ var GameActions = {
             }
         }
 
-        if(Settings.debugEnabled) console.debug(objectBeingActedUpon, act);
+        if(Settings.debugEnabled) console.debug(act.name, Finder.actionOwner(act));
 
         const globalsIndex = Globals.store({
             objectBeingActedUpon: objectBeingActedUpon,

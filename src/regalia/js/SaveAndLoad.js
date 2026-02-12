@@ -133,6 +133,7 @@ var SavedGames = {
                 case 'Conditions':
                 case 'EnhInputData':
                 case 'cloneForDiff':  // function, do not compare
+                case '_owner':
                     return true;
             }
             return false;
