@@ -504,6 +504,12 @@ var GameUI = {
             this.lastScrollHeight = MainText[0].scrollHeight;
         }
 
+        if (Settings.debugEnabled) {
+            const barText = '\u2015\u2015\u2015\u2015\u2015';  // HORIZONTAL BAR x5
+            console.debug('%c' + barText + ' User Interaction ' + barText,
+                    'font-weight: bold; font-size: larger')
+        }
+
         if(GameController.shouldRunCommands()) {
             if(Globals.length != 1) {
                 console.warn('Saving history state while the globals stack is not empty!', Globals.length);
