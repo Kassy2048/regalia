@@ -504,6 +504,8 @@ var GameUI = {
             this.lastScrollHeight = MainText[0].scrollHeight;
         }
 
+        UpdateStatusBars();
+
         if (Settings.debugEnabled) {
             const barText = '\u2015\u2015\u2015\u2015\u2015';  // HORIZONTAL BAR x5
             console.debug('%c' + barText + ' User Interaction ' + barText,
