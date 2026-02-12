@@ -217,8 +217,9 @@ var GameUI = {
                     TheGame.TurnCount++;
                     await GameActions.processActionAsync(selectionchoice, false, obj);
                     RestoreLoopObjects(globalsIndex);  // TODEL?
-                    GameUI.onInteractionResume();
                 });
+
+                GameUI.onInteractionResume();
             }
         });
 
