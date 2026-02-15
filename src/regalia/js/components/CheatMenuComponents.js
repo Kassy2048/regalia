@@ -136,7 +136,7 @@ class GameVariable extends React.Component {
         super(props);
         this.state = {
             value: valueForVariable(this.props.variable),
-            text: textForVariable(_this3.props.variable),
+            text: textForVariable(this.props.variable),
             frozen: isFrozenVariable(this.props.variable)
         };
 
