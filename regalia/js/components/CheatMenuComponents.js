@@ -213,17 +213,17 @@ var GameVariable = function (_React$Component2) {
     function GameVariable(props) {
         _classCallCheck(this, GameVariable);
 
-        var _this4 = _possibleConstructorReturn(this, (GameVariable.__proto__ || Object.getPrototypeOf(GameVariable)).call(this, props));
+        var _this3 = _possibleConstructorReturn(this, (GameVariable.__proto__ || Object.getPrototypeOf(GameVariable)).call(this, props));
 
-        _this4.state = {
-            value: valueForVariable(_this4.props.variable),
+        _this3.state = {
+            value: valueForVariable(_this3.props.variable),
             text: textForVariable(_this3.props.variable),
-            frozen: isFrozenVariable(_this4.props.variable)
+            frozen: isFrozenVariable(_this3.props.variable)
         };
 
-        _this4.freezeClicked = _this4.freezeClicked.bind(_this4);
-        _this4.inputChanged = _this4.inputChanged.bind(_this4);
-        return _this4;
+        _this3.freezeClicked = _this3.freezeClicked.bind(_this3);
+        _this3.inputChanged = _this3.inputChanged.bind(_this3);
+        return _this3;
     }
 
     _createClass(GameVariable, [{
@@ -240,12 +240,12 @@ var GameVariable = function (_React$Component2) {
     }, {
         key: "inputChanged",
         value: function inputChanged(index) {
-            var _this5 = this;
+            var _this4 = this;
 
             return function (e) {
-                var variable = _this5.props.variable;
+                var variable = _this4.props.variable;
                 if (setValueForVariable(variable, e.target.value, index)) {
-                    _this5.setState({
+                    _this4.setState({
                         value: valueForVariable(variable),
                         text: textForVariable(variable)
                     });
@@ -254,9 +254,9 @@ var GameVariable = function (_React$Component2) {
                     if (index !== undefined) {
                         var text = textForVariable(variable);
                         text[index] = { value: e.target.value, valid: false };
-                        _this5.setState({ text: text });
+                        _this4.setState({ text: text });
                     } else {
-                        _this5.setState({ text: { value: e.target.value, valid: false } });
+                        _this4.setState({ text: { value: e.target.value, valid: false } });
                     }
                 }
             };
@@ -264,7 +264,7 @@ var GameVariable = function (_React$Component2) {
     }, {
         key: "render",
         value: function render() {
-            var _this6 = this;
+            var _this5 = this;
 
             var variable = this.props.variable;
             var value = void 0;
@@ -279,9 +279,9 @@ var GameVariable = function (_React$Component2) {
                         null,
                         index,
                         ": ",
-                        React.createElement("input", { onChange: _this6.inputChanged(index),
-                            value: _this6.state.text[index].value,
-                            "class": _this6.state.text[index].valid ? '' : 'invalid-value' })
+                        React.createElement("input", { onChange: _this5.inputChanged(index),
+                            value: _this5.state.text[index].value,
+                            "class": _this5.state.text[index].valid ? '' : 'invalid-value' })
                     );
                 });
             } else {
@@ -344,13 +344,13 @@ var GameCustomProperties = function (_React$Component3) {
     _createClass(GameCustomProperties, [{
         key: "render",
         value: function render() {
-            var _this8 = this;
+            var _this7 = this;
 
             var totalCount = 0;
             var tableRows = this.props.properties.filter(function (property) {
                 ++totalCount;
-                if (_this8.props.filter) {
-                    return property.Name.toLowerCase().includes(_this8.props.filter.toLowerCase());
+                if (_this7.props.filter) {
+                    return property.Name.toLowerCase().includes(_this7.props.filter.toLowerCase());
                 } else {
                     return true;
                 }
@@ -423,16 +423,16 @@ var GameCustomProperty = function (_React$Component4) {
     function GameCustomProperty(props) {
         _classCallCheck(this, GameCustomProperty);
 
-        var _this9 = _possibleConstructorReturn(this, (GameCustomProperty.__proto__ || Object.getPrototypeOf(GameCustomProperty)).call(this, props));
+        var _this8 = _possibleConstructorReturn(this, (GameCustomProperty.__proto__ || Object.getPrototypeOf(GameCustomProperty)).call(this, props));
 
-        _this9.state = {
-            value: _this9.props.property.Value,
-            frozen: isFrozenPlayerProperty(_this9.props.property)
+        _this8.state = {
+            value: _this8.props.property.Value,
+            frozen: isFrozenPlayerProperty(_this8.props.property)
         };
 
-        _this9.freezeClicked = _this9.freezeClicked.bind(_this9);
-        _this9.inputChanged = _this9.inputChanged.bind(_this9);
-        return _this9;
+        _this8.freezeClicked = _this8.freezeClicked.bind(_this8);
+        _this8.inputChanged = _this8.inputChanged.bind(_this8);
+        return _this8;
     }
 
     _createClass(GameCustomProperty, [{
@@ -449,11 +449,11 @@ var GameCustomProperty = function (_React$Component4) {
     }, {
         key: "inputChanged",
         value: function inputChanged(index) {
-            var _this10 = this;
+            var _this9 = this;
 
             return function (e) {
-                _this10.props.property.Value = e.target.value;
-                _this10.setState({ value: e.target.Value });
+                _this9.props.property.Value = e.target.value;
+                _this9.setState({ value: e.target.Value });
             };
         }
     }, {
@@ -508,14 +508,14 @@ var CheatMenuContent = function (_React$Component5) {
     function CheatMenuContent(props) {
         _classCallCheck(this, CheatMenuContent);
 
-        var _this11 = _possibleConstructorReturn(this, (CheatMenuContent.__proto__ || Object.getPrototypeOf(CheatMenuContent)).call(this, props));
+        var _this10 = _possibleConstructorReturn(this, (CheatMenuContent.__proto__ || Object.getPrototypeOf(CheatMenuContent)).call(this, props));
 
-        _this11.state = {
+        _this10.state = {
             filter: ''
         };
 
-        _this11.filterChanged = _this11.filterChanged.bind(_this11);
-        return _this11;
+        _this10.filterChanged = _this10.filterChanged.bind(_this10);
+        return _this10;
     }
 
     _createClass(CheatMenuContent, [{
