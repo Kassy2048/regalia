@@ -12,7 +12,7 @@ $(async function() {
         alert('The File APIs are not fully supported in this browser.');
     }
 
-    $('#regalia_version').text('Regalia 0.9.33-K');
+    $('#regalia_version').text('Regalia 0.9.34-K');
 
     function toggleBigPictureMode(on) {
         if (on === undefined) {
