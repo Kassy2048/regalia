@@ -1,4 +1,4 @@
-﻿
+
 function customproperty() {
     this.Name = "";
     this.Value = "";

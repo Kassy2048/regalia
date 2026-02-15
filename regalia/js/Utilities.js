@@ -9,6 +9,22 @@ var Interactables = {
             return obj.bVisible;
         });
     },
+    /** Same as visibleInventoryObjects(), but also return nested objects */
+    allVisibleInventoryObjects: function () {
+        let results = [];
+        this.inventoryObjects().forEach((obj) => {
+            if(!obj.bVisible) return;
+            results.push(obj);
+
+            if(obj.bContainer) {
+                if(!obj.bOpenable || obj.bOpen) {
+                    results.push(...this.nestedObjects(obj));
+                }
+            }
+
+        });
+        return results;
+    },
     roomObjects: function () {
         return TheGame.Objects.filter(function (obj) {
             return obj.locationtype == "LT_ROOM" && obj.locationname == TheGame.Player.CurrentRoom;
@@ -20,14 +36,56 @@ var Interactables = {
         });
     },
     roomAndInventoryObjects: function () {
-        return TheGame.Objects.filter(function (obj) {
-            return (obj.locationtype == "LT_PLAYER") || (obj.locationtype == "LT_ROOM" && obj.locationname == TheGame.Player.CurrentRoom);
+        let results = [];
+        TheGame.Objects.forEach((obj) => {
+            if(!obj.bVisible) return;
+            if((obj.locationtype == "LT_ROOM" && obj.locationname == TheGame.Player.CurrentRoom) ||
+                    (obj.locationtype == "LT_PLAYER")) {
+                results.push(obj);
+
+                if(obj.bContainer) {
+                    if(!obj.bOpenable || obj.bOpen) {
+                        results.push(...this.nestedObjects(obj));
+                    }
+                }
+            }
         });
+        return results;
     },
     characters: function () {
         return TheGame.Characters.filter(function (obj) {
             return obj.CurrentRoom == TheGame.Player.CurrentRoom;
         });
+    },
+    /** Return the list of objects stored by the given character */
+    characterObjects: function(character) {
+        let objects = [];
+
+        TheGame.Objects.forEach(function(innerObject) {
+            if(!characterHasObject(character, innerObject)) return;
+
+            objects.push(innerObject);
+
+            if(innerObject.bOpenable && innerObject.bOpen) {
+                objects.extend(...this.nestedObjects(innerObject));
+            }
+        });
+
+        return objects;
+    },
+    nestedObjects: function(outerObject) {
+        let objects = [];
+        TheGame.Objects.forEach(function(innerObject) {
+            if(!objectContainsObject(outerObject, innerObject)) return;
+            // objectContainsObject() only passes for visible objects
+
+            objects.push(innerObject);
+
+            if(innerObject.bOpenable && innerObject.bOpen) {
+                objects.extend(...this.nestedObjects(innerObject));
+            }
+        });
+        return objects;
     }
 };
 
@@ -299,26 +357,9 @@ function isLoopCheck(check) {
     return loopCondTypes.indexOf(check.CondType) > -1;
 }
 
-function runNextAfterPause(runNextPhase) {
-    if (!GameController.shouldRunCommands()) {
-        CommandLists.addToFront(runNextPhase);
-    } else {
-        runNextPhase();
-    }
-}
-
-function runAfterPause(runNextPhase) {
-    if (!GameController.shouldRunCommands()) {
-        CommandLists.addToEnd(runNextPhase);
-    } else {
-        runNextPhase();
-    }
-}
-
-function ChangeRoom(currentRoom, bRunTimerEvents, bRunEvents, bQuiet) {
+async function ChangeRoomAsync(currentRoom, bRunTimerEvents, bRunEvents, bQuiet) {
     if(bQuiet === undefined) bQuiet = false;
 
-    var commandList = CommandLists.startNestedCommandList();
     var desiredRoomId = currentRoom.UniqueID;
     if (currentRoom == null)
         return;
@@ -331,56 +372,42 @@ function ChangeRoom(currentRoom, bRunTimerEvents, bRunEvents, bQuiet) {
     }
     if (bRunEvents && !currentRoom.bEnterFirstTime) {
         currentRoom.bEnterFirstTime = true;
-        GameActions.runEvents("<<On Player Enter First Time>>", phase2);
-    } else {
-        phase2();
+        await GameActions.runEventsAsync("<<On Player Enter First Time>>");
     }
 
-    function phase2 () {
-        runAfterPause(function () {
-            // Handle situations where one of the "Enter First Time" events triggers a new ChangeRoom
-            if (TheGame.Player.CurrentRoom !== desiredRoomId) {
-                return;
-            }
-            if (bRunEvents) {
-                GameActions.runEvents("<<On Player Enter>>", phase3);
-            } else {
-                phase3();
-            }
-
-            function phase3 () {
-                runAfterPause(function () {
-                    CommandLists.finishNestedCommandList(commandList);
-
-                    // Handle situations where one of the "Enter" events triggers a new ChangeRoom
-                    if (TheGame.Player.CurrentRoom !== desiredRoomId) {
-                        return;
-                    }
-                    $("#MainText").animate({
-                        scrollTop: $("#MainText")[0].scrollHeight
-                    });
-                    if(!bQuiet) {
-                        AddTextToRTF(currentRoom.Description, "Black", "Regular");
-                        $("#MainText").animate({
-                            scrollTop: $("#MainText")[0].scrollHeight
-                        }, 0);
-                    }
-                    ActionRecorder.roomEntered(roomDisplayName(currentRoom));
-                    if (bRunTimerEvents)
-                        GameTimers.runTimerEvents();
-                    GameUI.refreshPanelItems();
-                    if ($("#RoomThumbImg").css("visibility") != "hidden")
-                        SetExits();
-                    SetBorders();
-                });
-            }
-        });
+    // Handle situations where one of the "Enter First Time" events triggers a new ChangeRoom
+    if (TheGame.Player.CurrentRoom !== desiredRoomId) {
+        return;
     }
+    if (bRunEvents) {
+        await GameActions.runEventsAsync("<<On Player Enter>>");
+    }
+
+    // Handle situations where one of the "Enter" events triggers a new ChangeRoom
+    if (TheGame.Player.CurrentRoom !== desiredRoomId) {
+        return;
+    }
+    $("#MainText").animate({
+        scrollTop: $("#MainText")[0].scrollHeight
+    });
+    if(!bQuiet) {
+        AddTextToRTF(currentRoom.Description, "Black", "Regular");
+        $("#MainText").animate({
+            scrollTop: $("#MainText")[0].scrollHeight
+        }, 0);
+    }
+    ActionRecorder.roomEntered(roomDisplayName(currentRoom));
+    if (bRunTimerEvents)
+        await GameTimers.runTimerEventsAsync();
+    GameUI.refreshPanelItems();
+    if ($("#RoomThumbImg").css("visibility") != "hidden")
+        SetExits();
+    SetBorders();
 }
 
-function RoomChange(bRunTimerEvents, bRunEvents, bQuiet) {
+async function RoomChangeAsync(bRunTimerEvents, bRunEvents, bQuiet) {
     var currentroom = Finder.room(TheGame.Player.CurrentRoom);
-    ChangeRoom(currentroom, bRunTimerEvents, bRunEvents, bQuiet);
+    await ChangeRoomAsync(currentroom, bRunTimerEvents, bRunEvents, bQuiet);
 }
 
 function SetExits() {
@@ -407,26 +434,29 @@ function RefreshPictureBoxes() {
     SetRoomThumb(Finder.room(TheGame.Player.CurrentRoom).RoomPic);
 }
 
-function movePlayerToRoom(roomName) {
+async function movePlayerToRoomAsync(roomName) {
     Globals.movingDirection = "";
     TheGame.Player.CurrentRoom = roomName;
     if (TheGame.Player.CurrentRoom) {
-        RoomChange(false, true);
+        await RoomChangeAsync(false, true);
     }
 }
 
 function AddTextToRTF(text, clr, fontst) {
     var origtext = "";
+    text = text.replace(/\r\n/g, '\n');
     while (origtext != text) {
         origtext = text;
         text = PerformTextReplacements(text, null);
     }
+    text = text.replace(/\r\n/g, '\n');
 
     if (TheGame.RagsVersion < 3.0) { // RAGS 3.0 uses HTML tags
         text = escapeHtmlSpecialCharacters(text);
 
-        // unescape the <br> or <br/> tags that just got escaped
-        text = text.replace(/&lt;\s*[/]?\s*br\s*[/]?\s*&gt;/g, '<br>')
+        // Unescape the <br> or <br/> tags that just got escaped
+        // Also replace new line characters with <br> tags
+        text = text.replace(/(&lt;\s*[/]?\s*br\s*[/]?\s*&gt;|\n)/g, '<br>');
     } else {
         // TODO Remove leading "<br/>"?
     }
@@ -537,17 +567,15 @@ function GetArrayIndex(varname, n) {
         if (endindex > -1) {
             var indexvalue = varname.substring(index + 1, endindex);
             try {
-                retval = indexvalue;
+                // parseInt() is less strict than System.Convert.ToInt32(),
+                // so make sure this is a number (and not a range like "0..20"
+                // which appears in some games)
+                if(indexvalue.match(/^\s*[-\+]?\s*\d+\s*$/)) {
+                    retval = parseInt(indexvalue);
+                }
             } catch (err) {
                 retval = -1;
             }
-        }
-    }
-
-    if (retval && retval !== -1) {
-        var rangeMatch = retval.match(/(\d+)\.\.(\d+)/);
-        if (rangeMatch) {
-            return -1;
         }
     }
 
@@ -610,10 +638,9 @@ function GetCustomChoiceAction(type, name, actionname) {
     return tempact;
 }
 
-function PauseGame() {
-    GameController.pause();
-    $("#Continue").css('background-color', "rgb(255, 255, 255)");
-    $("#Continue").css('visibility', "visible");
+async function PauseGameAsync() {
+    $("#Continue").prop("disabled", false);
+    await GameController.pauseAsync();
 }
 
 function TestCustomProperty(PropVal, step3, step4) {
@@ -689,8 +716,18 @@ function SetArrayData(tempvar, resultval) {
 }
 
 function SetVariable(tempvar, bArraySet, bJavascript, varindex, varindex1a, replacedstring, cmdtxt, part3) {
+    varArrayCheck(tempvar, varindex, 'SetVariable');
+
     if (tempvar.vartype == "VT_DATETIMEARRAY" || tempvar.vartype == "VT_DATETIME") {
-        var dateMoment = DateTimes.stringDateToMoment(tempvar.dtDateTime);
+        let dtDateTime = tempvar.dtDateTime;
+        if (varindex != -1) {
+            if (varindex1a != -1)
+                dtDateTime = tempvar.VarArray[varindex][varindex1a];
+            else
+                dtDateTime = tempvar.VarArray[varindex];
+        }
+
+        const dateMoment = DateTimes.stringDateToMoment(dtDateTime);
         if (part3 == "Add Days") {
             dateMoment.add(replacedstring, "day");
         } else if (part3 == "Add Hours") {
@@ -718,7 +755,15 @@ function SetVariable(tempvar, bArraySet, bJavascript, varindex, varindex1a, repl
         } else if (part3 == "Equals") {
             dateMoment = DateTimes.stringDateToMoment(replacedstring);
         }
-        tempvar.dtDateTime = dateMoment.format(DateTimes.defaultDateFormat);
+
+        if (varindex != -1) {
+            if (varindex1a != -1)
+                tempvar.VarArray[varindex][varindex1a] = dateMoment.format(DateTimes.defaultDateFormat);
+            else
+                tempvar.VarArray[varindex] = dateMoment.format(DateTimes.defaultDateFormat);
+        } else {
+            tempvar.dtDateTime = dateMoment.format(DateTimes.defaultDateFormat);
+        }
     } else if (tempvar.vartype == "VT_NUMBERARRAY" || tempvar.vartype == "VT_NUMBER") {
         if (part3 == "Equals") {
             if (bArraySet) {
@@ -848,11 +893,10 @@ function CheckNumericLimits(tempvar, thevalue) {
 function SetCommandInput(tempcommand, value) {
     var part2 = PerformTextReplacements(tempcommand.CommandPart2, null);
     var part3 = PerformTextReplacements(tempcommand.CommandPart3, null);
-    var part4 = PerformTextReplacements(tempcommand.CommandPart4, null);
-    var cmdtxt = PerformTextReplacements(tempcommand.CommandText, null);
     var tempvar = Finder.variable(part3);
     var varindex = GetArrayIndex(part3, 0);
     var varindex3a = GetArrayIndex(part3, 1);
+    varArrayCheck(tempvar, varindex, 'SetCommandInput');
     if (tempvar != null) {
         switch (tempcommand.cmdtype) {
             case "CT_SETVARIABLE_NUMERIC_BYINPUT":
@@ -873,9 +917,6 @@ function SetCommandInput(tempcommand, value) {
             case "CT_SETVARIABLEBYINPUT":
                 {
                     var acttype = part2;
-                    var tempvar = Finder.variable(part3);
-                    var varindex = GetArrayIndex(part3, 0);
-                    var varindex3a = GetArrayIndex(part3, 1);
                     var valueToSave;
                     if (value.constructor.name === "ragsobject") {
                         valueToSave = value.name;
@@ -902,7 +943,7 @@ function SetCommandInput(tempcommand, value) {
     }
 }
 
-function SetCustomProperty(curprop, part3, replacedstring) {
+function SetCustomProperty(curprop, part3, replacedstring, owner) {
     var bInteger = true;
     var iReplacedString = parseFloat(replacedstring);
     var iPropVal = parseFloat(curprop.Value);
@@ -978,4 +1019,60 @@ function GameCloneForDiff(game) {
         bgMusic: game.bgMusic,
         TurnCount: game.TurnCount,
     };
+}
+
+function varArrayCheck(variable, index1, prefix) {
+    if(variable == undefined) return false;
+
+    let msg = '';
+    const isArray = variable.vartype.endsWith('ARRAY');
+    if(index1 == -1) {
+        if(isArray) {
+            if(prefix !== undefined && prefix.length > 0) {
+                msg = '[' + prefix + '] ';
+            }
+            msg += `Variable "${variable.varname}" is ${variable.vartype} but used as ${variable.vartype.slice(0, -5)}`;
+        }
+    } else {
+        if(!isArray) {
+            if(prefix !== undefined && prefix.length > 0) {
+                msg = prefix + ': ';
+            }
+            msg += `Variable "${variable.varname}" is ${variable.vartype} but used as ${variable.vartype + 'ARRAY'}`;
+        }
+    }
+
+    if(msg.length > 0) {
+        console.debug(msg);
+        return false;
+    }
+    return true;
+}
+
+class SimplePromise extends Promise {
+    constructor(executor) {
+        if(executor !== undefined) {
+            // Internal use by Promise on completion
+            // <https://stackoverflow.com/a/48159603>
+            super(executor);
+        } else {
+            let _resolve, _reject;
+            super((resolve, reject) => {
+                _resolve = resolve;
+                _reject = reject;
+            });
+            this.resolve = _resolve;
+            this.reject = _reject;
+        }
+    }
+}
+
+/** Wait the requested amount of milliseconds. When no argument is given,
+ * this function waits for the DOM to be updated.
+ */
+async function waitAsync(ms) {
+    if(ms === undefined) ms = 0;
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
 }

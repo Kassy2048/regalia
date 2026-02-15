@@ -1,4 +1,4 @@
-﻿
+
 function timer() {
     this.Name = "";
     this.TType = "";

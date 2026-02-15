@@ -1,4 +1,4 @@
-﻿function roomDisplayName(room) {
+function roomDisplayName(room) {
     return room.SDesc || room.Name;
 }
 
@@ -7,12 +7,12 @@ function hideSaveAndLoadMenus() {
     $(".save-menu").addClass("hidden");
 }
 
-$(function() {
+$(async function() {
     if (window.File && window.FileReader && window.FileList && window.Blob) {} else {
         alert('The File APIs are not fully supported in this browser.');
     }
 
-    $('#regalia_version').text('Regalia 0.9.32-K');
+    $('#regalia_version').text('Regalia 0.9.34-K');
 
     function toggleBigPictureMode(on) {
         if (on === undefined) {
@@ -37,10 +37,13 @@ $(function() {
         toggleBigPictureMode(false);
     });
 
-    $(document).keydown(function(e) {
+    $(document).keydown(async function(e) {
         switch (e.originalEvent.code) {
             case "Space":
                 {
+                    // Do not steal the keystrokes from text inputs
+                    if (typeof e.target.setSelectionRange === 'function') break;
+                    
                     if (GameController.gamePaused) {
                         e.preventDefault();
                         $("#Continue").click();
@@ -54,7 +57,7 @@ $(function() {
                 }
             case "F9":
                 {
-                    handleFileSelect(true);
+                    await handleFileSelectAsync(true);
                     break;
                 }
             case "Backquote":
@@ -67,18 +70,18 @@ $(function() {
         window.x = e.pageX;
         window.y = e.pageY;
     });
-    $("#Continue").click(function(e) {
+    $("#Continue").click(async function(e) {
         ActionRecorder.clickedContinue();
-        var bgcolor = $("#Continue").css('background-color');
-        if (bgcolor == "rgb(128, 128, 128)") {} else {
+        const btn = $("#Continue");
+        if (!btn.prop("disabled")) {
+            btn.prop("disabled", true);
+            // Give control back to GameCommands.runSingleCommandAsync()
             GameController.continue();
-            $("#Continue").css("background-color", "rgb(128, 128, 128)");
-            $("#Continue").css('visibility', "hidden");
-            GameCommands.runCommands();
-            GameUI.onInteractionResume();
         }
     });
     $("#PlayerImg").click(function(e) {
+        if(e.target.dataset.disabled) return;
+
         Globals.theObj = TheGame.Player;
         GameUI.displayActions(TheGame.Player, e);
     });
@@ -95,35 +98,37 @@ $(function() {
         });
     }
 
-    function setTextInputChoice () {
-        Globals.selectedObj = $("#textinput").val();
-        if (Globals.selectedObj != null) {
-            GameController.stopAwaitingInput();
+    /** Callback for text input related to a command (CT_SETVARIABLEBYINPUT
+     * or CT_SETVARIABLE_NUMERIC_BYINPUT)
+     */
+    async function setTextInputChoiceAsync () {
+        const selectedObj = $("#textinput").val();
+        if (selectedObj != null) {
             $("#textinput").val('');
             $("#textchoice").css("visibility", "hidden");
-            ActionRecorder.filledInTextInput(Globals.selectedObj);
-            SetCommandInput(Globals.variableGettingSet, Globals.selectedObj);
-            GameCommands.runCommands();
-            GameUI.onInteractionResume();
+            ActionRecorder.filledInTextInput(selectedObj);
+            SetCommandInput(Globals.variableGettingSet, selectedObj);
+            // Give control back to GameCommands.runSingleCommandAsync()
+            await GameController.stopAwaitingInputAsync();
         }
     }
-    $("#textbutton").click(setTextInputChoice);
-    onKeyupEnter('#textinput', setTextInputChoice);
+    $("#textbutton").click(setTextInputChoiceAsync);
+    onKeyupEnter('#textinput', setTextInputChoiceAsync);
 
-    function setPlayerNameChoice () {
+    async function setPlayerNameChoiceAsync () {
         $("#playernamechoice").css("visibility", "hidden");
-        GameController.stopAwaitingInput();
+        await GameController.stopAwaitingInputAsync();
         var newname = $("#playernametext").val();
         TheGame.Player.Name = newname.trim();
         if (TheGame.Player.bPromptForGender) {
             $("#genderchoice").css("visibility", "visible");
             GameUI.hideGameElements();
         } else {
-            StartGame();
+            await StartGameAsync();
         }
     }
-    $("#playernamebutton").click(setPlayerNameChoice);
-    onKeyupEnter('#playernametext', setPlayerNameChoice);
+    $("#playernamebutton").click(setPlayerNameChoiceAsync);
+    onKeyupEnter('#playernametext', setPlayerNameChoiceAsync);
 
     function formatDate(date) {
         var weekdays = [
@@ -169,6 +174,11 @@ $(function() {
         });
     }
 
+    function saveHeaderToFieldIndex(th) {
+        const field = th.dataset.field;
+        return field === undefined ? -1 : parseInt(field);
+    }
+
     function addSavesToTable($tbody) {
         function updateSaveName(saveName) {
             saveName.style.height = "auto";
@@ -176,7 +186,15 @@ $(function() {
             if(height > 0) saveName.style.height = height + "px";
         }
 
-        var savedGames = SavedGames.getSortedSaves();
+        // Update the sort indication
+        document.querySelectorAll('.savegames-table th').forEach((th) => {
+            th.classList.remove('sort-desc', 'sort-asc');
+            if(saveHeaderToFieldIndex(th) === Settings.saveSortField) {
+                th.classList.add(Settings.saveSortAsc ? 'sort-asc' : 'sort-desc');
+            }
+        });
+
+        const savedGames = SavedGames.getSortedSaves(Settings.saveSortField, Settings.saveSortAsc);
         savedGames.forEach(function (savedGame) {
             var $tr = $('<tr></tr>');
             $tr.append('<td><button class="btn load-save">Load</button></td>');
@@ -241,6 +259,21 @@ $(function() {
         $tbody.closest('table').toggle(savedGames.length > 0);
     }
 
+    $('.savegames-table th').on('click', function() {
+        const fieldIndex = saveHeaderToFieldIndex(this);
+        if(fieldIndex == -1) return;
+
+        // Re-sort the saves table
+        if(fieldIndex === Settings.saveSortField) {
+            Settings.saveSortAsc = !Settings.saveSortAsc;
+        } else {
+            Settings.saveSortField = fieldIndex;
+            Settings.saveSortAsc = true;
+        }
+
+        createSaveOrLoadMenuHandler();
+    });
+
     $("#new_savegame").on('click', function () {
         hideSaveAndLoadMenus();
         handleFileSave(false, true);
@@ -297,17 +330,17 @@ $(function() {
                     try {
                         $('.import-menu-status').html('Loading RSV file...');
                         // Let the HTML update
-                        await new Promise(r => setTimeout(r, 0));
+                        await waitAsync();
 
                         const root = await SavedGames.importRSV(e.target.result);
 
                         $('.import-menu-status').text('Importing save data...');
                         // Let the HTML update
-                        await new Promise(r => setTimeout(r, 0));
+                        await waitAsync();
 
                         $('.import-menu').addClass('hidden');
                         hideSaveAndLoadMenus();
-                        handleFileSelect(false, '', root);
+                        await handleFileSelectAsync(false, '', root);
                     } finally {
                         $('.import-menu-status').html('');
                     }
@@ -324,134 +357,130 @@ $(function() {
             }
         });
     });
-    
-    var createSaveOrLoadMenuHandler = function ($backdrop, $menu) {
-        return function (e) {
-            $menu.off('click');
 
-            var $menuChoices = $menu.find('.save-load-table-body');
-            $menuChoices.off('click');
-            $menuChoices.empty();
+    function createSaveOrLoadMenuHandler() {
+        const $backdrop = $(".save-menu");
+        const $menu = $('.save-menu-content');
 
-            $menu.find('table').hide();
-            addSavesToTable($menuChoices);
+        $menu.off('click');
 
-            $menu.on('click', function (e) {
-                e.stopPropagation();
-            });
-            $menuChoices.on('click', 'button.destroy-save', function (e) {
-                var saveId = $(e.currentTarget).data('save-id');
-                handleDestroySave(saveId);
-            });
-            $menuChoices.on('click', 'button.load-save', function (e) {
-                hideSaveAndLoadMenus();
-                var saveId = $(e.currentTarget).data('save-id');
-                handleFileSelect(false, saveId);
-            });
-            $menuChoices.on('click', 'button.overwrite-save', function (e) {
-                hideSaveAndLoadMenus();
-                var saveId = $(e.currentTarget).data('save-id');
-                var saveName = $(e.currentTarget).data('save-name');
-                handleFileSave(false, false, saveId, saveName);
-            });
+        var $menuChoices = $menu.find('.save-load-table-body');
+        $menuChoices.off('click');
+        $menuChoices.empty();
 
-            // setElementTopleftToCursor($menu, e);
+        $menu.find('table').hide();
+        addSavesToTable($menuChoices);
+
+        $menu.on('click', function (e) {
+            e.stopPropagation();
+        });
+        $menuChoices.on('click', 'button.destroy-save', function (e) {
+            var saveId = $(e.currentTarget).data('save-id');
+            handleDestroySave(saveId);
+        });
+        $menuChoices.on('click', 'button.load-save', async function (e) {
             hideSaveAndLoadMenus();
-            $backdrop.removeClass("hidden");
+            var saveId = $(e.currentTarget).data('save-id');
+            await handleFileSelectAsync(false, saveId);
+        });
+        $menuChoices.on('click', 'button.overwrite-save', function (e) {
+            hideSaveAndLoadMenus();
+            var saveId = $(e.currentTarget).data('save-id');
+            var saveName = $(e.currentTarget).data('save-name');
+            handleFileSave(false, false, saveId, saveName);
+        });
 
-            $backdrop.off('click.saveloadmenubackground');
-            setTimeout(function () {
-                $backdrop.on('click.saveloadmenubackground', function() {
-                    $backdrop.off('click.saveloadmenubackground');
-                    hideSaveAndLoadMenus();
-                });
+        $backdrop.removeClass("hidden");
+
+        $backdrop.off('click.saveloadmenubackground');
+        setTimeout(function () {
+            $backdrop.on('click.saveloadmenubackground', function() {
+                $backdrop.off('click.saveloadmenubackground');
+                hideSaveAndLoadMenus();
             });
+        });
 
-            $menu.find('button.overwrite-save, #new_savegame')
-                    .prop('disabled', GameUI.saveDisabled);
-        };
-    };
-    $("#save").click(createSaveOrLoadMenuHandler($(".save-menu"), $('.save-menu-content')));
-    $("div.genderchoiceSelect").click(function() {
-        Globals.selectedObj = $(this).val();
-        if (Globals.selectedObj != null) {
-            GameController.stopAwaitingInput();
+        $menu.find('button.overwrite-save, #new_savegame')
+                .prop('disabled', GameUI.saveDisabled);
+    }
+    $("#save").click(createSaveOrLoadMenuHandler);
+    $("div.genderchoiceSelect").click(async function() {
+        const gender = this.getAttribute('value');
+        if (gender != null) {
+            TheGame.Player.PlayerGender = gender;
+            await GameController.stopAwaitingInputAsync();
             $("#genderchoice").css("visibility", "hidden");
-            StartGame();
+            await StartGameAsync();
         }
     });
 
-    function setTextActionChoice() {
-        Globals.selectedObj = $("#textactioninput").val();
-        if (Globals.selectedObj != null) {
+    /** Callback for text input related to an action  */
+    async function setTextActionChoiceAsync() {
+        const selectedObj = $("#textactioninput").val();
+        if (selectedObj != null) {
+            $("#MainText").append('</br><b>' + escapeHtmlSpecialCharacters(selectedObj) + "</b>");
+            $("#MainText").animate({
+                scrollTop: $("#MainText")[0].scrollHeight
+            });
             $("#textactioninput").val('');
-            CommandLists.setAdditionalData(Globals.selectedObj);
-            GameController.stopAwaitingInput();
             $("#textactionchoice").css("visibility", "hidden");
-            if (getObjectClass(Globals.inputDataObject) == "action" || "actionparent" in Globals.inputDataObject) {
-                GameActions.executeAction(Globals.inputDataObject, Globals.bMasterTimer);
-                GameUI.onInteractionResume();
-            }
+            ActionRecorder.filledInTextInput(selectedObj);
+            Globals.additionalData = selectedObj;
+            // Give control back to GameActions.processActionAsync()
+            await GameController.stopAwaitingInputAsync();
         }
     }
 
-    $("#textactionbutton").click(setTextActionChoice);
-    onKeyupEnter('#textactioninput', setTextActionChoice);
+    $("#textactionbutton").click(setTextActionChoiceAsync);
+    onKeyupEnter('#textactioninput', setTextActionChoiceAsync);
 
-    $("#CancelInput").click(function () {
+    $("#CancelInput").click(async function () {
         $("#inputmenu").css("visibility", "hidden");
-        GameController.stopAwaitingInput();
-        GameCommands.runCommands();
+        Globals.additionalData = null;
+        await GameController.stopAwaitingInputAsync();
     });
-    $("#cmdCancelInput").click(function(e) {
+    $("#cmdCancelInput").click(async function(e) {
         $("#cmdinputmenu").css("visibility", "hidden");
-        GameController.stopAwaitingInput();
-        GameCommands.runCommands();
+        await GameController.stopAwaitingInputAsync();
+    });
+    $("#textactioncancel").click(async function () {
+        $("#textactionchoice").css("visibility", "hidden");
+        Globals.additionalData = null;
+        await GameController.stopAwaitingInputAsync();
     });
     $("#selectionmenu").focusout(function() {
         $("#selectionmenu").css("visibility", "hidden");
     });
 
-    GameTimers.scheduleLiveTimers(window.location.href.match(/speedy_timers/) ? 50 : 1000);
+    await GameTimers.scheduleLiveTimersAsync(window.location.href.match(/speedy_timers/) ? 50 : 1000);
 
-    $(".compass-direction").click(function(e) {
-        var $el = $(e.target);
+    $(".compass-direction").click(async function(e) {
+        var $el = $(e.currentTarget);
         if (!$el.hasClass('active')) {
             return;
         }
         var direction = $el.data('direction');
-        var newRoom = GetDestinationRoomName(direction);
+        var newRoom = GetDestinationRoomName(direction, true);
         TheGame.TurnCount++;
-        ResetLoopObjects();
+        const globalsIndex = ResetLoopObjects();  // TODEL?
         Globals.bCancelMove = false;
         ActionRecorder.locationChange(direction);
         var curroom = Finder.room(TheGame.Player.CurrentRoom);
 
         if (curroom != null && !curroom.bLeaveFirstTime) {
             curroom.bLeaveFirstTime = true;
-            GameActions.runEvents("<<On Player Leave First Time>>", afterFirstPlayerLeaveEvent);
-        } else {
-            afterFirstPlayerLeaveEvent();
+            await GameActions.runEventsAsync("<<On Player Leave First Time>>");
         }
 
-        function afterFirstPlayerLeaveEvent () {
-            runAfterPause(function () {
-                if (curroom != null) {
-                    GameActions.runEvents("<<On Player Leave>>", afterPlayerLeaveEvent);
-                } else {
-                    afterPlayerLeaveEvent();
-                }
-
-                function afterPlayerLeaveEvent () {
-                    runAfterPause(function () {
-                        if (!Globals.bCancelMove) {
-                            ChangeRoom(Finder.room(newRoom), true, true);
-                        }
-                        GameUI.onInteractionResume();
-                    });
-                }
-            });
+        if (curroom != null) {
+            await GameActions.runEventsAsync("<<On Player Leave>>");
         }
+
+        if (!Globals.bCancelMove) {
+            await ChangeRoomAsync(Finder.room(newRoom), true, true);
+        }
+        RestoreLoopObjects(globalsIndex);  // TODEL?
+        GameUI.onInteractionResume();
     });
     $(".compass-direction").hover(function(e) {
         var $el = $(e.target);
@@ -471,8 +500,8 @@ $(function() {
     });
 
     const $backButton = $("#back");
-    $backButton.click(function () {
-        GameHistory.popState();
+    $backButton.click(async function () {
+        await GameHistory.popStateAsync();
         this.disabled = !GameHistory.canGoBack();
         this.title = GameHistory.noGoBackReason();
     });
@@ -600,7 +629,7 @@ $(function() {
 
     GameUI.setDarkMode(Settings.darkMode);
 
-    receivedText();
+    await receivedTextAsync();
 });
 
 function GetGameImage(imageName) {
@@ -614,8 +643,9 @@ function GetGameImage(imageName) {
     return gameImage;
 }
 
-function GetDestinationRoomName(CurDirection) {
-    Globals.movingDirection = CurDirection;
+function GetDestinationRoomName(CurDirection, moving) {
+    if(moving) Globals.movingDirection = CurDirection;
+
     var CurrentRoom = Finder.room(TheGame.Player.CurrentRoom);
     if (CurrentRoom != null) {
         for (var i = 0; i < CurrentRoom.Exits.length; i++) {
@@ -648,16 +678,15 @@ function handleFileSave(bQuick, bNew, CurID, oldSaveName) {
     }
 }
 
-function handleFileSelect(bQuick, CurID, rsvRoot) {
+async function handleFileSelectAsync(bQuick, CurID, rsvRoot) {
     if(rsvRoot !== undefined) bQuick = false;
 
     var desiredId = bQuick ? 0 : CurID;
     var savedGame = rsvRoot !== undefined ? {} : SavedGames.getSave(desiredId);
 
     GameController.reset();
-    CommandLists.reset();
     GameHistory.reset();
-    Globals.movingDirection = "";
+    Globals.reset();
 
     TheGame = SetupGameDataWithMap();
     GameUI.setGameTitle();
@@ -671,7 +700,7 @@ function handleFileSelect(bQuick, CurID, rsvRoot) {
     if (savedGame.cheatFreezes) {
         window.cheatFreezes = savedGame.cheatFreezes;
     }
-    RoomChange(false, false, true);
+    await RoomChangeAsync(false, false, true);
     if(savedGame.currentImage !== undefined) {
         // This must be done after the call to RoomChange() because it changes the image
         showImage(savedGame.currentImage);
@@ -685,8 +714,7 @@ function handleFileSelect(bQuick, CurID, rsvRoot) {
     $("#selectionmenu").css("visibility", "hidden");
     $("#genderchoice").css("visibility", "hidden");
     $("#cmdinputmenu").css("visibility", "hidden");
-    $("#Continue").css("background-color", "rgb(128, 128, 128)");
-    $("#Continue").css('visibility', "hidden");
+    $("#Continue").prop("disabled", true);
     $("#back").prop('disabled', true)
             .prop('title', GameHistory.noGoBackReason());
     GameUI.showGameElements();
@@ -696,6 +724,8 @@ function handleFileSelect(bQuick, CurID, rsvRoot) {
     } else {
         GameUI.playBgMusic(null);
     }
+
+    GameHistory.pushState();
 
     if (bQuick) {
         GameUI.showMessage('Quick Loaded', {type: 'success', timeout: 3.0});
@@ -737,7 +767,7 @@ function SetupGameDataWithMap() {
     return gameData;
 }
 
-function receivedText() {
+async function receivedTextAsync() {
     try {
         OriginalGame = SetupGameDataWithMap();
         TheGame = SetupGameDataWithMap();
@@ -753,28 +783,30 @@ function receivedText() {
             GameUI.hideGameElements();
             return;
         }
-        StartGame();
+        await StartGameAsync();
     } catch (err) {
         alert("An error has occured: " + err.message);
     }
 }
 
-function StartGame() {
+async function StartGameAsync() {
     var currentroom = Finder.room(TheGame.Player.StartingRoom);
     SetupStatusBars();
     GameUI.refreshInventory();
     AddTextToRTF(TheGame.OpeningMessage, "Black", "Regular");
     if (currentroom != null) {
-        ChangeRoom(currentroom, true, true);
+        await ChangeRoomAsync(currentroom, true, true);
     }
     SetPortrait(TheGame.Player.PlayerPortrait);
-    GameActions.runEvents("<<On Game Start>>", function () {
+    await GameActions.runEventsAsync("<<On Game Start>>", function () {
         if (TheGame.bgMusic !== undefined && TheGame.bgMusic.length > 0) {
             GameUI.playBgMusic(imagePath(TheGame.bgMusic));
         } else {
             GameUI.playBgMusic(null);
         }
     });
+
+    GameHistory.pushState();
 }
 
 function GetImageMimeType(lastthree) {

@@ -1,4 +1,4 @@
-﻿
+
 function enhinputdata() {
     this.BackgroundColor = "None";
     this.TextColor = "Black";

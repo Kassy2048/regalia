@@ -1,10 +1,10 @@
 var GameCommands = {
-    runSingleCommand: function (commandBeingProcessed, part2, part3, part4, cmdtxt) {
+    runSingleCommandAsync: async function (commandBeingProcessed, part2, part3, part4, cmdtxt) {
         if (Settings.debugEnabled) {
             console.debug(commandBeingProcessed.cmdtype, part2, part3, part4, cmdtxt, commandBeingProcessed);
         }
 
-        var objectBeingActedUpon = CommandLists.objectBeingActedUpon();
+        const objectBeingActedUpon = Globals.objectBeingActedUpon;
         switch (commandBeingProcessed.cmdtype) {
             case "CT_LAYEREDIMAGE_ADD": {
                 function uniqueArray(array) {
@@ -124,7 +124,6 @@ var GameCommands = {
                 break;
             }
             case "CT_LOOP_BREAK": {
-                this.exitLoop();
                 return true;
             }
             case "CT_EXPORTVARIABLE": {
@@ -142,6 +141,7 @@ var GameCommands = {
                 if (tempvar != null) {
                     var index = GetArrayIndex(part2, 0);
                     var index1a = GetArrayIndex(part2, 1);
+                    varArrayCheck(tempvar, index, 'CT_VARIABLE_SET_RANDOMLY');
                     if (index == -1) {
                         tempvar.dNumType = randomValue;
                     } else {
@@ -220,8 +220,8 @@ var GameCommands = {
             }
             case "CT_PAUSEGAME": {
                 AddTextToRTF("--------------------------------\r\n", "Black", "Bold");
-                PauseGame();
-                return true;
+                await PauseGameAsync();
+                break;
             }
             case "CT_SETPLAYERNAME": {
                 TheGame.Player.Name = PerformTextReplacements(part4, null);
@@ -252,17 +252,20 @@ var GameCommands = {
                                 for (var k = 0; k < checkobj.LayeredZoneLevels.length; k++) {
                                     var str2 = checkobj.LayeredZoneLevels[k];
                                     var checkZoneLevel = str2.split(":");
-                                    if (tempobj.UniqueIdentifier != checkobj.UniqueIdentifier && checkZoneLevel[0] == Zonelevel[0] && parseInt(checkZoneLevel[1]) >= parseInt(Zonelevel[1])) {
+                                    if (tempobj.UniqueIdentifier != checkobj.UniqueIdentifier && checkZoneLevel[0] == Zonelevel[0]
+                                            && parseInt(checkZoneLevel[1]) >= parseInt(Zonelevel[1])) {
                                         bOkayToWear = false;
-                                        if (resultstring.indexOf(tempobj.name) == -1) {
+                                        if (resultstring.indexOf(objectToString(tempobj, true)) == -1) {
                                             if (resultstring == "") {
                                                 if (curtype != "LT_CHARACTER") {
-                                                    resultstring += "You cannot remove " + tempobj.name + ".  You need to remove " + checkobj.name;
+                                                    resultstring += "You cannot remove " + objectToString(tempobj, true)
+                                                            + ".  You need to remove " + objectToString(checkobj, true);
                                                 } else {
-                                                    resultstring += locname + " cannot remove " + tempobj.name + ".  " + locname + " will need to remove " + checkobj.name;
+                                                    resultstring += locname + " cannot remove " + objectToString(tempobj, true)
+                                                            + ".  " + locname + " will need to remove " + objectToString(checkobj, true);
                                                 }
                                             } else
-                                                resultstring += " and " + checkobj.name;
+                                                resultstring += " and " + objectToString(checkobj, true);
                                         }
                                     }
                                 }
@@ -274,9 +277,9 @@ var GameCommands = {
                         AddTextToRTF(resultstring + "\r\n", "Black", "Regular");
                     } else {
                         if (curtype != "LT_CHARACTER") {
-                            AddTextToRTF("You take off " + tempobj.name + ".\r\n", "Black", "Regular");
+                            AddTextToRTF("You take off " + objectToString(tempobj, true) + ".\r\n", "Black", "Regular");
                         } else {
-                            AddTextToRTF(locname += " takes off " + tempobj.name + ".\r\n", "Black", "Regular");
+                            AddTextToRTF(locname += " takes off " + objectToString(tempobj, true) + ".\r\n", "Black", "Regular");
                         }
                         tempobj.bWorn = false;
                     }
@@ -305,15 +308,17 @@ var GameCommands = {
                                                 continue;
                                         }
                                         bOkayToWear = false;
-                                        if (resultstring.indexOf(tempobj.name) == -1) {
+                                        if (resultstring.indexOf(objectToString(tempobj, true)) == -1) {
                                             if (resultstring == "") {
                                                 if (curtype != "LT_CHARACTER") {
-                                                    resultstring += "You cannot wear " + tempobj.name + ".  You will need to remove " + checkobj.name;
+                                                    resultstring += "You cannot wear " + objectToString(tempobj, true)
+                                                            + ".  You will need to remove " + objectToString(checkobj, true);
                                                 } else {
-                                                    resultstring += locname += " cannot wear " + tempobj.name + ".  " + locname + " will need to remove " + tempobj.name;
+                                                    resultstring += locname += " cannot wear " + objectToString(tempobj, true)
+                                                            + ".  " + locname + " will need to remove " + objectToString(checkobj, true);
                                                 }
                                             } else
-                                                resultstring += " and " + checkobj.name;
+                                                resultstring += " and " + objectToString(checkobj, true);
                                         }
                                     }
                                 }
@@ -325,9 +330,9 @@ var GameCommands = {
                         AddTextToRTF(resultstring + "\r\n", "Black", "Regular");
                     } else {
                         if (curtype != "LT_CHARACTER") {
-                            AddTextToRTF("You put on " + tempobj.name + ".\r\n", "Black", "Regular");
+                            AddTextToRTF("You put on " + objectToString(tempobj, true) + ".\r\n", "Black", "Regular");
                         } else {
-                            AddTextToRTF(locname + " puts on " + tempobj.name + ".\r\n", "Black", "Regular");
+                            AddTextToRTF(locname + " puts on " + objectToString(tempobj, true) + ".\r\n", "Black", "Regular");
                         }
                         tempobj.bWorn = true;
                     }
@@ -346,7 +351,8 @@ var GameCommands = {
                 AddTextToRTF(cmdtxt + "\r\n", "Black", "Regular");
                 GameUI.showMessage('EndGame', {type: 'warning', timeout: 5.0});
                 GameUI.hideGameElements();
-                break;
+                Globals.endGame = true;
+                return true;
             }
             case "CT_MOVEITEMTOINV": {
                 var Tempobj = null;
@@ -603,12 +609,8 @@ var GameCommands = {
             case "CT_EXECUTETIMER": {
                 var temptimer = Finder.timer(part2);
                 if (temptimer != null) {
-                    var commandList = CommandLists.startNestedCommandList();
                     temptimer.TurnNumber = 0;
-                    GameTimers.runSingleTimer(temptimer, false);
-                    runAfterPause(function () {
-                        CommandLists.finishNestedCommandList(commandList);
-                    });
+                    await GameTimers.runSingleTimerAsync(temptimer, false);
                 }
                 break;
             }
@@ -673,6 +675,7 @@ var GameCommands = {
                     }
                     var varindex = GetArrayIndex(part2, 0);
                     var varindex1a = GetArrayIndex(part2, 1);
+                    varArrayCheck(tempvar, varindex, 'CT_VARIABLE_SET_WITH_ROOMPROPERTYVALUE');
                     var replacedstring = PerformTextReplacements(part4, null);
                     if (tempvar.vartype == "VT_STRINGARRAY" || tempvar.vartype == "VT_STRING") {
                         if (varindex == -1)
@@ -838,7 +841,7 @@ var GameCommands = {
                                         temp = evalJankyJavascript(replacedstring);
                                         replacedstring = temp.toString();
                                     }
-                                    SetCustomProperty(curprop, part3, replacedstring);
+                                    SetCustomProperty(curprop, part3, replacedstring, temproom);
                                 }
                             }
                         }
@@ -865,7 +868,7 @@ var GameCommands = {
                                         temp = evalJankyJavascript(replacedstring);
                                         replacedstring = temp.toString();
                                     }
-                                    SetCustomProperty(curprop, part3, replacedstring);
+                                    SetCustomProperty(curprop, part3, replacedstring, temproom);
                                 }
                             }
                         }
@@ -892,7 +895,7 @@ var GameCommands = {
                                         temp = evalJankyJavascript(replacedstring);
                                         replacedstring = temp.toString();
                                     }
-                                    SetCustomProperty(curprop, part3, replacedstring);
+                                    SetCustomProperty(curprop, part3, replacedstring, temproom);
                                 }
                             }
                         }
@@ -925,7 +928,7 @@ var GameCommands = {
                                         temp = evalJankyJavascript(replacedstring);
                                         replacedstring = temp.toString();
                                     }
-                                    SetCustomProperty(curprop, part3, replacedstring);
+                                    SetCustomProperty(curprop, part3, replacedstring, tempitem);
                                 }
                             }
                         }
@@ -952,7 +955,7 @@ var GameCommands = {
                                         temp = evalJankyJavascript(replacedstring);
                                         replacedstring = temp.toString();
                                     }
-                                    SetCustomProperty(curprop, part3, replacedstring);
+                                    SetCustomProperty(curprop, part3, replacedstring, temproom);
                                 }
                             }
                         }
@@ -973,7 +976,7 @@ var GameCommands = {
                                 temp = evalJankyJavascript(replacedstring);
                                 replacedstring = temp.toString();
                             }
-                            SetCustomProperty(curprop, part3, replacedstring);
+                            SetCustomProperty(curprop, part3, replacedstring, TheGame.Player);
                         }
                     }
                 }
@@ -1013,6 +1016,7 @@ var GameCommands = {
                 var modifyingvar = Finder.variable(part4);
                 var varindex = GetArrayIndex(part4, 0);
                 var varindex4a = GetArrayIndex(part4, 1);
+                varArrayCheck(modifyingvar, varindex, 'CT_VARIABLE_SET_WITH_VARIABLE');
                 var modifyval = "";
                 if (varindex == -1) {
                     modifyval = modifyingvar.dNumType;
@@ -1034,10 +1038,56 @@ var GameCommands = {
                 var tempvar = Finder.variable(part2);
                 var varindex = GetArrayIndex(part2, 0);
                 var varindex2a = GetArrayIndex(part2, 1);
+                varArrayCheck(tempvar, varindex, 'CT_DISPLAYVARIABLE');
                 if (tempvar != null) {
-                    if (tempvar.vartype == "VT_DATETIMEARRAY") {
-                    } else if (tempvar.vartype == "VT_NUMBER") {
-                        AddTextToRTF(tempvar.dNumType.toString() + "\r\n", "Black", "Regular");
+                    if (tempvar.vartype == "VT_DATETIME" || tempvar.vartype == "VT_DATETIMEARRAY") {
+                        let dtDateTime;
+
+                        if (tempvar.vartype == "VT_DATETIMEARRAY") {
+                            if (varindex != -1) {
+                                if (varindex2a != -1) {
+                                    dtDateTime = tempvar.VarArray[varindex][varindex2a];
+                                } else {
+                                    dtDateTime = tempvar.VarArray[varindex];
+                                }
+                            } else {
+                                break;
+                            }
+                        } else {
+                            dtDateTime = tempvar.dtDateTime;
+                        }
+
+                        const dateMoment = DateTimes.stringDateToMoment(dtDateTime)
+
+                        if(part3 == "Display Date & Time") {
+                            AddTextToRTF(dateMoment.format('dddd, MMMM, DD YYYY hh:mm:ss A') + "\r\n", "Black", "Regular");
+                        } else if(part3 == "Display Date Only") {
+                            AddTextToRTF(dateMoment.format('dddd, MMMM, DD YYYY') + "\r\n", "Black", "Regular");
+                        } else if(part3 == "Display Time Only") {
+                            AddTextToRTF(dateMoment.format('hh:mm:ss A') + "\r\n", "Black", "Regular");
+                        } else if(part3 == "Display Weekday Only") {
+                            AddTextToRTF(dateMoment.format('dddd') + "\r\n", "Black", "Regular");
+                        }
+
+                    } else if (tempvar.vartype == "VT_NUMBER" || tempvar.vartype == "VT_NUMBERARRAY") {
+                        let dNumType;
+
+                        if (tempvar.vartype == "VT_NUMBERARRAY") {
+                            if (varindex != -1) {
+                                if (varindex2a != -1) {
+                                    dNumType = tempvar.VarArray[varindex][varindex2a];
+                                } else {
+                                    dNumType = tempvar.VarArray[varindex];
+                                }
+                            } else {
+                                break;
+                            }
+                        } else {
+                            dNumType = tempvar.dNumType;
+                        }
+
+                        AddTextToRTF(dNumType.toString() + "\r\n", "Black", "Regular");
+
                     } else if (tempvar.vartype == "VT_STRINGARRAY") {
                         if (varindex != -1) {
                             if (varindex2a != -1)
@@ -1284,13 +1334,13 @@ var GameCommands = {
                 if (tempchar.CurrentRoom == TheGame.Player.CurrentRoom) {
                     var tempact = Finder.action(tempchar.Actions, "<<On Character Leave>>");
                     if (tempact != null)
-                        GameActions.processAction(tempact, true);
+                        await GameActions.processActionAsync(tempact, true);
                 }
                 if (part3 == CurrentRoomGuid) {
                     tempchar.CurrentRoom = TheGame.Player.CurrentRoom;
                     var tempact = Finder.action(tempchar.Actions, "<<On Character Enter>>");
                     if (tempact != null)
-                        GameActions.processAction(tempact, true);
+                        await GameActions.processActionAsync(tempact, true);
                 } else if (part3 == VoidRoomGuid || part3 === '<Void>') {
                     Finder.character(part2).CurrentRoom = VoidRoomGuid;
                 } else {
@@ -1302,21 +1352,21 @@ var GameCommands = {
                     if (Finder.room(part3) == Finder.room(TheGame.Player.CurrentRoom)) {
                         var tempact = Finder.action(tempchar.Actions, "<<On Character Enter>>");
                         if (tempact != null)
-                            GameActions.processAction(tempact, true);
+                            await GameActions.processActionAsync(tempact, true);
                     }
                 }
                 GameUI.refreshCharacters();
                 break;
             }
             case "CT_MOVEPLAYER": {
-                movePlayerToRoom(part2);
+                await movePlayerToRoomAsync(part2);
                 break;
             }
             case "CT_MOVETOCHAR": {
                 var tempchar = Finder.character(part2);
                 if (tempchar != null) {
                     if (tempchar.CurrentRoom != VoidRoomGuid && tempchar.CurrentRoom != CurrentRoomGuid) {
-                        movePlayerToRoom(tempchar.CurrentRoom);
+                        await movePlayerToRoomAsync(tempchar.CurrentRoom);
                     }
                 }
                 break;
@@ -1325,7 +1375,7 @@ var GameCommands = {
                 var tempobj = Finder.object(part2);
                 if (tempobj != null) {
                     if (tempobj.locationtype == "LT_ROOM") {
-                        movePlayerToRoom(tempobj.locationname);
+                        await movePlayerToRoomAsync(tempobj.locationname);
                     }
                 }
                 break;
@@ -1338,7 +1388,7 @@ var GameCommands = {
                         tempchar.CurrentRoom = Finder.room(tempobj.locationname).UniqueID;
                     }
                     if (TheGame.Player.CurrentRoom == tempobj.locationname)
-                        RoomChange(false, false);
+                        await RoomChangeAsync(false, false);
                 }
                 break;
             }
@@ -1371,78 +1421,69 @@ var GameCommands = {
                 } else if (acttype == "Text") {
                     GameUI.showTextMenuChoice(part4);
                 }
-                GameController.startAwaitingInput();
-                Globals.variableGettingSet = commandBeingProcessed;
-                return true;
+
+                const globalsIndex = Globals.store({
+                    variableGettingSet: commandBeingProcessed,
+                });
+                await GameController.startAwaitingInputAsync();
+                Globals.restore(globalsIndex);
+                break;
             }
             case "CT_SETVARIABLEBYINPUT": {
-                var acttype = part2;
-                Globals.variableGettingSet = commandBeingProcessed;
+                const acttype = part2;
+                const globalsIndex = Globals.store({
+                    variableGettingSet: commandBeingProcessed,
+                });
+
                 if (acttype == "Custom") {
                     GameUI.setCmdInputForCustomChoices(part4, commandBeingProcessed);
-                    GameController.startAwaitingInput();
-                    return true;
-                }
-
-                if (acttype == "Text") {
+                } else  if (acttype == "Text") {
                     GameUI.showTextMenuChoice(part4);
-                    GameController.startAwaitingInput();
-                    return true;
-                }
+                } else {
+                    GameUI.clearCmdInputChoices();
 
-                GameUI.clearCmdInputChoices();
+                    if (acttype == "Character" || acttype == "Characters") {
+                        GameUI.addCharacterOptions();
+                    } else if (acttype == "Object" || acttype == "Objects") {
+                        GameUI.addObjectOptions();
+                    } else if (acttype == "Inventory") {
+                        function addChildObjects(parentObject) {
+                            if (!parentObject.bContainer) {
+                                return;
+                            }
 
-                if (acttype == "Character" || acttype == "Characters") {
-                    GameUI.addCharacterOptions();
-                } else if (acttype == "Object" || acttype == "Objects") {
-                    GameUI.addObjectOptions();
-                } else if (acttype == "Inventory") {
-                    function addChildObjects(parentObject) {
-                        if (!parentObject.bContainer) {
-                            return;
+                            TheGame.Objects.forEach(function (innerObject) {
+                                if (objectContainsObject(parentObject, innerObject)) {
+                                    GameUI.addCmdInputChoice(
+                                        objectToString(innerObject),
+                                        innerObject
+                                    );
+                                    addChildObjects(innerObject);
+                                }
+                            });
                         }
 
-                        TheGame.Objects.forEach(function (innerObject) {
-                            if (objectContainsObject(parentObject, innerObject)) {
+                        TheGame.Objects.forEach(function (obj) {
+                            if (obj.locationtype == "LT_PLAYER") {
                                 GameUI.addCmdInputChoice(
-                                    objecttostring(innerObject),
-                                    innerObject
+                                    objectToString(obj),
+                                    obj
                                 );
-                                addChildObjects(innerObject);
+                                addChildObjects(obj);
                             }
                         });
+                    } else if (acttype == "Characters And Objects") {
+                        GameUI.addObjectOptions();
+                        GameUI.addCharacterOptions(false, true);
                     }
-
-                    TheGame.Objects.forEach(function (obj) {
-                        if (obj.locationtype == "LT_PLAYER") {
-                            GameUI.addCmdInputChoice(
-                                objecttostring(obj),
-                                obj
-                            );
-                            addChildObjects(obj);
-                        }
-                    });
-                } else if (acttype == "ObjectOrCharacter") {
-                    GameUI.addObjectOptions();
-                    GameUI.addCharacterOptions();
+                    GameUI.setCmdInputMenuTitle(Globals.actionBeingTaken, part4);
                 }
-                GameUI.setCmdInputMenuTitle(CommandLists.actionBeingTaken(), part4);
-                GameController.startAwaitingInput();
+
+                await GameController.startAwaitingInputAsync();
+                Globals.restore(globalsIndex);
                 break;
             }
             case "CT_COMMENT": {
-                break;
-            }
-
-            /* Internal commands (arguments are in CustomChoices) */
-
-            /** This command is put just before a loop condition when this is not
-             * the first iteration in order to set the loop arguments.
-             */
-            case "CT_REGALIA_LOOPARGS": {
-                Globals.loopArgs = commandBeingProcessed.CustomChoices[0];
-                Globals.loopArgsValid = true;
-                // loopArgsValid will be unset by the loop condition
                 break;
             }
 
@@ -1452,62 +1493,60 @@ var GameCommands = {
         }
     },
 
-    processCondition: function (wrappedCondition, loopObj) {
-        var conditionBeingProcessed = wrappedCondition.payload;
-        var act = CommandLists.actionBeingTaken();
+    processConditionAsync: async function (wrappedCondition, loopObj) {
+        var conditionBeingProcessed = wrappedCondition;
+        const act = Globals.actionBeingTaken;
 
         var nextCommands;
-        if (GameConditions.testCondition(conditionBeingProcessed, act, loopObj)) {
-            if (conditionBeingProcessed.Checks.length === 1 && isLoopCheck(conditionBeingProcessed.Checks[0])) {
-                return;
+            if (await GameConditions.testConditionAsync(conditionBeingProcessed, act, loopObj)) {
+                if (conditionBeingProcessed.Checks.length === 1 && isLoopCheck(conditionBeingProcessed.Checks[0])) {
+                    return;
+                } else {
+                    return conditionBeingProcessed.PassCommands;
+                }
             } else {
-                return conditionBeingProcessed.PassCommands;
+                return conditionBeingProcessed.FailCommands;
             }
-        } else {
-            return conditionBeingProcessed.FailCommands;
-        }
     },
 
-    runCommands: function () {
-        var bResult = false;
-        while (CommandLists.commandCount() > 0 && (GameController.shouldRunCommands() || Globals.runningLiveTimerCommands)) {
-            if (typeof CommandLists.nextCommand() === "function") {
-                var callback = CommandLists.shiftCommand();
-                callback();
+    runCommandsAsync: async function (commands) {
+        let bResult = false;
+        for(const commandOrCondition of commands) {
+            if(Globals.endGame) return true;
+
+            if (typeof commandOrCondition === "function") {
+                // This is a callback
+                // FIXME Do we still need that?
+                console.warn('Callback in command list', commandOrCondition);
+                commandOrCondition();
                 continue;
             }
-            if (!CommandLists.nextCommand()) {
-                throw 'NO COMMAND?';
-            }
 
-            var loopObj = Globals.loopArgs.object;
-            var commandOrCondition = CommandLists.shiftCommand();
-            var curtype = getObjectClass(commandOrCondition.payload);
-            if (curtype == "command" || "CommandName" in commandOrCondition.payload) {
-                var commandBeingProcessed = commandOrCondition.payload;
+            const loopObj = Globals.loopObject;
+            const curtype = getObjectClass(commandOrCondition);
+            if (curtype == "command" || "CommandName" in commandOrCondition) {
+                const commandBeingProcessed = commandOrCondition;
 
-                var part2 = PerformTextReplacements(commandBeingProcessed.CommandPart2, loopObj);
-                var part3 = PerformTextReplacements(commandBeingProcessed.CommandPart3, loopObj);
-                var part4 = PerformTextReplacements(commandBeingProcessed.CommandPart4, loopObj);
-                var cmdtxt = PerformTextReplacements(commandBeingProcessed.CommandText, loopObj);
+                const part2 = PerformTextReplacements(commandBeingProcessed.CommandPart2, loopObj);
+                const part3 = PerformTextReplacements(commandBeingProcessed.CommandPart3, loopObj);
+                const part4 = PerformTextReplacements(commandBeingProcessed.CommandPart4, loopObj);
+                const cmdtxt = PerformTextReplacements(commandBeingProcessed.CommandText, loopObj);
                 Logger.logExecutingCommand(commandBeingProcessed, part2, part3 ,part4);
                 try {
-                    var stop = this.runSingleCommand(commandBeingProcessed, part2, part3, part4, cmdtxt);
+                    const stop = await this.runSingleCommandAsync(commandBeingProcessed, part2, part3, part4, cmdtxt);
                     if (stop) {
-                        return;
+                        // Loop break or end game
+                        return true;
                     }
                 } catch (err) {
+                    console.warn(err);
                     alert(err.message);
                     alert("Rags can not process the command correctly.  If you are the game author," + " please correct the error in this command:" + commandBeingProcessed.cmdtype);
                 }
             } else {
-                if (Settings.debugEnabled) {
-                    console.debug(commandOrCondition.payload);
-                }
-
-                var nextCommands = this.processCondition(commandOrCondition, loopObj);
+                const nextCommands = await this.processConditionAsync(commandOrCondition, loopObj);
                 if (nextCommands) {
-                    this.insertToMaster(nextCommands);
+                    await this.runCommandsAsync(nextCommands)
                 }
             }
         }
@@ -1516,61 +1555,4 @@ var GameCommands = {
         SetupStatusBars();
         return bResult;
     },
-
-    exitLoop: function() {
-        // Find the loop to exit from in the current stack
-        const currentStack = CommandLists.getCurrentStack();
-        let needLoopCond = false;
-        for (const [i, commandOrCondition] of currentStack.commands.entries()) {
-            const payload = commandOrCondition.payload;
-            if (payload instanceof command) {
-                if (payload.cmdtype === 'CT_REGALIA_LOOPARGS') {
-                    // If a loop condition is following, this is the loop we have to exit from
-                    needLoopCond = true;
-                    continue;
-                }
-            } else if (needLoopCond && payload instanceof ragscondition) {
-                if (payload.Checks.length == 1 && isLoopCheck(payload.Checks[0])) {
-                    // Remove all the commands up to the current one (included)
-                    currentStack.commands.splice(0, i + 1);
-                    RestoreLoopObject();
-                    return true;
-                }
-            }
-
-            if (needLoopCond) {
-                console.warn("BUG: no loop condition found after CT_REGALIA_LOOPARGS",
-                        Array.from(currentStack));
-                break;
-            }
-        }
-
-        // No loop to exit from found
-        console.log("BUG: no loop to break from found", Array.from(currentStack));
-        return false;
-    },
-
-    addToMaster: function (commands) {
-        for (var i = 0; i < commands.length; i++) {
-            CommandLists.addToEnd({
-                payload: commands[i]
-            });
-        }
-    },
-
-    insertToMaster: function (commands) {
-        for (var i = commands.length - 1; i >= 0; i--) {
-            CommandLists.addToFront({
-                payload: commands[i]
-            });
-        }
-    },
-    addCommands: function (insertFirst, commands) {
-        if (insertFirst) {
-            this.insertToMaster(commands);
-        } else {
-            this.addToMaster(commands);
-            this.runCommands();
-        }
-    }
 };

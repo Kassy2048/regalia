@@ -1,29 +1,23 @@
 var GameConditions = {
-    testCondition: function (tempcond, conditionAction, loopObj) {
+    testConditionAsync: async function (tempcond, conditionAction, loopObj) {
         var bResult = true;
         var counter = 0;
 
-        function loopArgsCommand() {
-            const cmd = new command();
-            cmd.cmdtype = "CT_REGALIA_LOOPARGS";
-            // Using a copy so that changes to Globals.loopArgs won't change the command values
-            cmd.CustomChoices.push(Object.assign({}, Globals.loopArgs));
-            return cmd;
+        if (Settings.debugEnabled) {
+            console.debug(tempcond);
         }
 
-        function performLoopIteration() {
-            if (Globals.loopArgs.idx < Globals.loopArgs.array.length) {
-                Globals.loopArgs.object = Globals.loopArgs.array[Globals.loopArgs.idx];
-                Globals.loopArgs.idx++;
+        async function performLoop(list) {
+            const globalsIndex = Globals.store();
 
-                GameCommands.insertToMaster([loopArgsCommand(), tempcond]);
-                GameCommands.insertToMaster(tempcond.PassCommands);
-            } else {
-                Logger.logEvaluatedCondition(tempcond, bResult);
-                RestoreLoopObject();
+            for(const obj of list) {
+                Globals.loopObject = obj;
+                const doBreak = await GameCommands.runCommandsAsync(tempcond.PassCommands);
+                if(doBreak || Globals.endGame) break;
             }
 
-            Globals.loopArgsValid = false;
+            Globals.restore(globalsIndex);
+            Logger.logEvaluatedCondition(tempcond, bResult);
         }
 
         for (var i = 0; i < tempcond.Checks.length; i++) {
@@ -43,115 +37,73 @@ var GameConditions = {
                 var step2 = PerformTextReplacements(tempcheck.ConditionStep2, loopObj);
                 var step3 = PerformTextReplacements(tempcheck.ConditionStep3, loopObj);
                 var step4 = PerformTextReplacements(tempcheck.ConditionStep4, loopObj);
-                var objectBeingActedUpon = CommandLists.objectBeingActedUpon() || Globals.theObj;
+                const objectBeingActedUpon = Globals.objectBeingActedUpon || Globals.theObj;
 
                 switch (tempcheck.CondType) {
                     case "CT_Loop_While": {
-                        if (this.testVariable(step2, step3, step4)) {
-                            GameCommands.insertToMaster([loopArgsCommand(), tempcond]);
-                            GameCommands.insertToMaster(tempcond.PassCommands);
-                        } else {
-                            Logger.logEvaluatedCondition(tempcond, bResult);
-                            RestoreLoopObject();
+                        while(this.testVariable(step2, step3, step4)) {
+                            const doBreak = await GameCommands.runCommandsAsync(tempcond.PassCommands);
+                            if(doBreak || Globals.endGame) break;
                         }
-                        Globals.loopArgsValid = false;
+
+                        Logger.logEvaluatedCondition(tempcond, bResult);
                         break;
                     }
                     case "CT_Loop_Rooms": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Rooms;
-                        }
-                        performLoopIteration();
+                        await performLoop(TheGame.Rooms);
                         break;
                     }
                     case "CT_Loop_Exits": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-
-                            var temproom = Finder.room(step2);
-                            if (temproom != null) {
-                                Globals.loopArgs.array = temproom.Exits;
-                            }
+                        const temproom = Finder.room(step2);
+                        if (temproom != null) {
+                            await performLoop(temproom.Exits);
                         }
-                        performLoopIteration();
                         break;
                     }
                     case "CT_Loop_Characters": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Characters;
-                        }
-                        performLoopIteration();
+                        await performLoop(TheGame.Characters);
                         break;
                     }
                     case "CT_Loop_Item_Group": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = Finder.objectGroup(step2);
-                        }
-                        performLoopIteration();
+                        await performLoop(Finder.objectGroup(step2));
                         break;
                     }
                     case "CT_Loop_Item_Char_Inventory": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Objects.filter(function (item) {
-                                return item.locationtype === "LT_CHARACTER" && item.locationname === step2;
-                            });
-                        }
-                        performLoopIteration();
+                        const items = TheGame.Objects.filter(function (item) {
+                            return item.locationtype === "LT_CHARACTER" && item.locationname === step2;
+                        });
+                        await performLoop(items);
                         break;
                     }
                     case "CT_Loop_Item_Container": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Objects.filter(function (item) {
-                                return item.locationtype === "LT_IN_OBJECT" && item.locationname === step2;
-                            });
-                        }
-                        performLoopIteration();
+                        const items = TheGame.Objects.filter(function (item) {
+                            return item.locationtype === "LT_IN_OBJECT" && item.locationname === step2;
+                        });
+                        await performLoop(items);
                         break;
                     }
                     case "CT_Loop_Item_Inventory": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Objects.filter(function (item) {
-                                return item.locationtype === "LT_PLAYER";
-                            });
-                        }
-                        performLoopIteration();
+                        const items = TheGame.Objects.filter(function (item) {
+                            return item.locationtype === "LT_PLAYER";
+                        });
+                        await performLoop(items);
                         break;
                     }
                     case "CT_Loop_Item_Room": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Objects.filter(function (item) {
-                                return item.locationtype === "LT_ROOM" && item.locationname === step2;
-                            });
-                        }
-                        performLoopIteration();
+                        const items = TheGame.Objects.filter(function (item) {
+                            return item.locationtype === "LT_ROOM" && item.locationname === step2;
+                        });
+                        await performLoop(items);
                         break;
                     }
                     case "CT_Loop_Items": {
-                        if (!Globals.loopArgsValid) {
-                            // First iteration
-                            ResetLoopObjects(true);
-                            Globals.loopArgs.array = TheGame.Objects;
-                        }
-                        performLoopIteration();
+                        await performLoop(TheGame.Objects);
                         break;
                     }
                     default: {
-                        bResult = this.booleanConditionResult(tempcond, tempcheck, step2, step3, step4, objectBeingActedUpon, conditionAction);
+                        const result = this.booleanConditionResult(tempcond, tempcheck, step2, step3, step4, objectBeingActedUpon, conditionAction);
+                        // Ignore malformed conditions as RAGS does
+                        if(result !== undefined) bResult = result;
                     }
 
                     if(Settings.debugEnabled) {
@@ -159,6 +111,7 @@ var GameConditions = {
                     }
                 }
             } catch (err) {
+                console.warn(err);
                 alert("Rags can not process the condition check correctly.  If you are the game author," + " please correct the error in this conditon:" + tempcond.conditionname + " check:" +
                     tempcheck.CondType + " - " + tempcheck.ConditionStep2 + " - " +
                     tempcheck.ConditionStep3 + " - " + tempcheck.ConditionStep4);
@@ -177,9 +130,58 @@ var GameConditions = {
         if (tempvar != null) {
             var varindex = GetArrayIndex(step2, 0);
             var varindex2 = GetArrayIndex(step2, 1);
+            varArrayCheck(tempvar, varindex, 'testVariable');
             var replacedstring = PerformTextReplacements(step4, null);
             if (tempvar.vartype == "VT_DATETIMEARRAY" || tempvar.vartype == "VT_DATETIME") {
-                // Do Nothing
+                let dtDateTime = tempvar.dtDateTime;
+
+                if (varindex != -1) {
+                    if (varindex2 != -1) {
+                        dtDateTime = tempvar.VarArray[varindex][varindex2];
+                    } else {
+                        dtDateTime = tempvar.VarArray[varindex];
+                    }
+                } else if (tempvar.vartype == "VT_DATETIMEARRAY") {
+                    // RAGS uses dtDateTime if varindex is -1, even if the type is VT_DATETIMEARRAY.
+                    // Some (buggy) games depend on that behavior to work correctly.
+                }
+
+                const dateVar = DateTimes.stringDateToMoment(dtDateTime);
+
+                if (step3 == "Equals") {
+                    bResult = dateVar.isSame(DateTimes.stringDateToMoment(step4));
+                } else if (step3 == "Not Equals") {
+                    bResult = !dateVar.isSame(DateTimes.stringDateToMoment(step4));
+                } else if (step3 == "Greater Than") {
+                    bResult = dateVar.isAfter(DateTimes.stringDateToMoment(step4));
+                } else if (step3 == "Greater Than or Equals") {
+                    bResult = dateVar.isSameOrAfter(DateTimes.stringDateToMoment(step4));
+                } else if (step3 == "Less Than") {
+                    bResult = dateVar.isBefore(DateTimes.stringDateToMoment(step4));
+                } else if (step3 == "Less Than or Equals") {
+                    bResult = dateVar.isSameOrBefore(DateTimes.stringDateToMoment(step4));
+                } else if (step3 == "DayOfWeek Is") {
+                    bResult = dateVar.format('dddd').toLowerCase() == step4.toLowerCase();
+                } else if (step3 == "Hour Equals") {
+                    bResult = dateVar.hours() == step4;
+                } else if (step3 == "Hour Is Greater Than") {
+                    bResult = dateVar.hours() > step4;
+                } else if (step3 == "Hour Is Less Than") {
+                    bResult = dateVar.hours() < step4;
+                } else if (step3 == "Minute Equals") {
+                    bResult = dateVar.minutes() == step4;
+                } else if (step3 == "Minute Is Greater Than") {
+                    bResult = dateVar.minutes() > step4;
+                } else if (step3 == "Minute Is Less Than") {
+                    bResult = dateVar.minutes() < step4;
+                } else if (step3 == "Seconds Equals") {
+                    bResult = dateVar.seconds() == step4;
+                } else if (step3 == "Seconds Is Greater Than") {
+                    bResult = dateVar.seconds() > step4;
+                } else if (step3 == "Seconds Is Less Than") {
+                    bResult = dateVar.seconds() < step4;
+                }
+
             } else if (tempvar.vartype == "VT_NUMBERARRAY" || tempvar.vartype == "VT_NUMBER") {
                 var numberToCompare = tempvar.dNumType;
                 if (varindex != -1) {
@@ -189,7 +191,8 @@ var GameConditions = {
                         numberToCompare = tempvar.VarArray[varindex];
                     }
                 } else if (tempvar.vartype == "VT_NUMBERARRAY") {
-                    return false;
+                    // RAGS uses dNumType if varindex is -1, even if the type is VT_NUMBERARRAY.
+                    // Some (buggy) games depend on that behavior to work correctly.
                 }
                 if (step3 == "Equals") {
                     bResult = parseFloat(replacedstring) == numberToCompare;
@@ -204,6 +207,7 @@ var GameConditions = {
                 } else if (step3 == "Less Than or Equals") {
                     bResult = numberToCompare <= parseFloat(replacedstring);
                 }
+
             } else if (tempvar.vartype == "VT_STRINGARRAY" || tempvar.vartype == "VT_STRING") {
                 var stringToCompare = tempvar.sString;
                 if (varindex != -1) {
@@ -213,7 +217,8 @@ var GameConditions = {
                         stringToCompare = tempvar.VarArray[varindex].toString();
                     }
                 } else if (tempvar.vartype == "VT_STRINGARRAY") {
-                    return false;
+                    // RAGS uses sString if varindex is -1, even if the type is VT_STRINGARRAY.
+                    // Some (buggy) games depend on that behavior to work correctly.
                 }
                 if (step3 == "Equals") {
                     bResult = (replacedstring && replacedstring.toLowerCase()) == (stringToCompare && stringToCompare.toLowerCase());
@@ -227,15 +232,6 @@ var GameConditions = {
                     bResult = stringToCompare < replacedstring;
                 }
             }
-        }
-        if ((tempvar === undefined) && (step3 === "Contains")) {
-            // HACK - preserve bug compatibility with desktop RAGS client
-            // It seems like a "varname Contains val" query passes
-            // if varname does not exist. Not sure how many other
-            // situations this applies to. This is needed to get past
-            // the opening quiz questions in Evil, Inc. where the
-            // variable names have been typoed.
-            return true;
         }
         return bResult;
     },
@@ -396,7 +392,7 @@ var GameConditions = {
                         }
                     }
                 }
-                return false;
+                break;
             }
             case "CT_Character_CustomPropertyCheck": {
                 var splits = step2.split(":");
@@ -411,7 +407,7 @@ var GameConditions = {
                         }
                     }
                 }
-                return false;
+                break;
             }
             case "CT_Timer_CustomPropertyCheck": {
                 var splits = step2.split(":");
@@ -426,7 +422,7 @@ var GameConditions = {
                         }
                     }
                 }
-                return false;
+                break;
             }
             case "CT_Variable_CustomPropertyCheck": {
                 var splits = step2.split(":");
@@ -441,7 +437,7 @@ var GameConditions = {
                         }
                     }
                 }
-                return false;
+                break;
             }
             case "CT_Item_CustomPropertyCheck": {
                 var splits = step2.split(":");
@@ -463,7 +459,7 @@ var GameConditions = {
                         }
                     }
                 }
-                return false;
+                break;
             }
             case "CT_Player_CustomPropertyCheck": {
                 var property = step2;
@@ -471,7 +467,7 @@ var GameConditions = {
                 if (customProp) {
                     return TestCustomProperty(customProp.Value, step3, step4);
                 }
-                return false;
+                break;
             }
             case "CT_Variable_Comparison": {
                 return this.testVariable(step2, step3, step4);
@@ -481,8 +477,10 @@ var GameConditions = {
                 var checkvar = Finder.variable(step4);
                 var varindex1 = GetArrayIndex(step2, 0);
                 var varindex1a = GetArrayIndex(step2, 1);
+                varArrayCheck(tempvar, varindex1, 'CT_Variable_To_Variable_Comparison');
                 var varindex2 = GetArrayIndex(step4, 0);
                 var varindex2a = GetArrayIndex(step4, 1);
+                varArrayCheck(checkvar, varindex2, 'CT_Variable_To_Variable_Comparison');
                 var compareval = "";
                 if (checkvar.vartype == "VT_NUMBERARRAY" || checkvar.vartype == "VT_NUMBER") {
                     if (varindex2 == -1)
@@ -582,9 +580,9 @@ var GameConditions = {
                 break;
             }
             case "CT_AdditionalDataCheck": {
-                var datatocheck = "";
-                if (CommandLists.lastAdditionalData())
-                    datatocheck = CommandLists.lastAdditionalData();
+                let datatocheck = Globals.additionalData;
+                if(datatocheck === null) datatocheck = '';
+
                 if (conditionAction.InputType == "Text") {
                     return step4.toLowerCase() == datatocheck.toLowerCase();
                 } else {
@@ -596,7 +594,7 @@ var GameConditions = {
                 }
             }
         }
-        // Default to true if there was an early break or something.
-        return true;
+        // Return undefined in case of malformed condition
+        return undefined;
     },
 };

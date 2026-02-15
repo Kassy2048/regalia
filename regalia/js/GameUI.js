@@ -1,5 +1,6 @@
 var GameUI = {
     saveDisabled: false,
+    INDENT_STR: '\u00a0\u00a0',  // NO-BREAK SPACE
 
     setGameTitle: function () {
         var title = GameController.title();
@@ -28,7 +29,7 @@ var GameUI = {
 
     showGameElements: function () {
         $("#RoomThumbImg").css("visibility", "visible");
-        $("#PlayerImg").css("visibility", "visible");
+        $("#PlayerImg").attr("data-disabled", null);
         $("#RoomObjectsPanel").css("visibility", "visible");
         $("#VisibleCharactersPanel").css("visibility", "visible");
         $("#InventoryPanel").css("visibility", "visible");
@@ -37,7 +38,7 @@ var GameUI = {
     },
 
     hideGameElements: function () {
-        $("#PlayerImg").css("visibility", "hidden");
+        $("#PlayerImg").attr("data-disabled", "true");
         $("#RoomThumbImg").css("visibility", "hidden");
         $("#RoomObjectsPanel").css("visibility", "hidden");
         $("#VisibleCharactersPanel").css("visibility", "hidden");
@@ -71,50 +72,47 @@ var GameUI = {
         $("#cmdinputmenu").toggleClass('cancellable', act.EnhInputData && act.EnhInputData.bAllowCancel);
     },
 
+    /** Add input choice for an action */
     addInputChoice: function (act, text, value) {
         var $div = $("<div>", {
             class: "inputchoices",
             text: text
         });
 
-        $div.click(function() {
-            Globals.selectedObj = value;
-            if (Globals.selectedObj != null) {
-                GameController.executeAndRunTimers(function () {
-                    CommandLists.setAdditionalData(Globals.selectedObj);
-                    GameController.stopAwaitingInput();
-                    $("#inputmenu").css("visibility", "hidden");
-                    if (getObjectClass(act) == "action" || "actionparent" in act) {
-                        ActionRecorder.choseInputAction(text);
-                        GameActions.executeAction(act, true);
-                        GameCommands.runCommands();
-                        GameUI.onInteractionResume();
-                    }
+        $div.click(async function() {
+            const selectedObj = value;
+            if (selectedObj != null) {
+                $("#MainText").append('</br><b>' + escapeHtmlSpecialCharacters(text) + "</b>");
+                $("#MainText").animate({
+                    scrollTop: $("#MainText")[0].scrollHeight
                 });
+                $("#inputmenu").css("visibility", "hidden");
+                ActionRecorder.choseInputAction(text);
+                Globals.additionalData = selectedObj;
+                // Give control back to GameActions.processActionAsync()
+                await GameController.stopAwaitingInputAsync();
             }
         });
 
         $("#inputchoices").append($div);
     },
 
+    /** Add input choice for a command (CT_SETVARIABLEBYINPUT or CT_SETVARIABLE_NUMERIC_BYINPUT) */
     addCmdInputChoice: function (text, value) {
         var $div = $("<div>", {
             class: "inputchoices",
             text: text
         });
 
-        $div.click(function () {
-            Globals.selectedObj = value;
-            if (Globals.selectedObj != null) {
-                GameController.executeAndRunTimers(function () {
-                    $("#cmdinputmenu").hide();
-                    GameController.stopAwaitingInput();
-                    $("#cmdinputmenu").css("visibility", "hidden");
-                    ActionRecorder.choseInputAction(text);
-                    SetCommandInput(Globals.variableGettingSet, Globals.selectedObj);
-                    GameCommands.runCommands();
-                    GameUI.onInteractionResume();
-                });
+        $div.click(async function () {
+            const selectedObj = value;
+            if (selectedObj != null) {
+                $("#cmdinputmenu").hide();
+                $("#cmdinputmenu").css("visibility", "hidden");
+                ActionRecorder.choseInputAction(text);
+                SetCommandInput(Globals.variableGettingSet, selectedObj);
+                // Give control back to GameCommands.runSingleCommandAsync()
+                await GameController.stopAwaitingInputAsync();
             }
         });
 
@@ -122,12 +120,20 @@ var GameUI = {
         $("#cmdinputmenu").show();
     },
 
-    addCharacterOptions: function (act) {
+    addCharacterOptions: function(act, withObjects) {
+        if(act === undefined) act = false;
+        if(withObjects === undefined) withObjects = false;
+
         Interactables.characters().forEach(function (character) {
             if (act) {
                 GameUI.addInputChoice(act, CharToString(character), character.Charname);
             } else {
                 GameUI.addCmdInputChoice(CharToString(character), character.Charname);
+            }
+
+            if(withObjects) {
+                // Also add objects in the character inventory if shown
+                GameUI.addCharacterObjectOptions(act, character);
             }
         });
     },
@@ -135,11 +141,28 @@ var GameUI = {
     addObjectOptions: function (act) {
         Interactables.roomAndInventoryObjects().forEach(function (obj) {
             if (act) {
-                GameUI.addInputChoice(act, objecttostring(obj), obj);
+                GameUI.addInputChoice(act, objectToString(obj), obj);
             } else {
-                GameUI.addCmdInputChoice(objecttostring(obj), obj);
+                GameUI.addCmdInputChoice(objectToString(obj), obj);
             }
         });
+
+        // Also add objects in characters inventory if shown
+        Interactables.characters().forEach(function(character) {
+            GameUI.addCharacterObjectOptions(act, character);
+        });
+    },
+
+    addCharacterObjectOptions: function(act, character) {
+        if(character.bAllowInventoryInteraction) {
+            Interactables.characterObjects(character).forEach(obj => {
+                if (act) {
+                    GameUI.addInputChoice(act, objectToString(obj), obj);
+                } else {
+                    GameUI.addCmdInputChoice(objectToString(obj), obj);
+                }
+            });
+        }
     },
 
     setCmdInputForCustomChoices: function (title, tempcommand) {
@@ -151,12 +174,14 @@ var GameUI = {
         this.setCmdInputMenuTitle(tempcommand, title);
     },
 
+    /** Show the text input UI for a command */
     showTextMenuChoice: function (title) {
         $("#textMenuTitle").text(title);
         $("#textchoice").css("visibility", "visible");
         $("#textchoice input").focus();
     },
 
+    /** Add an action to the actions menu for an object */
     addActionChoice: function (obj, action, text) {
         var $div = $("<div>", {
             class: "ActionChoices",
@@ -164,22 +189,37 @@ var GameUI = {
             value: action.name
         });
 
-        $div.click(function (e) {
-            var selectionchoice = $(this).val();
+        $div.click(async function (e) {
+            var selectionchoice = this.getAttribute('value');
             var selectiontext = $(this).text();
             if (selectionchoice != null) {
-                GameController.executeAndRunTimers(function () {
+                await GameController.executeAndRunTimersAsync(async function () {
                     ActionRecorder.actedOnObject(obj, selectiontext);
-                    $("#MainText").append('</br><b>' + selectionchoice + "</b>");
+                    let logLine;
+                    if(obj instanceof ragsobject) {
+                        logLine = objectToString(obj) + ' - ';
+                    } else if(obj instanceof character) {
+                        logLine = CharToString(obj) + ' - ';
+                    } else if(obj instanceof room) {
+                        logLine = 'Room: ' + roomDisplayName(obj) + ' - ';
+                    } else if(obj instanceof player) {
+                        logLine = 'Player - ';
+                    } else {
+                        logLine = '';
+                    }
+                    logLine += selectiontext;
+                    $("#MainText").append('</br><b>' + escapeHtmlSpecialCharacters(logLine) + "</b>");
                     $("#MainText").animate({
                         scrollTop: $("#MainText")[0].scrollHeight
                     });
                     $("#selectionmenu").css("visibility", "hidden");
-                    ResetLoopObjects();
+                    const globalsIndex = ResetLoopObjects();  // TODEL?
                     TheGame.TurnCount++;
-                    GameActions.processAction(selectionchoice, false, obj);
-                    GameUI.onInteractionResume();
+                    await GameActions.processActionAsync(selectionchoice, false, obj);
+                    RestoreLoopObjects(globalsIndex);  // TODEL?
                 });
+
+                GameUI.onInteractionResume();
             }
         });
 
@@ -187,6 +227,7 @@ var GameUI = {
         return $div;
     },
 
+    /** Show the actions menu for the clicked object */
     displayActions: function (obj, clickEvent) {
         var actions = obj.Actions;
         if (GetActionCount(actions) === 0) {
@@ -199,7 +240,7 @@ var GameUI = {
             var action = actions[i];
             if (actionShouldBeVisible(action)) {
                 this.addActionChoice(obj, action, nameForAction(action));
-                this.addChildActions(obj, actions, "--", action.name);
+                this.addChildActions(obj, actions, GameUI.INDENT_STR, action.name);
             }
         }
 
@@ -239,7 +280,7 @@ var GameUI = {
             var action = actions[i];
             if (action.name.substring(0, 2) != "<<" && action.bActive && action.actionparent == ActionName) {
                 this.addActionChoice(obj, action, Indent + nameForAction(action));
-                this.addChildActions(obj, actions, "--" + Indent, action.name);
+                this.addChildActions(obj, actions, Indent + GameUI.INDENT_STR, action.name);
             }
         }
     },
@@ -253,7 +294,7 @@ var GameUI = {
                 thelistbox.append(
                     GameUI.panelLink(
                         itemclass,
-                        '--' + objecttostring(innerObject),
+                        GameUI.INDENT_STR + objecttostring(innerObject),
                         innerObject.UniqueIdentifier,
                         innerObject.Actions,
                         Finder.object
@@ -367,11 +408,10 @@ var GameUI = {
         $div.toggleClass('no-actions', GetActionCount(actions) === 0);
 
         $div.click(function(clickEvent) {
-            // TODO: this is the main place that stashes Globals.selectedObj, try to get rid of it
-            Globals.selectedObj = objFinderFunction($(this).val());
-            if (Globals.selectedObj != null) {
-                Globals.theObj = Globals.selectedObj;
-                GameUI.displayActions(Globals.selectedObj, clickEvent);
+            const selectedObj = objFinderFunction(this.getAttribute('value'));
+            if (selectedObj != null) {
+                Globals.theObj = selectedObj;
+                GameUI.displayActions(selectedObj, clickEvent);
             }
         });
         return $div;
@@ -387,34 +427,76 @@ var GameUI = {
         var activeLiveTimers = GameTimers.activeLiveTimers();
         $('.live-timer-display').toggle(activeLiveTimers.length > 0);
         if (activeLiveTimers.length > 0) {
-            var $container = $('.live-timer-display-rows');
-            $container.empty();
-            activeLiveTimers.forEach(function (timer) {
-                var $timerRow = $('<tr>');
-                $timerRow.append('<td>' + timer.Name + '</td>');
-                $timerRow.append('<td>' + (timer.TimerSeconds - (timer.curtickcount / 1000)) + 's</td>');
-                $timerRow.append('<td><b>Click to Skip</b></td>');
-                $timerRow.data('timer-name', timer.Name);
-                $timerRow.click(function () {
-                    var timerName = $(this).data('timer-name');
-                    var timer = Finder.timer(timerName);
-                    var secondsRemaining = (timer.TimerSeconds - (timer.curtickcount / 1000));
-                    for (var i = 0; i < secondsRemaining; i++) {
-                        GameTimers.tickLiveTimers(true);
-                    }
-                    GameUI.refreshPanelItems();
-                    GameUI.displayLiveTimers();
-                });
-                $container.append($timerRow);
+            const $container = $('.live-timer-display-rows');
+            // List all existing timer notifications
+            const timerRows = {};
+            $container.find('tr').each(function() {
+                const name = $(this).data('timer-name');
+                if(name === undefined) {
+                    // Unexpected, delete the element
+                    this.remove();
+                } else if(name in timerRows) {
+                    // Unexpected dupe, delete the element
+                    this.remove();
+                } else {
+                    timerRows[name] = this;
+                }
             });
+
+            activeLiveTimers.forEach(function(timer) {
+                const row = timerRows[timer.Name];
+                if(row !== undefined) {
+                    // Update the timer UI
+                    const timeCell = row.querySelector('td:nth-of-type(2)');
+                    timeCell.innerHTML = (timer.TimerSeconds - (timer.curtickcount / 1000)) + 's';
+
+                    // Only keep the timers that should be removed in timerRows
+                    delete timerRows[timer.Name];
+                } else {
+                    // Create a new timer UI
+                    var $timerRow = $('<tr>');
+                    $timerRow.append('<td>' + timer.Name + '</td>');
+                    $timerRow.append('<td>' + (timer.TimerSeconds - (timer.curtickcount / 1000)) + 's</td>');
+                    $timerRow.append('<td><b>Click to Skip</b></td>');
+                    $timerRow.data('timer-name', timer.Name);
+                    $timerRow.click(async function () {
+                        var timerName = $(this).data('timer-name');
+                        var timer = Finder.timer(timerName);
+                        var secondsRemaining = (timer.TimerSeconds - (timer.curtickcount / 1000));
+                        for (var i = 0; i < secondsRemaining; i++) {
+                            await GameTimers.tickLiveTimersAsync(true);
+                        }
+                        GameUI.refreshPanelItems();
+                        GameUI.displayLiveTimers();
+                    });
+                    $container.append($timerRow);
+                }
+            });
+
+            // Remove expired/disabled timers
+            Object.values(timerRows).forEach(row => row.remove());
         }
     },
 
-    onInteractionResume: function() {
+    removeLiveTimer: function (name) {
+        let timerCount = 0;
+        $('.live-timer-display-rows tr').each(function() {
+            const name = $(this).data('timer-name');
+            if(name === name) {
+                // Delete the element
+                this.remove();
+            } else {
+                ++timerCount;
+            }
+        });
+        $('.live-timer-display').toggle(timerCount > 0);
+    },
+
+    onInteractionResume: function(noLine) {
         const MainText = $("#MainText");
         const scrollHeight = MainText[0].scrollHeight;
         if(this.lastScrollHeight != scrollHeight) {
-            MainText.append('<hr>');
+            if(!!!noLine) MainText.append('<hr>');
             if(this.lastScrollHeight !== undefined) {
                 MainText.animate({
                     scrollTop: this.lastScrollHeight
@@ -423,7 +505,18 @@ var GameUI = {
             this.lastScrollHeight = MainText[0].scrollHeight;
         }
 
+        UpdateStatusBars();
+
+        if (Settings.debugEnabled) {
+            const barText = '\u2015\u2015\u2015\u2015\u2015';  // HORIZONTAL BAR x5
+            console.debug('%c' + barText + ' User Interaction ' + barText,
+                    'font-weight: bold; font-size: larger')
+        }
+
         if(GameController.shouldRunCommands()) {
+            if(Globals.length != 1) {
+                console.warn('Saving history state while the globals stack is not empty!', Globals.length);
+            }
             GameHistory.pushState();
             $('#back').prop('disabled', !GameHistory.canGoBack())
                     .prop('title', GameHistory.noGoBackReason());

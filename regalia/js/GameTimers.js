@@ -1,5 +1,6 @@
 var GameTimers = {
     activeLiveTimers: function () {
+        // Do not use this function to execute timers
         if (!TheGame) {
             return [];
         }
@@ -7,51 +8,33 @@ var GameTimers = {
            return timer.Active && timer.LiveTimer;
         });
     },
-    activeStaticTimers: function () {
-        if (!TheGame) {
-            return [];
-        }
-        return TheGame.Timers.filter(function (timer) {
-            return timer.Active && !timer.LiveTimer;
-        });
+    runSingleTimerAsync: async function (timer, checkActive) {
+        do {
+            await this.runTimerAsync(timer, checkActive);
+        } while(timer._wasReset);
     },
-    runSingleTimer: function (timer, checkActive) {
-        this.runTimer(timer, checkActive, function () {
-            if (timer._wasReset) {
-                GameTimers.runSingleTimer(timer, checkActive);
-            }
-        });
-    },
-    runTimerEvents: function () {
-        if (Globals.bRunningTimers) {
+    runTimerEventsAsync: async function () {
+        if (Globals.bRunningTimers || !TheGame) {
             return;
         }
 
         Globals.bRunningTimers = true;
-        this.activeStaticTimers().forEach(function (timer) {
-            runAfterPause(function (timer) {
-                return function () {
-                    if (timer != null) {
-                        Logger.logExecutingTimer(timer);
-                        GameTimers.runSingleTimer(timer, true);
-                    }
-                };
-            }(timer));
-        });
-        runAfterPause(function () {
-            Globals.bRunningTimers = false;
-            GameUI.refreshPanelItems();
-        });
-    },
-    runTimer: function (timer, checkActive, callback) {
-        if (!callback) {
-            callback = function () { };
+        for(const timer of TheGame.Timers) {
+            if (timer != null && timer.Active && !timer.LiveTimer) {
+                Logger.logExecutingTimer(timer);
+                await GameTimers.runSingleTimerAsync(timer, true);
+            }
         }
-
+        Globals.bRunningTimers = false;
+        GameUI.refreshPanelItems();
+    },
+    runTimerAsync: async function (timer, checkActive) {
+        let didRun = false;
         timer._wasReset = false;
+
         if (checkActive) {
             if (!timer.Active) {
-                return;
+                return false;
             }
 
             timer.TurnNumber++;
@@ -59,80 +42,111 @@ var GameTimers = {
                 if (!timer.Restart)
                     timer.Active = false;
                 timer.TurnNumber = 0;
-                return;
+                return false;
             }
         }
 
-        var tempact = Finder.action(timer.Actions, "<<On Each Turn>>");
+        let tempact = Finder.action(timer.Actions, "<<On Each Turn>>");
         if (tempact != null) {
             if (timer.LiveTimer) {
                 Globals.runningLiveTimerCommands = true;
-                CommandLists.addToFront(function () {
-                    Globals.runningLiveTimerCommands = false;
-                });
-                GameActions.processAction(tempact, true);
-                GameCommands.runCommands();
-                return;
+                await GameActions.processActionAsync(tempact, true);
+                Globals.runningLiveTimerCommands = false;
+                return true;
             } else {
-                GameActions.processAction(tempact, false);
+                await GameActions.processActionAsync(tempact, false);
+                didRun = true;
             }
         }
-
         UpdateStatusBars();
-        runNextAfterPause(function () {
-            if (timer._wasReset) {
-                return callback();
-            }
-            if (!timer.Active) {
-                return;
-            }
-            tempact = Finder.action(timer.Actions, "<<On Turn " + timer.TurnNumber.toString() + ">>");
-            if (tempact != null) {
-                GameActions.processAction(tempact, false);
-            }
-            UpdateStatusBars();
 
-            runNextAfterPause(function () {
-                if (timer._wasReset) {
-                    return callback();
-                }
-                if (!timer.Active) {
-                    return;
-                }
-                if (timer.TurnNumber == timer.Length) {
-                    tempact = Finder.action(timer.Actions, "<<On Last Turn>>");
-                    if (tempact != null) {
-                        GameActions.processAction(tempact, false);
-                    }
-                }
-                UpdateStatusBars();
-                callback();
-            });
-        });
+        if (timer._wasReset) {
+            return didRun;
+        }
+        if (!timer.Active) {
+            return didRun;
+        }
+
+        tempact = Finder.action(timer.Actions, "<<On Turn " + timer.TurnNumber.toString() + ">>");
+        if (tempact != null) {
+            await GameActions.processActionAsync(tempact, false);
+            didRun = true;
+        }
+        UpdateStatusBars();
+
+        if (timer._wasReset) {
+            return didRun;
+        }
+        if (!timer.Active) {
+            return didRun;
+        }
+
+        if (timer.TurnNumber == timer.Length) {
+            tempact = Finder.action(timer.Actions, "<<On Last Turn>>");
+            if (tempact != null) {
+                await GameActions.processActionAsync(tempact, false);
+                didRun = true;
+            }
+        }
+        UpdateStatusBars();
+        return didRun;
     },
 
-    tickLiveTimers: function (skipRefresh) {
-        if (!TheGame) {
+    tickLiveTimersAsync: async function (skipRefresh) {
+        if(!TheGame || Globals.endGame) {
             return;
         }
 
-        this.activeLiveTimers().forEach(function(timer) {
+        // XXX Live timers are designed to run in parallel (each timer runs in its own thread
+        //     in RAGS). That's not really something we can do in Web and that's a bad practice
+        //     anyway as multiple threads could change the game state without locking in RAGS.
+
+        let resumePause = false;
+        let didRun = false;
+        for(const timer of TheGame.Timers) {
+            if(Globals.endGame) return;
+
+            if(!(timer.Active && timer.LiveTimer)) continue;
+
             timer.curtickcount += 1000;
             if (timer.curtickcount >= timer.TimerSeconds * 1000) {
                 timer.curtickcount = 0;
-                GameTimers.runTimer(timer, true);
+                // Remove the timer from the UI so that it is not shown as stuck to 1s
+                GameUI.removeLiveTimer(timer.Name);
+
+                if(GameController.gamePaused) {
+                    // Cancel the pause, run the timer(s) and resume the pause
+                    resumePause = true;
+                    GameController.continue(true);
+                    await GameTimers.runTimerAsync(timer, true);
+
+                } else if(GameController.gameAwaitingInput) {
+                    // Defer timer execution until input has been given
+                    GameController.queueLiveTimer(timer);
+
+                } else {
+                    didRun |= await GameTimers.runTimerAsync(timer, true);
+                }
+
                 if (!skipRefresh) {
                     GameUI.refreshPanelItems();
                 }
             }
-        });
+        }
+
+        if(resumePause) {
+            // Put the game back in pause
+            await GameController.pauseAsync(true);
+        } else if(didRun) {
+            GameUI.onInteractionResume();
+        }
     },
 
-    scheduleLiveTimers: function (oneSecond) {
-        GameTimers.tickLiveTimers();
+    scheduleLiveTimersAsync: async function (oneSecond) {
+        await GameTimers.tickLiveTimersAsync();
         GameUI.displayLiveTimers();
-        setTimeout(function () {
-            GameTimers.scheduleLiveTimers(oneSecond);
+        setTimeout(async function () {
+            await GameTimers.scheduleLiveTimersAsync(oneSecond);
         }, oneSecond);
     }
 };

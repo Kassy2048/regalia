@@ -10,10 +10,10 @@
     <link rel="icon" href="regalia/Rags_32512.ico" type="image/x-icon" />
 
     <!-- !CSS -->
-    <link href="regalia/css/style.css" rel="stylesheet" />
-    <link href="regalia/css/custom.css" rel="stylesheet" />
+    <link  href="regalia/css/style.css" rel="stylesheet" />
+    <link  href="regalia/css/custom.css" rel="stylesheet" />
     <script src="regalia/vendor/modernizr-2.0.6.js"></script>
-    <script src="regalia/vendor/jquery-1.7.1.min.js"></script>
+    <script src="regalia/vendor/jquery-3.7.1.min.js"></script>
     <script src="regalia/vendor/deep-diff-0.3.8.min.js"></script>
     <script src="regalia/vendor/react.production.min.js"></script>
     <script src="regalia/vendor/react-dom.production.min.js"></script>
@@ -44,7 +44,6 @@
     <script src="regalia/js/SaveAndLoad.js"></script>
     <script src="regalia/js/testing.js"></script>
     <script src="regalia/js/Logging.js"></script>
-    <script src="regalia/js/CommandLists.js"></script>
     <script src="regalia/js/Finder.js"></script>
     <script src="regalia/js/GameController.js"></script>
     <script src="regalia/js/GameTimers.js"></script>
@@ -96,7 +95,7 @@
                 <div id="RoomImageLayers"></div>
             </div>
             <div id="RoomTitle">Test Title</div>
-            <button id="Continue">Continue...</button>
+            <button id="Continue" disabled>Continue...</button>
         </div>
     </div>
 
@@ -155,6 +154,7 @@
                 </div>
                 <div>
                     <button id="textactionbutton">Submit</button>
+                    <button id="textactioncancel">Cancel</button>
                 </div>
             </div>
         </div>
@@ -255,9 +255,9 @@
             <tr>
                 <!-- Load button -->
                 <th></th>
-                <th>id</th>
-                <th class="name-column">name</th>
-                <th>date</th>
+                <th data-field="0">id</th>
+                <th class="name-column" data-field="1">name</th>
+                <th data-field="2">date</th>
                 <!-- Overwrite button -->
                 <th></th>
                 <!-- Destroy button -->

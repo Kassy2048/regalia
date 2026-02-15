@@ -1,4 +1,4 @@
-﻿
+
 function statusbaritem() {
     this.Name = "";
     this.Text = "";

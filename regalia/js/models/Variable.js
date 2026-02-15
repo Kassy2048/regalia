@@ -1,4 +1,4 @@
-﻿function variable() {
+function variable() {
     this.dNumType = 0;
     this.dMin = "";
     this.dMax = "";

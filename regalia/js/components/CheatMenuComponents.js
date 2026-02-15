@@ -13,19 +13,96 @@ function valueForVariable(variable) {
         return variable.dNumType;
     } else if (variable.vartype === "VT_STRING") {
         return variable.sString;
+    } else if (variable.vartype === "VT_NUMBERARRAY") {
+        return JSON.stringify(variable.VarArray);
+    } else if (variable.vartype === "VT_STRINGARRAY") {
+        return JSON.stringify(variable.VarArray);
+    }
+}
+
+function textForVariable(variable) {
+    if (variable.vartype === "VT_NUMBER") {
+        return { value: "" + variable.dNumType, valid: true };
+    } else if (variable.vartype === "VT_STRING") {
+        return { value: variable.sString, valid: true };
+    } else if (variable.vartype === "VT_NUMBERARRAY" || variable.vartype === "VT_STRINGARRAY") {
+        var text = [];
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = variable.VarArray[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var item = _step.value;
+
+                text.push({ value: JSON.stringify(item), valid: true });
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
+
+        return text;
     }
 }
 
 function setValueForVariable(variable, value, index) {
-    if (variable.vartype === "VT_NUMBER") {
-        variable.dNumType = parseFloat(value);
-    } else if (variable.vartype === "VT_STRING") {
-        variable.sString = value;
-    } else if (variable.vartype === "VT_NUMBERARRAY") {
-        variable.VarArray[index] = parseFloat(value);
-    } else if (variable.vartype === "VT_STRINGARRAY") {
-        variable.VarArray[index] = value;
+    if (value.trim().length == 0) return false;
+
+    try {
+        if (variable.vartype === "VT_NUMBER") {
+            var result = parseFloat(value);
+            if (isNaN(result)) return false;
+            variable.dNumType = result;
+        } else if (variable.vartype === "VT_STRING") {
+            variable.sString = value;
+        } else if (variable.vartype === "VT_NUMBERARRAY") {
+            if (Array.isArray(variable.VarArray[index])) {
+                var _result = JSON.parse(value);
+                // Make sure this is an array of numbers
+                if (!Array.isArray(_result)) return false;
+                if (_result.find(function (v) {
+                    return typeof v !== "number";
+                }) !== undefined) {
+                    return false;
+                }
+                variable.VarArray[index] = _result;
+            } else {
+                variable.VarArray[index] = parseFloat(value);
+            }
+        } else if (variable.vartype === "VT_STRINGARRAY") {
+            if (Array.isArray(variable.VarArray[index])) {
+                var _result2 = JSON.parse(value);
+                // Make sure this is an array of strings
+                if (!Array.isArray(_result2)) return false;
+                if (_result2.find(function (v) {
+                    return typeof v !== "string";
+                }) !== undefined) {
+                    return false;
+                }
+                variable.VarArray[index] = _result2;
+            } else {
+                variable.VarArray[index] = value;
+            }
+        } else {
+            return false;
+        }
+    } catch (err) {
+        console.warn(err);
+        return false;
     }
+
+    return true;
 }
 
 function variableScalar(variable) {
@@ -136,16 +213,17 @@ var GameVariable = function (_React$Component2) {
     function GameVariable(props) {
         _classCallCheck(this, GameVariable);
 
-        var _this3 = _possibleConstructorReturn(this, (GameVariable.__proto__ || Object.getPrototypeOf(GameVariable)).call(this, props));
+        var _this4 = _possibleConstructorReturn(this, (GameVariable.__proto__ || Object.getPrototypeOf(GameVariable)).call(this, props));
 
-        _this3.state = {
-            value: valueForVariable(_this3.props.variable),
-            frozen: isFrozenVariable(_this3.props.variable)
+        _this4.state = {
+            value: valueForVariable(_this4.props.variable),
+            text: textForVariable(_this3.props.variable),
+            frozen: isFrozenVariable(_this4.props.variable)
         };
 
-        _this3.freezeClicked = _this3.freezeClicked.bind(_this3);
-        _this3.inputChanged = _this3.inputChanged.bind(_this3);
-        return _this3;
+        _this4.freezeClicked = _this4.freezeClicked.bind(_this4);
+        _this4.inputChanged = _this4.inputChanged.bind(_this4);
+        return _this4;
     }
 
     _createClass(GameVariable, [{
@@ -162,23 +240,38 @@ var GameVariable = function (_React$Component2) {
     }, {
         key: "inputChanged",
         value: function inputChanged(index) {
-            var _this4 = this;
+            var _this5 = this;
 
             return function (e) {
-                var variable = _this4.props.variable;
-                setValueForVariable(variable, e.target.value, index);
-                _this4.setState({ value: valueForVariable(variable) });
+                var variable = _this5.props.variable;
+                if (setValueForVariable(variable, e.target.value, index)) {
+                    _this5.setState({
+                        value: valueForVariable(variable),
+                        text: textForVariable(variable)
+                    });
+                } else {
+                    // Do not erase whatever the user is writing
+                    if (index !== undefined) {
+                        var text = textForVariable(variable);
+                        text[index] = { value: e.target.value, valid: false };
+                        _this5.setState({ text: text });
+                    } else {
+                        _this5.setState({ text: { value: e.target.value, valid: false } });
+                    }
+                }
             };
         }
     }, {
         key: "render",
         value: function render() {
-            var _this5 = this;
+            var _this6 = this;
 
             var variable = this.props.variable;
             var value = void 0;
             if (variableScalar(variable)) {
-                value = React.createElement("input", { onChange: this.inputChanged(), value: this.state.value });
+                value = React.createElement("input", { onChange: this.inputChanged(),
+                    value: this.state.text.value,
+                    "class": this.state.text.valid ? '' : 'invalid-value' });
             } else if (variableArray(variable)) {
                 value = variable.VarArray.map(function (arrayItem, index) {
                     return React.createElement(
@@ -186,7 +279,9 @@ var GameVariable = function (_React$Component2) {
                         null,
                         index,
                         ": ",
-                        React.createElement("input", { onChange: _this5.inputChanged(index), value: arrayItem })
+                        React.createElement("input", { onChange: _this6.inputChanged(index),
+                            value: _this6.state.text[index].value,
+                            "class": _this6.state.text[index].valid ? '' : 'invalid-value' })
                     );
                 });
             } else {
@@ -249,11 +344,13 @@ var GameCustomProperties = function (_React$Component3) {
     _createClass(GameCustomProperties, [{
         key: "render",
         value: function render() {
-            var _this7 = this;
+            var _this8 = this;
 
+            var totalCount = 0;
             var tableRows = this.props.properties.filter(function (property) {
-                if (_this7.props.filter) {
-                    return property.Name.toLowerCase().includes(_this7.props.filter.toLowerCase());
+                ++totalCount;
+                if (_this8.props.filter) {
+                    return property.Name.toLowerCase().includes(_this8.props.filter.toLowerCase());
                 } else {
                     return true;
                 }
@@ -262,7 +359,7 @@ var GameCustomProperties = function (_React$Component3) {
             });
 
             if (tableRows.length === 0) {
-                if (TheGame.Player.CustomProperties.length === 0) {
+                if (totalCount === 0) {
                     return null;
                 } else {
                     return React.createElement(
@@ -326,16 +423,16 @@ var GameCustomProperty = function (_React$Component4) {
     function GameCustomProperty(props) {
         _classCallCheck(this, GameCustomProperty);
 
-        var _this8 = _possibleConstructorReturn(this, (GameCustomProperty.__proto__ || Object.getPrototypeOf(GameCustomProperty)).call(this, props));
+        var _this9 = _possibleConstructorReturn(this, (GameCustomProperty.__proto__ || Object.getPrototypeOf(GameCustomProperty)).call(this, props));
 
-        _this8.state = {
-            value: _this8.props.property.Value,
-            frozen: isFrozenPlayerProperty(_this8.props.property)
+        _this9.state = {
+            value: _this9.props.property.Value,
+            frozen: isFrozenPlayerProperty(_this9.props.property)
         };
 
-        _this8.freezeClicked = _this8.freezeClicked.bind(_this8);
-        _this8.inputChanged = _this8.inputChanged.bind(_this8);
-        return _this8;
+        _this9.freezeClicked = _this9.freezeClicked.bind(_this9);
+        _this9.inputChanged = _this9.inputChanged.bind(_this9);
+        return _this9;
     }
 
     _createClass(GameCustomProperty, [{
@@ -352,11 +449,11 @@ var GameCustomProperty = function (_React$Component4) {
     }, {
         key: "inputChanged",
         value: function inputChanged(index) {
-            var _this9 = this;
+            var _this10 = this;
 
             return function (e) {
-                _this9.props.property.Value = e.target.value;
-                _this9.setState({ value: e.target.Value });
+                _this10.props.property.Value = e.target.value;
+                _this10.setState({ value: e.target.Value });
             };
         }
     }, {
@@ -411,14 +508,14 @@ var CheatMenuContent = function (_React$Component5) {
     function CheatMenuContent(props) {
         _classCallCheck(this, CheatMenuContent);
 
-        var _this10 = _possibleConstructorReturn(this, (CheatMenuContent.__proto__ || Object.getPrototypeOf(CheatMenuContent)).call(this, props));
+        var _this11 = _possibleConstructorReturn(this, (CheatMenuContent.__proto__ || Object.getPrototypeOf(CheatMenuContent)).call(this, props));
 
-        _this10.state = {
+        _this11.state = {
             filter: ''
         };
 
-        _this10.filterChanged = _this10.filterChanged.bind(_this10);
-        return _this10;
+        _this11.filterChanged = _this11.filterChanged.bind(_this11);
+        return _this11;
     }
 
     _createClass(CheatMenuContent, [{

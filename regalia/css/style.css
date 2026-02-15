@@ -1,4 +1,4 @@
-﻿body {
+body {
     --main-bg-color: white;
     --main-text-color: black;
     --popup-bg-color: #b5b5b5;
@@ -42,6 +42,9 @@ p {
     margin-right: 4px;
     display: inline-block;
     vertical-align: middle;
+}
+
+#Continue:disabled {
     background-color: Gray;
     visibility: hidden;
 }
@@ -193,6 +196,28 @@ table {
 
 .savegames-table th, .savegames-table td {
     text-align: left;
+}
+
+.savegames-table th {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Reserve space for the sort indication */
+.savegames-table th:before {
+    content: '⇩';  /* DOWNWARDS WHITE ARROW */
+    margin-right: 3px;
+    visibility: hidden;
+}
+
+.savegames-table th.sort-asc:before {
+    content: '⇩';  /* DOWNWARDS WHITE ARROW */
+    visibility: visible;
+}
+
+.savegames-table th.sort-desc:before {
+    content: '⇧';  /* UPWARDS WHITE ARROW */
+    visibility: visible;
 }
 
 .savegames-table td {

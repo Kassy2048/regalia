@@ -1,4 +1,4 @@
-﻿
+
 function ragscondition() {
     this.conditionname = "";
     this.PassCommands = [];

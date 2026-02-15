@@ -1,4 +1,4 @@
-﻿
+
 function PerformTextReplacements(text, loopobject, newvalue) {
     var bChangedSomething = true;
     while (bChangedSomething) {
@@ -857,7 +857,14 @@ function ReplaceStatic(text, tempindex, change, loopobject) {
             return TheGame.Player.Name;
         },
         '[INPUTDATA]', function () {
-            return CommandLists.lastAdditionalData();
+            const data = Globals.additionalData;
+            if(data instanceof ragsobject) {
+                return data.name;
+            } else if(data instanceof character) {
+                // XXX Can never happen? additionalData is either an object or a string.
+                return data.Charname;
+            }
+            return data;
         },
         '[MAXCARRY]', function () {
             return TheGame.Player.dWeightLimit;

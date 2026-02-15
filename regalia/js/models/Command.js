@@ -1,4 +1,4 @@
-﻿
+
 function command() {
     this.cmdtype = "CT_UNINITIALIZED";
     this.CommandName = "";

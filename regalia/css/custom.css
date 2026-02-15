@@ -200,7 +200,8 @@ body {
     text-overflow: ellipsis;
 }
 
-#RoomThumbImg.has-actions, #PlayerImg.has-actions {
+#RoomThumbImg.has-actions,
+#PlayerImg.has-actions:not([data-disabled]) {
     border: 2px solid var(--theme-green);
     cursor: pointer;
 }
@@ -266,6 +267,10 @@ body {
     display: none;
 }
 
+#textactionchoice:not(.cancellable) #textactioncancel {
+    display: none;
+}
+
 #cmdinputmenu {
     /* Show scrollbars if needed */
     max-height: 100%;
@@ -311,18 +316,23 @@ body {
     padding: 10px;
 }
 
-#inputchoices .inputchoices, #cmdinputchoices .inputchoices {
+#inputchoices .inputchoices,
+#cmdinputchoices .inputchoices,
+#genderchoiceSelect .genderchoiceSelect {
     cursor: pointer;
     padding: 5px 10px;
     margin: 3px;
 }
 
-#inputchoices .inputchoices:empty, #cmdinputchoices .inputchoices:empty {
+#inputchoices .inputchoices:empty, 
+#cmdinputchoices .inputchoices:empty {
     padding: 0;
     margin: 0;
 }
 
-#inputchoices .inputchoices:hover, #cmdinputchoices .inputchoices:hover {
+#inputchoices .inputchoices:hover,
+#cmdinputchoices .inputchoices:hover,
+#genderchoiceSelect .genderchoiceSelect:hover {
     background-color: var(--popup-bg-color);
     color: var(--main-text-color);
 }
@@ -343,6 +353,8 @@ body {
 
 .RoomObjects, .VisibleCharacters {
     padding: 2px;
+    white-space: nowrap;
+    overflow: visible;
 }
 
 .no-actions {
@@ -437,7 +449,7 @@ body {
 }
 
 .dark-mode .compass-direction.active {
-    background-color: rgba(128, 255, 128, 0.6);
+    background-color: rgba(0, 80, 0, 0.6);
 }
 
 .compass-direction.active:hover {
@@ -533,6 +545,10 @@ body {
 .dark-mode .freeze-button.frozen {
     /* No change, lightness is 50% */
     background-color: #00e7ff;
+}
+
+input.invalid-value {
+    background-color: salmon;
 }
 
 .live-timer-display {

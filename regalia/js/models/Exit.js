@@ -1,4 +1,4 @@
-﻿
+
 function exit() {
     this.Direction = "Empty";
     this.bActive = false;

@@ -17,10 +17,31 @@ var SavedGames = {
             return {};
         }
     },
-    getSortedSaves: function () {
-        var parsedIndex = this.getIndex();
+    getSortedSaves: function (field, ascending) {
+        if(field === undefined) field = 0;
+        ascending = !!ascending;
+
+        const parsedIndex = this.getIndex();
         return Object.keys(parsedIndex).sort(function (a, b) {
-            return parseInt(b, 10) - parseInt(a, 10);
+            let diff;
+            switch(field) {
+                default:
+                case 0:  // By index
+                    diff = parseInt(a, 10) - parseInt(b, 10);
+                    break;
+                case 1:  // By name
+                    const nameA = parsedIndex[a].name.toLocaleLowerCase();
+                    const nameB = parsedIndex[b].name.toLocaleLowerCase();
+                    diff = nameA.localeCompare(nameB);
+                    break;
+                case 2:  // By date
+                    const dateA = new Date(parsedIndex[a].date);
+                    const dateB = new Date(parsedIndex[b].date);
+                    diff = dateA - dateB;
+                    break;
+            }
+
+            return ascending ? diff : -diff;
         }).map(function (id) {
             return parsedIndex[id];
         });
@@ -112,6 +133,7 @@ var SavedGames = {
                 case 'Conditions':
                 case 'EnhInputData':
                 case 'cloneForDiff':  // function, do not compare
+                case '_owner':
                     return true;
             }
             return false;
@@ -137,6 +159,9 @@ var SavedGames = {
             $("#MainText").html(mainText);
             GameUI.setDarkMode(Settings.darkMode);
         }
+
+        // Reset lastScrollHeight
+        GameUI.lastScrollHeight = $('#MainText')[0].scrollHeight;
     },
 
     importRSV: async function(buffer) {
@@ -168,16 +193,16 @@ var SavedGames = {
             console.log(`Extracting data...`);
             $('.import-menu-status').html('Extracting RSV file...');
             // Let the HTML update
-            await new Promise(r => setTimeout(r, 0));
+            await waitAsync();
             let percent = -1;
-            root = parseNrbf(data, async (pos, size, step) => {
+            root = await parseNrbf(data, async (pos, size, step) => {
                 if(step > 0) --step;
                 const new_percent = Math.floor(pos * 90 / size + step * 5);
                 if(new_percent != percent) {
                     percent = new_percent;
                     $('.import-menu-status').text(`Extracting RSV file (${percent}%)`);
                     // Let the HTML update
-                    await new Promise(r => setTimeout(r, 0));
+                    await waitAsync();
                 }
             });
         } finally {

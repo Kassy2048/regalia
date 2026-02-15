@@ -52,7 +52,7 @@ const Settings = {
     },
 };
 
-Settings.addBoolSetting('historyEnabled', false);
+Settings.addBoolSetting('historyEnabled', true);
 Settings.addIntSetting('historySize', 100);
 
 Settings.addIntSetting('musicVolume', 100);
@@ -62,3 +62,6 @@ Settings.addBoolSetting('debugEnabled', false);
 
 Settings.addBoolSetting('darkMode', window.matchMedia &&
         window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+Settings.addIntSetting('saveSortField', 0);
+Settings.addBoolSetting('saveSortAsc', false);

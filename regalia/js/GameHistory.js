@@ -52,7 +52,7 @@ const GameHistory = {
         this._saveOldInfo(gameData);
     },
 
-    popState: function() {
+    popStateAsync: async function() {
         if(!this.canGoBack()) return false;
 
         const state = this.states.pop();
@@ -67,6 +67,17 @@ const GameHistory = {
             }
         }
 
+        // Revert changes that happened after last push (because of timers)
+        if(this.oldGameData !== null) {
+            const gameData = GameCloneForDiff(TheGame);
+            const newChanges = DeepDiff.diff(gameData, this.oldGameData);
+            if(newChanges !== undefined) {
+                orderChanges(newChanges).forEach((change) => {
+                    DeepDiff.applyChange(TheGame, true, change);
+                });
+            }
+        }
+
         // Revert state changed
         if(state.gameChanges !== undefined) {
             // gameChanges can be undefined if only text changed
@@ -75,7 +86,12 @@ const GameHistory = {
             });
         }
 
-        RoomChange(false, false, true);
+        // Clear end game if set
+        Globals.endGame = false;
+        // Reset lastScrollHeight
+        GameUI.lastScrollHeight = $('#MainText')[0].scrollHeight;
+
+        await RoomChangeAsync(false, false, true);
         // Restore current media
         if(state.currentImage !== undefined) {
             // This must be done after the call to RoomChange() because it changes the image
@@ -90,8 +106,7 @@ const GameHistory = {
         $("#selectionmenu").css("visibility", "hidden");
         $("#genderchoice").css("visibility", "hidden");
         $("#cmdinputmenu").css("visibility", "hidden");
-        $("#Continue").css("background-color", "rgb(128, 128, 128)");
-        $("#Continue").css('visibility', "hidden");
+        $("#Continue").prop("disabled", true);
         GameUI.showGameElements();
 
         this._saveOldInfo();
