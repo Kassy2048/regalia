@@ -44,8 +44,8 @@ $(document).ready(function () {
     };
 
     var originalSetCustomProperty = SetCustomProperty;
-    SetCustomProperty = function (curprop, part3, replacedstring) {
-        if (isFrozenPlayerProperty(curprop)) {
+    SetCustomProperty = function (curprop, part3, replacedstring, owner) {
+        if (owner === TheGame.Player && isFrozenPlayerProperty(curprop)) {
             return;
         }
         return originalSetCustomProperty.apply(this, arguments);

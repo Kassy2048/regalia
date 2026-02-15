@@ -943,7 +943,7 @@ function SetCommandInput(tempcommand, value) {
     }
 }
 
-function SetCustomProperty(curprop, part3, replacedstring) {
+function SetCustomProperty(curprop, part3, replacedstring, owner) {
     var bInteger = true;
     var iReplacedString = parseFloat(replacedstring);
     var iPropVal = parseFloat(curprop.Value);

@@ -841,7 +841,7 @@ var GameCommands = {
                                         temp = evalJankyJavascript(replacedstring);
                                         replacedstring = temp.toString();
                                     }
-                                    SetCustomProperty(curprop, part3, replacedstring);
+                                    SetCustomProperty(curprop, part3, replacedstring, temproom);
                                 }
                             }
                         }
@@ -868,7 +868,7 @@ var GameCommands = {
                                         temp = evalJankyJavascript(replacedstring);
                                         replacedstring = temp.toString();
                                     }
-                                    SetCustomProperty(curprop, part3, replacedstring);
+                                    SetCustomProperty(curprop, part3, replacedstring, temproom);
                                 }
                             }
                         }
@@ -895,7 +895,7 @@ var GameCommands = {
                                         temp = evalJankyJavascript(replacedstring);
                                         replacedstring = temp.toString();
                                     }
-                                    SetCustomProperty(curprop, part3, replacedstring);
+                                    SetCustomProperty(curprop, part3, replacedstring, temproom);
                                 }
                             }
                         }
@@ -928,7 +928,7 @@ var GameCommands = {
                                         temp = evalJankyJavascript(replacedstring);
                                         replacedstring = temp.toString();
                                     }
-                                    SetCustomProperty(curprop, part3, replacedstring);
+                                    SetCustomProperty(curprop, part3, replacedstring, tempitem);
                                 }
                             }
                         }
@@ -955,7 +955,7 @@ var GameCommands = {
                                         temp = evalJankyJavascript(replacedstring);
                                         replacedstring = temp.toString();
                                     }
-                                    SetCustomProperty(curprop, part3, replacedstring);
+                                    SetCustomProperty(curprop, part3, replacedstring, temproom);
                                 }
                             }
                         }
@@ -976,7 +976,7 @@ var GameCommands = {
                                 temp = evalJankyJavascript(replacedstring);
                                 replacedstring = temp.toString();
                             }
-                            SetCustomProperty(curprop, part3, replacedstring);
+                            SetCustomProperty(curprop, part3, replacedstring, TheGame.Player);
                         }
                     }
                 }
