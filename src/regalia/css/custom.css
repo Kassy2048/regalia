@@ -547,6 +547,10 @@ body {
     background-color: #00e7ff;
 }
 
+input.invalid-value {
+    background-color: salmon;
+}
+
 .live-timer-display {
     background-color: var(--main-bg-color);
     z-index: 1;

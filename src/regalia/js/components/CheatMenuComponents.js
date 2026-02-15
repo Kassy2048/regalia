@@ -3,19 +3,70 @@ function valueForVariable(variable) {
         return variable.dNumType;
     } else if (variable.vartype === "VT_STRING") {
         return variable.sString;
+    } else if (variable.vartype === "VT_NUMBERARRAY") {
+        return JSON.stringify(variable.VarArray);
+    } else if (variable.vartype === "VT_STRINGARRAY") {
+        return JSON.stringify(variable.VarArray);
+    }
+}
+
+function textForVariable(variable) {
+    if (variable.vartype === "VT_NUMBER") {
+        return {value: "" + variable.dNumType, valid: true}
+    } else if (variable.vartype === "VT_STRING") {
+        return {value: variable.sString, valid: true}
+    } else if (variable.vartype === "VT_NUMBERARRAY" || variable.vartype === "VT_STRINGARRAY") {
+        const text = [];
+        for(const item of variable.VarArray) {
+            text.push({value: JSON.stringify(item), valid: true});
+        }
+        return text;
     }
 }
 
 function setValueForVariable(variable, value, index) {
-    if (variable.vartype === "VT_NUMBER") {
-        variable.dNumType = parseFloat(value);
-    } else if (variable.vartype === "VT_STRING") {
-        variable.sString = value;
-    } else if (variable.vartype === "VT_NUMBERARRAY") {
-        variable.VarArray[index] = parseFloat(value);
-    } else if (variable.vartype === "VT_STRINGARRAY") {
-        variable.VarArray[index] = value;
+    if(value.trim().length == 0) return false;
+
+    try {
+        if (variable.vartype === "VT_NUMBER") {
+            const result = parseFloat(value)
+            if(isNaN(result)) return false;
+            variable.dNumType = result;
+        } else if (variable.vartype === "VT_STRING") {
+            variable.sString = value;
+        } else if (variable.vartype === "VT_NUMBERARRAY") {
+            if(Array.isArray(variable.VarArray[index])) {
+                const result = JSON.parse(value);
+                // Make sure this is an array of numbers
+                if(!Array.isArray(result)) return false;
+                if(result.find(v => typeof v !== "number") !== undefined) {
+                    return false;
+                }
+                variable.VarArray[index] = result;
+            } else {
+                variable.VarArray[index] = parseFloat(value);
+            }
+        } else if (variable.vartype === "VT_STRINGARRAY") {
+            if(Array.isArray(variable.VarArray[index])) {
+                const result = JSON.parse(value);
+                // Make sure this is an array of strings
+                if(!Array.isArray(result)) return false;
+                if(result.find(v => typeof v !== "string") !== undefined) {
+                    return false;
+                }
+                variable.VarArray[index] = result;
+            } else {
+                variable.VarArray[index] = value;
+            }
+        } else {
+            return false;
+        }
+    } catch(err) {
+        console.warn(err);
+        return false;
     }
+
+    return true;
 }
 
 function variableScalar(variable) {
@@ -85,6 +136,7 @@ class GameVariable extends React.Component {
         super(props);
         this.state = {
             value: valueForVariable(this.props.variable),
+            text: textForVariable(_this3.props.variable),
             frozen: isFrozenVariable(this.props.variable)
         };
 
@@ -116,8 +168,21 @@ class GameVariable extends React.Component {
     inputChanged(index) {
         return (e) => {
             const variable = this.props.variable;
-            setValueForVariable(variable, e.target.value, index);
-            this.setState({value: valueForVariable(variable)});
+            if(setValueForVariable(variable, e.target.value, index)) {
+                this.setState({
+                    value: valueForVariable(variable),
+                    text: textForVariable(variable),
+                });
+            } else {
+                // Do not erase whatever the user is writing
+                if(index !== undefined) {
+                    const text = textForVariable(variable);
+                    text[index] = {value: e.target.value, valid: false};
+                    this.setState({ text });
+                } else {
+                    this.setState({ text: {value: e.target.value, valid: false} });
+                }
+            }
         };
     }
 
@@ -126,13 +191,17 @@ class GameVariable extends React.Component {
         let value;
         if (variableScalar(variable)) {
             value = (
-                <input onChange={this.inputChanged()} value={this.state.value} />
+                <input onChange={this.inputChanged()}
+                    value={this.state.text.value}
+                    class={this.state.text.valid ? '' : 'invalid-value'}/>
             );
         } else if (variableArray(variable)) {
             value = variable.VarArray.map((arrayItem, index) => {
                 return (
                     <div>
-                        {index}: <input onChange={this.inputChanged(index)} value={arrayItem} />
+                        {index}: <input onChange={this.inputChanged(index)}
+                            value={this.state.text[index].value}
+                            class={this.state.text[index].valid ? '' : 'invalid-value'}/>
                     </div>
                 );
             });
@@ -164,7 +233,9 @@ class GameCustomProperties extends React.Component {
     }
 
     render() {
+        let totalCount = 0;
         const tableRows = this.props.properties.filter((property) => {
+            ++totalCount;
             if (this.props.filter) {
                 return property.Name.toLowerCase().includes(this.props.filter.toLowerCase());
             } else {
@@ -175,7 +246,7 @@ class GameCustomProperties extends React.Component {
         });
 
         if (tableRows.length === 0) {
-            if (TheGame.Player.CustomProperties.length === 0) {
+            if (totalCount === 0) {
                 return null;
             } else {
                 return (
