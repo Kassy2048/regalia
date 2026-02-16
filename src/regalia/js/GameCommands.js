@@ -1176,7 +1176,9 @@ var GameCommands = {
                 var tempobj = null;
                 var actionlist = null;
                 if (part2 == SelfObjectGuid) {
-                    actionlist = Globals.curActions;
+                    if (Globals.objectBeingActedUpon != undefined) {
+                        actionlist = Globals.objectBeingActedUpon.Actions;
+                    }
                 } else {
                     tempobj = Finder.object(part2);
                     if (tempobj) {

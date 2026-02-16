@@ -32,9 +32,11 @@ var GameActions = {
     processActionAsync: async function(action, bTimer, objectBeingActedUpon) {
         var act = null;
 
-        if (getObjectClass(action) == "action" || action.actionparent != null) //"actionparent" in action)
+        if (getObjectClass(action) == "action" || action.actionparent != null)
             act = action;
-        else {
+        else {  // "action" is an action name
+            // FIXME Use objectBeingActedUpon.Actions instead of Globals.curActions (and get
+            //       rid of curActions)?
             for (var i = 0; i < Globals.curActions.length; i++) {
                 if (Globals.curActions[i].name == action) {
                     act = Globals.curActions[i];
